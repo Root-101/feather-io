@@ -55,7 +55,8 @@ extension ExtendedEnv on Env {
   }
 
   /// Proxies of your own in front of the service that add their entry to
-  /// `X-Forwarded-For`; with 0 (the default) the connection's IP is used.
+  /// `X-Forwarded-For` (`ServerConfig.trustedProxies`); with 0 (the default)
+  /// the connection's IP is used.
   int get trustedProxies => find<int>('TRUSTED_PROXIES') ?? 0;
 
   /// Requests per IP in each [rateLimitWindowSeconds] window (general limit);

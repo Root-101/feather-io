@@ -62,13 +62,16 @@ tens of thousands of objects.
 - [x] Merge the branches: `feature/poc` into `develop`, and `develop` into `main`.
 - [x] Set the version as release candidate 1, `1.0.0-rc.1`: the same in both `pubspec.yaml`, both
   changelogs and the Docker image tags, and the `v1.0.0-rc.1` tag on `main`.
-- [ ] A Railway template: the service (with its volume at `/data`) and the console, with the
+- [x] A Railway template: the service (with its volume at `/data`) and the console, with the
   variables of `.env.example`.
 
 ## After 1.0 (future improvements)
 
-- Redesign the login screen to feature the dot grid in the background and incorporate the visual
+- [ ] Redesign the login screen to feature the dot grid in the background and incorporate the visual
   identity (Logo, phrases, tags...).
+- [x] Upgrade to Winter `1.0.0-rc.3`: its complete Problem Details (RFC 9457, with `instance`),
+  `TrustedProxies`, the `RateLimit` headers, `application/health+json` and conditional `GET`s
+  (`304`/`412`); what is left out on purpose is in `DECISIONS.md` §12.
 - [ ] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).
 - [ ] A promo video with real screenshots of the design.

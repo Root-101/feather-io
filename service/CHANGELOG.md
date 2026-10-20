@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0-rc.5 (2026-10-19)
+
+- Winter `1.0.0-rc.3`. JSON errors carry the `instance` (the path of the request) of RFC 9457, and
+  `422` is titled `Unprocessable Content` (RFC 9110).
+- The rate limit headers follow the IETF draft: `RateLimit-Policy` and `RateLimit` replace
+  `X-RateLimit-*`.
+- `GET /{admin}/health` answers `application/health+json`: `"status": "pass"`/`"fail"`, with a list
+  per check (it was `UP`/`DOWN`). Update the probes that read the body; the status codes don't change.
+- GetObject honours the conditional headers: `If-None-Match`/`If-Modified-Since` give `304`, a
+  failed `If-Match`/`If-Unmodified-Since` gives `412 PreconditionFailed`.
+- `TRUSTED_PROXIES` also takes the public scheme of the request from `X-Forwarded-Proto` (presigned
+  URLs without `PUBLIC_URL`), and an IPv6 client counts by its /64 in the rate limits.
+
 ## 1.0.0-rc.4 (2026-10-15)
 
 - No changes; released with the console's fix of the SVG preview.

@@ -109,6 +109,21 @@ class ObjectController {
       stat: stat,
     );
 
+    // If-Match and If-Unmodified-Since that fail are a 412, as in S3
+    // (If-None-Match and If-Modified-Since a 304, which Winter sends by itself)
+    try {
+      request.checkPreconditions(
+        etag: '"${meta.etag}"',
+        lastModified: stat.modified,
+      );
+    } on PreconditionFailedException {
+      throw S3Exception(
+        S3ErrorCode.preconditionFailed,
+        message: intl.errors.s3.preconditionFailed(key: key),
+        resource: key,
+      );
+    }
+
     // Without a stored Content-Type, the extension's
     final headers = {
       'content-type':

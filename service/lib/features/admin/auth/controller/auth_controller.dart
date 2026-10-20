@@ -9,9 +9,9 @@ class AuthController {
   AuthController() : jwtService = di.find(), rateLimiter = di.find();
 
   Future<ResponseEntity> login(RequestEntity request) async {
-    // Per IP; behind your own proxies, see TRUSTED_PROXIES
-    final client =
-        request.clientIp(trustedProxies: env.trustedProxies) ?? 'unknown';
+    // Per IP (an IPv6 by its /64), as the general limit; behind your own
+    // proxies, see TRUSTED_PROXIES
+    final client = defaultClientId(request);
     final locked = rateLimiter.lockedFor(client);
     if (locked != null) {
       throw TooManyRequestsException(

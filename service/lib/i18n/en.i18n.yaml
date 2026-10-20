@@ -14,6 +14,7 @@ errors:
     bucketNotEmpty: 'The bucket "{bucket: String}" is not empty and cannot be deleted.'
     invalidKey: 'The key "{key: String}" is not valid or contains forbidden characters.'
     noSuchKey: 'The key "{key: String}" does not exist.'
+    preconditionFailed: 'The object "{key: String}" does not meet the conditions of the request.'
     unsupportedSubresource: 'The subresource "{subresource: String}" is not implemented.'
     invalidStorageClass: 'The storage class "{value: String}" is not valid.'
     maxKeysNotInteger: 'max-keys must be an integer.'

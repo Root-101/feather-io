@@ -10,14 +10,14 @@ behind each number. When a decision changes, update it here.
 minutes** (`LOGIN_LOCK_SECONDS`, `429` with `Retry-After`), even if it then sends the right
 credentials. A success clears the count, and failures older than 15 minutes stop counting.
 
-| Decision                                                                                               | Why                                                                                                                                                                    |
-|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A 1 s delay per failure                                                                                | Costs nothing to a person who mistypes and limits brute force to ~1 attempt per second and connection                                                                  |
-| A lock after 10 failures                                                                               | Stops parallel attacks, which the delay alone does not                                                                                                                 |
-| The lock holds even with the right credentials                                                         | Otherwise an attacker would just wait for it to end and keep trying                                                                                                    |
-| Only failures count, not every request                                                                 | A legitimate user who logs in often must never be locked (that's why Winter's general limiter isn't used here)                                                         |
-| Constant-time comparison                                                                               | With `!=` the response time leaks how many characters match                                                                                                            |
-| The IP is `request.clientIp(trustedProxies: TRUSTED_PROXIES)`; `X-Forwarded-For` is ignored by default | Any client can send that header with a fake IP. Behind your own proxies, declare how many there are, or every client shares the proxy's IP and one lock locks them all |
+| Decision                                                                                                                                        | Why                                                                                                                                                                                                                                  |
+|-------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| A 1 s delay per failure                                                                                                                         | Costs nothing to a person who mistypes and limits brute force to ~1 attempt per second and connection                                                                                                                                |
+| A lock after 10 failures                                                                                                                        | Stops parallel attacks, which the delay alone does not                                                                                                                                                                               |
+| The lock holds even with the right credentials                                                                                                  | Otherwise an attacker would just wait for it to end and keep trying                                                                                                                                                                  |
+| Only failures count, not every request                                                                                                          | A legitimate user who logs in often must never be locked (that's why Winter's general limiter isn't used here)                                                                                                                       |
+| Constant-time comparison                                                                                                                        | With `!=` the response time leaks how many characters match                                                                                                                                                                          |
+| The IP is `request.clientIp` (`ServerConfig.trustedProxies` from `TRUSTED_PROXIES`), an IPv6 by its /64; `X-Forwarded-*` are ignored by default | Any client can send those headers with a fake IP, and an IPv6 host usually has a whole /64 to rotate through. Behind your own proxies, declare how many there are, or every client shares the proxy's IP and one lock locks them all |
 
 Limitations: the count lives in memory (per instance, cleared on restart), and a token already
 issued stays valid during a lock (12 h).
@@ -27,7 +27,8 @@ issued stays valid during a lock (12 h).
 Winter's `RateLimiterFilter` is the **first global filter**: at most **2000 requests per IP every
 60 s** (`RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS`; `0` disables it), with the IP computed
 as for the login. Above it the **S3 API answers `503 SlowDown`** (the S3 `<Error>`) and the **admin
-API `429`**, both with `Retry-After`; every response carries `X-RateLimit-*`.
+API `429`**, both with `Retry-After`; every response carries `RateLimit-Policy` and `RateLimit`
+(IETF draft *RateLimit header fields for HTTP*).
 
 | Decision                                     | Why                                                                                                                                                        |
 |----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -123,6 +124,7 @@ default.
 | On the S3 API a 413 is `EntityTooLarge` and a 429 `SlowDown`, as the S3 `<Error>`                                                     | S3 clients parse the XML and decide on its code                                                                       |
 | The S3 `<Error>` carries `<RequestId>`, the id of the logs                                                                            | A client can report it and the log lines are found by it                                                              |
 | An unexpected error is logged and answered with a fixed message, never its text                                                       | It can reveal paths and the implementation                                                                            |
+| The `instance` is Winter's: the path of the request, never its query                                                                  | The query of a presigned URL holds its signature                                                                      |
 
 ## 9. OpenAPI of the admin API
 
@@ -149,3 +151,17 @@ default.
 | What it gives up                                                                    | A crash of the process loses nothing; a power loss may lose the last writes, never corrupt the database. A lost row is rebuilt on the next read (the ETag from the file), so at worst the headers stored with those objects are lost                   |
 | Two more files next to it (`-wal`, `-shm`)                                          | They are part of the database: back up the three with the service stopped, or use SQLite's own backup (`service/README.md`)                                                                                                                            |
 | SQLite is bundled by the `sqlite3` package (build hooks), not taken from the system | The same SQLite on every platform, and nothing to install in the `scratch` image                                                                                                                                                                       |
+
+## 12. Winter features not used
+
+Winter `1.0.0-rc.3` brought several HTTP standards. The service takes the ones that come by
+themselves (`instance` in errors, `RateLimit` headers, `application/health+json`, trace context in
+the logs, `304` on a conditional `GET`) plus `TrustedProxies` and `checkPreconditions` on
+GetObject; the rest is left out on purpose.
+
+| Feature                                            | Why not                                                                                                                                                        |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `IdempotencyFilter` (`Idempotency-Key`)            | S3 clients don't send it; their retries are already safe (a PUT replaces the object, a DELETE of a missing key is a 204). The console's POSTs are user actions |
+| `checkPreconditions` on writes (`If-Match` on PUT) | S3's conditional writes are a late addition no client of the tests uses; CopyObject already checks its `x-amz-copy-source-if-*`                                |
+| `DeprecationFilter`, `WebLink`, `Prefer`           | No route is deprecated, S3 pages with its own tokens, and no client asks for `Prefer`                                                                          |
+

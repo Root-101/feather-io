@@ -34,7 +34,8 @@ Dates are ISO 8601 in UTC (`2026-10-11T02:37:29.000Z`), JSON keys `snake_case`.
 
 Every JSON error is a Problem Details (RFC 9457, `application/problem+json`). Errors of the service
 add the S3 error `code`, which clients decide on, and the `resource` it refers to. The `detail` is
-in English, or in Spanish with `Accept-Language: es`.
+in English, or in Spanish with `Accept-Language: es`, and the `instance` is the path of the request
+(never its query).
 
 ```json
 {
@@ -43,7 +44,8 @@ in English, or in Spanish with `Accept-Language: es`.
   "type": "about:blank",
   "title": "Not Found",
   "status": 404,
-  "detail": "The key \"missing.txt\" does not exist."
+  "detail": "The key \"missing.txt\" does not exist.",
+  "instance": "/photos/missing.txt"
 }
 ```
 
@@ -64,7 +66,7 @@ A body that can't be read is a `400` naming the field, and one that breaks a rul
 `violations` (the console shows each one under its field):
 
 ```json
-{"type": "about:blank", "title": "Bad Request", "status": 400, "detail": "$.name: expected a string, got an integer"}
+{"type": "about:blank", "title": "Bad Request", "status": 400, "detail": "$.access: expected a string, got an integer", "instance": "/_admin/login"}
 ```
 
 ```json
@@ -73,13 +75,17 @@ A body that can't be read is a `400` naming the field, and one that breaks a rul
     {"fieldName": "prefix", "message": "The minimum is 1", "code": "size.min", "params": {"value": 1}}
   ],
   "type": "about:blank",
-  "title": "Unprocessable Entity",
-  "status": 422
+  "title": "Unprocessable Content",
+  "status": 422,
+  "instance": "/_admin/bucket/photos/anonymous-access"
 }
 ```
 
 Other common answers: `401` without credentials, `403` without the permission, `429` (admin) or
-`503 SlowDown` (S3) above the rate limit, both with `Retry-After`.
+`503 SlowDown` (S3) above the rate limit, both with `Retry-After`. Every response carries the
+rate limit headers of the IETF draft (`RateLimit-Policy: "default";q=2000;w=60`, the limit and its
+window in seconds, and `RateLimit: "default";r=1998;t=60`, the requests left and the seconds until
+the window frees one).
 
 ---
 
@@ -92,10 +98,11 @@ GET /_admin/health
 ```
 
 ```json
-{"status": "UP", "checks": {"database": "UP", "storage": "UP"}}
+{"status": "pass", "checks": {"database": [{"status": "pass"}], "storage": [{"status": "pass"}]}}
 ```
 
-`503` with `"status": "DOWN"` when the database or the volume fail. Public and never cached; for the
+`application/health+json` (the format of monitors and gateways); `503` with `"status": "fail"`
+when the database or the volume fail. Public and never cached; for the
 probes of an orchestrator or a load balancer.
 
 ## Log in
@@ -403,7 +410,7 @@ The body is optional (S3 clients send none, or an XML `CreateBucketConfiguration
 the S3 rules; otherwise:
 
 ```json
-{"code": "InvalidBucketName", "resource": "Bad_Name", "type": "about:blank", "title": "Bad Request", "status": 400, "detail": "The bucket name \"Bad_Name\" is not valid."}
+{"code": "InvalidBucketName", "resource": "Bad_Name", "type": "about:blank", "title": "Bad Request", "status": 400, "detail": "The bucket name \"Bad_Name\" is not valid.", "instance": "/Bad_Name"}
 ```
 
 ### Delete a bucket
@@ -488,7 +495,9 @@ Content-Range: bytes 0-1/6
 Content-Length: 2
 ```
 
-Without `Range`, `200` with the whole object. `HEAD` gives only the headers (what the details of the
+Without `Range`, `200` with the whole object. With `If-None-Match` (the `ETag`) or
+`If-Modified-Since` the client already has, `304 Not Modified`; a failed `If-Match` or
+`If-Unmodified-Since` is `412 PreconditionFailed`. `HEAD` gives only the headers (what the details of the
 console show):
 
 ```http

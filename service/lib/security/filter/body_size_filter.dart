@@ -40,7 +40,7 @@ class BodySizeFilter extends Filter {
         );
       }
     } else if (length != null && length > maxRequestBodySize) {
-      throw const PayloadTooLargeException();
+      throw const ContentTooLargeException();
     } else if (length == null && _bodyMethods.contains(request.method)) {
       // Without a size it can't be limited before reading, so it is cut while
       // reading (413). That lets an empty body without the header through, like
@@ -62,7 +62,7 @@ class BodySizeFilter extends Filter {
     var read = 0;
     await for (final chunk in body) {
       read += chunk.length;
-      if (read > maxBytes) throw const PayloadTooLargeException();
+      if (read > maxBytes) throw const ContentTooLargeException();
       yield chunk;
     }
   }
