@@ -111,7 +111,7 @@ document and `GET /{ADMIN_PREFIX}/docs` opens it in Swagger UI (log in with `/lo
 
 ```json
 {"code": "NoSuchBucket", "resource": "photos", "type": "about:blank", "title": "Not Found",
- "status": 404, "detail": "The bucket \"photos\" does not exist."}
+ "status": 404, "detail": "The bucket \"photos\" does not exist.", "instance": "/_admin/bucket/photos"}
 ```
 
 ### Access keys
@@ -149,7 +149,7 @@ Environment variables of the service.
 | `LOGIN_MAX_FAILURES`        |    No    |        `10`        | Failed logins in a row that lock an IP.                                                                                                                                                 |
 | `LOGIN_LOCK_SECONDS`        |    No    |       `900`        | Seconds an IP stays locked (answers `429` with `Retry-After`).                                                                                                                          |
 | `LOGIN_FAILURE_DELAY_MS`    |    No    |       `1000`       | Delay before answering each failed login.                                                                                                                                               |
-| `TRUSTED_PROXIES`           |    No    |        `0`         | Own proxies in front of the service; with 0 the connection IP is used and `X-Forwarded-For` is ignored.                                                                                 |
+| `TRUSTED_PROXIES`           |    No    |        `0`         | Own proxies in front of the service; with 0 the connection IP is used and `X-Forwarded-*` are ignored.                                                                                  |
 | `LOG_FORMAT`                |    No    |         -          | `json` writes one JSON object per line (for a log collector); otherwise readable lines.                                                                                                 |
 | `LOG_LEVEL`                 |    No    |       `info`       | `debug`, `info`, `warning` or `error`.                                                                                                                                                  |
 
@@ -174,10 +174,11 @@ live there, so they survive the container.
 
 `GET /{ADMIN_PREFIX}/health` (public, never cached) answers `200` while the service can serve
 requests and `503` when the database or the volume fail (it writes and deletes a small file in
-it). For the readiness and liveness probes of the orchestrator or the checks of a load balancer:
+it). For the readiness and liveness probes of the orchestrator or the checks of a load balancer,
+as `application/health+json` (`"status": "fail"` on a `503`):
 
 ```json
-{"status": "UP", "checks": {"database": "UP", "storage": "UP"}}
+{"status": "pass", "checks": {"database": [{"status": "pass"}], "storage": [{"status": "pass"}]}}
 ```
 
 The image is `scratch`, without a shell or `curl`, so it has no Docker `HEALTHCHECK`: the

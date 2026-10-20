@@ -272,4 +272,34 @@ void main() {
       expect(response.headers['content-type'], contains('text/plain'));
     });
   });
+
+  group('S3Controller - GET Object (conditional requests)', () {
+    Future<http.Response> getIf(Map<String, String> conditions) => http.get(
+      server.url('/$bucket/test.txt'),
+      headers: {...server.auth(), ...conditions},
+    );
+    final etag = '"${md5Of('content')}"';
+    final future = HttpDate.format(DateTime.now().add(const Duration(days: 1)));
+    final past = HttpDate.format(DateTime.utc(2000));
+
+    test('Should answer 304 when the client has the version', () async {
+      expect((await getIf({'if-none-match': etag})).statusCode, 304);
+      expect((await getIf({'if-modified-since': future})).statusCode, 304);
+      expect((await getIf({'if-none-match': '"other"'})).statusCode, 200);
+      expect((await getIf({'if-modified-since': past})).statusCode, 200);
+    });
+
+    test('Should answer 412 PreconditionFailed when a condition fails', () async {
+      final response = await getIf({'if-match': '"other"'});
+      expect(response.statusCode, 412);
+      expect(response.body, contains('<Code>PreconditionFailed</Code>'));
+      expect((await getIf({'if-unmodified-since': past})).statusCode, 412);
+    });
+
+    test('Should serve the object when the conditions hold', () async {
+      final response = await getIf({'if-match': etag, 'if-unmodified-since': future});
+      expect(response.statusCode, 200);
+      expect(response.body, 'content');
+    });
+  });
 }

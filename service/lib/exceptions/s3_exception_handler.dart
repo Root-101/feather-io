@@ -9,7 +9,7 @@ import 'package:service/feather.dart';
 /// - The 429 of the general rate limit ([RateLimiterFilter]) is `503 SlowDown`
 ///   on the S3 API, which S3 clients retry with backoff (the AWS CLI doesn't
 ///   retry a 429 and the file fails), and a translated 429 on the admin API.
-///   Both keep `Retry-After` and `X-RateLimit-*`.
+///   Both keep `Retry-After` and the `RateLimit` headers.
 class S3ExceptionHandler extends SimpleExceptionHandler {
   final String adminPrefix = env.adminPrefix;
 
@@ -22,7 +22,7 @@ class S3ExceptionHandler extends SimpleExceptionHandler {
     final admin = _isAdmin(request);
 
     var answered = error;
-    if (error is PayloadTooLargeException && !admin) {
+    if (error is ContentTooLargeException && !admin) {
       // A body over the limit while it was read (without Content-Length)
       answered = S3Exception(
         S3ErrorCode.entityTooLarge,

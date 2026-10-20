@@ -121,6 +121,9 @@ class ServiceMessages$errors$s3$es implements ServiceMessages$errors$s3$en {
   @override
   String noSuchKey({required Object key}) => 'La key "${key}" no existe.';
   @override
+  String preconditionFailed({required Object key}) =>
+      'El objeto "${key}" no cumple las condiciones de la petición.';
+  @override
   String unsupportedSubresource({required Object subresource}) =>
       'El subrecurso "${subresource}" no está implementado.';
   @override
@@ -370,6 +373,9 @@ extension on ServiceMessagesEs {
       'errors.s3.noSuchKey' => ({
         required Object key,
       }) => 'La key "${key}" no existe.',
+      'errors.s3.preconditionFailed' => ({
+        required Object key,
+      }) => 'El objeto "${key}" no cumple las condiciones de la petición.',
       'errors.s3.unsupportedSubresource' => ({
         required Object subresource,
       }) => 'El subrecurso "${subresource}" no está implementado.',

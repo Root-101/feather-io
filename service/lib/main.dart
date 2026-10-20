@@ -97,7 +97,15 @@ class FeatherIO {
     await Winter.start(
       // The global limit is an object's, which goes to disk as a stream;
       // BodySizeFilter narrows it for every other request
-      config: ServerConfig(port: port, maxBodySize: env.maxObjectSize),
+      config: ServerConfig(
+        port: port,
+        maxBodySize: env.maxObjectSize,
+        // Behind your own proxies, clientIp and the scheme of requestedUri
+        // come from their X-Forwarded-* (ignored without them)
+        trustedProxies: env.trustedProxies > 0
+            ? TrustedProxies(env.trustedProxies)
+            : null,
+      ),
       globalFilterConfig: FilterConfig([
         // First: stops a flood before reading bodies or checking signatures
         // (503 SlowDown on S3, 429 on admin: see S3ExceptionHandler)
@@ -105,10 +113,6 @@ class FeatherIO {
           RateLimiterFilter(
             maxRequests: env.rateLimitRequests,
             window: Duration(seconds: env.rateLimitWindowSeconds),
-            // Per IP; behind your own proxies, see TRUSTED_PROXIES
-            clientId: (request) =>
-                request.clientIp(trustedProxies: env.trustedProxies) ??
-                'unknown',
           ),
         // Method, path, status and time of every request (never the query,
         // which holds the signature of a presigned URL)

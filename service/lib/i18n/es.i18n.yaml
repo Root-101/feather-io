@@ -10,6 +10,7 @@ errors:
     bucketNotEmpty: 'El bucket "{bucket}" no está vacío y no se puede eliminar.'
     invalidKey: 'La key "{key}" no es válida o contiene caracteres no permitidos.'
     noSuchKey: 'La key "{key}" no existe.'
+    preconditionFailed: 'El objeto "{key}" no cumple las condiciones de la petición.'
     unsupportedSubresource: 'El subrecurso "{subresource}" no está implementado.'
     invalidStorageClass: 'La clase de almacenamiento "{value}" no es válida.'
     maxKeysNotInteger: 'max-keys debe ser un número entero.'

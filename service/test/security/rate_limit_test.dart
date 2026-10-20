@@ -28,8 +28,9 @@ void main() {
       await newWindow();
       final response = await http.get(server.url('/'), headers: server.auth());
       expect(response.statusCode, 200);
-      expect(response.headers['x-ratelimit-limit'], '5');
-      expect(response.headers['x-ratelimit-remaining'], '4');
+      // IETF draft RateLimit header fields: q = limit, r = remaining
+      expect(response.headers['ratelimit-policy'], startsWith('"default";q=5;w='));
+      expect(response.headers['ratelimit'], startsWith('"default";r=4;t='));
     });
 
     test('Should answer 503 SlowDown on the S3 API, like S3', () async {
@@ -46,7 +47,7 @@ void main() {
       expect(limited.headers['content-type'], contains('application/xml'));
       expect(limited.body, contains('<Code>SlowDown</Code>'));
       expect(int.parse(limited.headers['retry-after']!), inInclusiveRange(1, 2));
-      expect(limited.headers['x-ratelimit-remaining'], '0');
+      expect(limited.headers['ratelimit'], startsWith('"default";r=0;t='));
 
       final json = await http.get(server.url('/'), headers: server.auth(json: true));
       expect(json.statusCode, 503);

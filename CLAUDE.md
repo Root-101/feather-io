@@ -7,7 +7,7 @@ repository. It is the single source of truth for project rules.
 
 Monorepo for a lightweight S3-compatible storage system:
 
-- `service/` — Dart backend built on **Winter** `1.0.0-rc.1` (from pub.dev; its source is also at
+- `service/` — Dart backend built on **Winter** `1.0.0-rc.3` (from pub.dev; its source is also at
   `../winter`, a sibling of this repo). Its guides (`doc/`), examples (`example/`, the apps
   `auth_jwt` and `production` are the closest to this service) and `DECISIONS.md` are the
   reference; read its source when an API is unclear.
@@ -143,15 +143,16 @@ file.
   live forever. Login is rate limited per client IP by `LoginRateLimiter` (in DI): every failure
   waits `LOGIN_FAILURE_DELAY_MS` (1 s) and `LOGIN_MAX_FAILURES` (10) failures in a row lock the IP
   for `LOGIN_LOCK_SECONDS` (15 min, `429` + `Retry-After`, even with good credentials); a success
-  clears it. The IP is `request.clientIp(trustedProxies: TRUSTED_PROXIES)`, so `X-Forwarded-For`
-  is ignored unless proxies are declared. Credentials are compared in constant time. That endpoint
+  clears it. The IP is `request.clientIp` (an IPv6 by its /64, `defaultClientId`), and
+  `TRUSTED_PROXIES` becomes Winter's `ServerConfig.trustedProxies`, so `X-Forwarded-*` are ignored
+  unless proxies are declared. Credentials are compared in constant time. That endpoint
   checks `FEATHER_ACCESS`/`FEATHER_SECRET` and issues a
   token with a fixed permission list.
 - A general `RateLimiterFilter` (Winter's) is the first global filter: `RATE_LIMIT_REQUESTS` (2000)
   requests per IP every `RATE_LIMIT_WINDOW_SECONDS` (60), 0 disables it; the number comes from
   measured client bursts (see `DECISIONS.md`). It throws Winter's 429, which `S3ExceptionHandler`
   turns into `503 SlowDown` on the S3 API (what S3 clients retry) and a translated 429 on the admin
-  API, both with `Retry-After` and `X-RateLimit-*`.
+  API, both with `Retry-After` and the `RateLimit`/`RateLimit-Policy` headers (IETF draft).
 - `S3SigV4Filter` handles native S3 clients and is registered only on the S3 parent route, so the
   admin API accepts JWT only. `JwtFilter` is registered globally and again on both parents.
   `JwtFilter` and `S3SigV4Filter` both skip themselves (`shouldFilter`) once the request is
@@ -400,7 +401,9 @@ only), which includes `Last-Modified`, `ETag` and `Accept-Ranges`. A file withou
 is `application/octet-stream`. `GET`/`HEAD` honour a single `Range` (`bytes=a-b`, `bytes=a-`,
 `bytes=-n`) with `206` + `Content-Range`, read with `file.openRead(start, end)`; a range starting
 past the end is `416 InvalidRange`, and a malformed or multiple range is ignored (`200` with the whole
-object), as in S3.
+object), as in S3. A conditional `GET` is a `304` by itself (Winter, from the `ETag` and
+`Last-Modified`), and a failed `If-Match`/`If-Unmodified-Since` a `412 PreconditionFailed`
+(`checkPreconditions`).
 
 **Object metadata.** `ObjectMetaService` keeps each object's ETag and headers in the `object_meta`
 table, with the file's size and mtime. The headers are the ones S3 stores (`Content-Type`,

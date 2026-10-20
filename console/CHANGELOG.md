@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-rc.5 (2026-10-19)
+
+- No changes; released with the service's upgrade to Winter `1.0.0-rc.3`.
+
 ## 1.0.0-rc.4 (2026-10-15)
 
 - The details of an SVG object show its preview. It was downloaded but drawn as a raster image,
