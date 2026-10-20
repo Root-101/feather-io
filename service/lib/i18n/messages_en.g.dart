@@ -117,6 +117,10 @@ class ServiceMessages$errors$s3$en {
   /// en: 'The key "{key: String}" does not exist.'
   String noSuchKey({required String key}) => 'The key "${key}" does not exist.';
 
+  /// en: 'The object "{key: String}" does not meet the conditions of the request.'
+  String preconditionFailed({required String key}) =>
+      'The object "${key}" does not meet the conditions of the request.';
+
   /// en: 'The subresource "{subresource: String}" is not implemented.'
   String unsupportedSubresource({required String subresource}) =>
       'The subresource "${subresource}" is not implemented.';
@@ -418,6 +422,9 @@ extension on ServiceMessages {
       'errors.s3.noSuchKey' => ({
         required String key,
       }) => 'The key "${key}" does not exist.',
+      'errors.s3.preconditionFailed' => ({
+        required String key,
+      }) => 'The object "${key}" does not meet the conditions of the request.',
       'errors.s3.unsupportedSubresource' => ({
         required String subresource,
       }) => 'The subresource "${subresource}" is not implemented.',

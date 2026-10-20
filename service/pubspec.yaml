@@ -1,13 +1,13 @@
 name: service
 description: Service for the feather-io project, a lightweight S3 compatible storage
-version: 1.0.0-rc.4
+version: 1.0.0-rc.5
 publish_to: none
 
 environment:
   sdk: ^3.13.0
 
 dependencies:
-  winter: 1.0.0-rc.1            #framework
+  winter: 1.0.0-rc.3            #framework
 
   path: 1.9.1                   #storage
 
