@@ -38,7 +38,9 @@ class ObjectController {
       sourceBucket: sourceBucket,
       sourceKey: sourceKey,
       bucketName: request.bucketName,
-      key: request.pathParams['key']!,
+      // With its trailing '/', so a copy to a folder is rejected instead of
+      // landing on the key without it
+      key: request.objectKey,
       headers: replace ? request.objectHeaders() : null,
       storageClass: request.storageClass(),
       conditions: request.copyConditions(),
@@ -146,6 +148,12 @@ class ObjectController {
         if (value != null) headers[name] = value;
       }
     }
+    // An uploaded page (HTML, SVG, XML) opened from a link must not run script
+    // in the service's origin. Only for those types: a PDF is not shown in a
+    // sandbox, and S3 clients ignore the header
+    if (_activeContent.hasMatch(headers['content-type'] ?? '')) {
+      headers['content-security-policy'] = 'sandbox';
+    }
 
     final range = _requestedRange(request, stat.size, key);
     if (range == null) {
@@ -166,6 +174,11 @@ class ObjectController {
       },
     );
   }
+
+  static final RegExp _activeContent = RegExp(
+    r'^\s*(text/html|[\w.+-]+/([\w.-]+\+)?xml)\s*(;|$)',
+    caseSensitive: false,
+  );
 
   static const List<String> _overridableHeaders = [
     'cache-control',

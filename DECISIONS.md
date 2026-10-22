@@ -70,6 +70,7 @@ it; a higher limit for signed requests is under *After 1.0* in `ROADMAP.md`.
 | No anonymous copies (CopyObject, UploadPartCopy) nor `response-*` overrides           | A copy reads a source that no rule may cover                                                                      |
 | Multi-delete is never anonymous                                                       | Its keys come in the body and can't be checked against the rules before reading it                                |
 | A rule without `*` is a prefix; with `*` the whole key must match                     | `public/` works like an S3 prefix; with `*` a pattern is meant, so `photos/*.jpg` doesn't open `photos/a.jpg.zip` |
+| A listing is only opened by a rule without `*` or ending in `*`                       | A listing returns every key under its prefix: `photos/*.jpg` would list `photos/a.jpg.zip` through `photos/a.jpg` |
 | No limit of its own, only the general one per IP                                      | That already stops floods; a lower one would only matter for buckets published with many downloads                |
 
 ## 5. Access keys
@@ -164,4 +165,11 @@ GetObject; the rest is left out on purpose.
 | `IdempotencyFilter` (`Idempotency-Key`)            | S3 clients don't send it; their retries are already safe (a PUT replaces the object, a DELETE of a missing key is a 204). The console's POSTs are user actions |
 | `checkPreconditions` on writes (`If-Match` on PUT) | S3's conditional writes are a late addition no client of the tests uses; CopyObject already checks its `x-amz-copy-source-if-*`                                |
 | `DeprecationFilter`, `WebLink`, `Prefer`           | No route is deprecated, S3 pages with its own tokens, and no client asks for `Prefer`                                                                          |
+
+Since `1.0.0-rc.4`, `AuthFilter` adds `Cache-Control: private` to a response without one. The admin
+API keeps it; the S3 routes pass `cacheControl: null` (Winter `1.0.0-rc.5`), because S3 sends only
+the `Cache-Control` stored with an object: with `private`, every object without one showed it as its
+metadata (`head-object`), and a public prefix couldn't be cached by a CDN. Nothing private leaks: a
+shared cache doesn't keep the answer to a request with `Authorization` (RFC 9111 §3.5), and a
+presigned URL carries its signature in the URL itself.
 

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
@@ -23,8 +22,15 @@ class MultipartService {
   static const String _infoFile = 'upload.json';
   static final RegExp _uploadIdPattern = RegExp(r'^[0-9a-f]{32}$');
 
-  final Random _random = Random.secure();
   final ObjectMetaService _objectMeta = ObjectMetaService();
+
+  /// Completions in progress by upload id: a client that times out and retries
+  /// gets the same result instead of joining the parts again over the first one.
+  static final Map<String, Future<CompletedMultipartModel>> _completing = {};
+
+  /// The last write of each part (`<uploadId>/<n>`), so that two uploads of the
+  /// same part store the file and the ETag of the same one.
+  static final Map<String, Future<void>> _partWrites = {};
 
   Directory get _root => Directory(p.join(env.storageVolumePath, folderName));
 
@@ -40,10 +46,7 @@ class MultipartService {
       throw S3Exception.noSuchBucket(bucketName);
     }
 
-    final uploadId = List.generate(
-      16,
-      (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-    ).join();
+    final uploadId = ObjectService.randomId();
     final dir = Directory(p.join(_root.path, uploadId));
     await dir.create(recursive: true);
     final initiated = DateTime.now().toUtc();
@@ -81,16 +84,27 @@ class MultipartService {
     }
     final dir = await _uploadDir(bucketName, key, uploadId);
     final part = File(p.join(dir.path, '$partNumber.part'));
-    final temp = File('${part.path}.tmp');
+    // Its own temp file: a retry of the same part may be uploading meanwhile
+    final temp = File('${part.path}.${ObjectService.randomId()}.tmp');
 
     final etag = await Md5Tap.write(binary, temp);
-    await temp.rename(part.path);
-    await File(p.join(dir.path, '$partNumber.etag')).writeAsString(etag);
+    final lock = '$uploadId/$partNumber';
+    final write = (_partWrites[lock] ?? Future.value()).then((_) async {
+      await temp.rename(part.path);
+      await File(p.join(dir.path, '$partNumber.etag')).writeAsString(etag);
+    });
+    _partWrites[lock] = write.catchError((_) {});
+    try {
+      await write;
+    } finally {
+      if (identical(_partWrites[lock], write)) _partWrites.remove(lock);
+    }
     return etag;
   }
 
   /// CompleteMultipartUpload: joins [parts] (in order) into the final object,
-  /// which replaces any existing one, and deletes the upload.
+  /// which replaces any existing one, and deletes the upload. A Complete of an
+  /// upload already being completed waits for that one and answers the same.
   Future<CompletedMultipartModel> complete({
     required String bucketName,
     required String key,
@@ -98,6 +112,23 @@ class MultipartService {
     required List<CompletedPart> parts,
   }) async {
     final dir = await _uploadDir(bucketName, key, uploadId);
+    final running = _completing[uploadId];
+    if (running != null) return running;
+    final completion = _complete(bucketName, key, dir, parts);
+    _completing[uploadId] = completion;
+    try {
+      return await completion;
+    } finally {
+      _completing.remove(uploadId);
+    }
+  }
+
+  Future<CompletedMultipartModel> _complete(
+    String bucketName,
+    String key,
+    Directory dir,
+    List<CompletedPart> parts,
+  ) async {
     final info = await _readInfo(dir);
     if (parts.isEmpty) {
       throw S3Exception(
@@ -180,7 +211,7 @@ class MultipartService {
     final target = File(p.join(env.storageVolumePath, bucketName, key));
     // If it can't be replaced (an open object on Windows), the upload is still
     // there and the Complete can be retried
-    await ObjectService.replaceFile(joined, target, key: key);
+    final stat = await ObjectService.replaceFile(joined, target, key: key);
     await dir.delete(recursive: true);
 
     final etag = '${md5.convert(digests)}-${parts.length}';
@@ -188,6 +219,7 @@ class MultipartService {
       bucketName: bucketName,
       key: key,
       file: target,
+      stat: stat,
       etag: etag,
       headers: {
         for (final MapEntry(:key, :value)
@@ -279,6 +311,34 @@ class MultipartService {
           : a.initiated.compareTo(b.initiated),
     );
     return uploads;
+  }
+
+  /// Age after which a pending upload is abandoned, like S3's lifecycle rule
+  /// `AbortIncompleteMultipartUpload`: its parts would stay in the volume forever.
+  static const Duration staleUploadAge = Duration(days: 7);
+
+  /// Aborts the uploads started more than [olderThan] ago (but one being
+  /// completed) and returns how many.
+  Future<int> abortStale({Duration olderThan = staleUploadAge}) async {
+    if (!await _root.exists()) return 0;
+    final limit = DateTime.now().toUtc().subtract(olderThan);
+    var aborted = 0;
+    await for (final entity in _root.list()) {
+      if (entity is! Directory) continue;
+      final uploadId = p.basename(entity.path);
+      if (_completing.containsKey(uploadId)) continue;
+      final initiated =
+          DateTime.tryParse('${(await _readInfo(entity))?['initiated']}') ??
+          (await entity.stat()).modified.toUtc();
+      if (initiated.isAfter(limit)) continue;
+      try {
+        await entity.delete(recursive: true);
+        aborted++;
+      } on FileSystemException {
+        // A part still open (Windows): the next run will see it
+      }
+    }
+    return aborted;
   }
 
   /// Deletes the pending uploads of [bucketName] (when the bucket is deleted).

@@ -23,16 +23,16 @@ jobs:
       run:
         working-directory: service
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Flutter version from .fvmrc
         id: fvm
         run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ steps.fvm.outputs.version }}
           channel: stable
           cache: true
-      - run: dart pub get
+      - run: dart pub get --enforce-lockfile
       - run: dart analyze
       - run: dart test
 
@@ -43,16 +43,16 @@ jobs:
       run:
         working-directory: console
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Flutter version from .fvmrc
         id: fvm
         run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ steps.fvm.outputs.version }}
           channel: stable
           cache: true
-      - run: flutter pub get
+      - run: flutter pub get --enforce-lockfile
       # The deprecated MaterialUiCompatibilityBridge is an info we keep on purpose
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
@@ -61,7 +61,7 @@ jobs:
     name: Console image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the image with the Flutter of .fvmrc
         run: |
           docker build -t feather-io-console \
@@ -72,12 +72,15 @@ jobs:
           for _ in $(seq 15); do curl -sf http://localhost:8081/ > /dev/null && break; sleep 1; done
           curl -sf http://localhost:8081/ | grep -q flutter_bootstrap.js
           curl -sf http://localhost:8081/env.js | grep -q '"http://service.test"'
+          # The CSP and the security headers, also on index.html (a location with its own add_header)
+          curl -sfI http://localhost:8081/ | grep -qi "^content-security-policy: script-src 'self'"
+          curl -sfI http://localhost:8081/main.dart.js | grep -qi '^x-content-type-options: nosniff'
 
   s3-compat:
     name: S3 clients (AWS CLI + rclone)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the image
         run: docker build -t feather-io service
       - name: Start the service
@@ -105,7 +108,7 @@ jobs:
           count=$(grep -c 'Unhandled error' service.log || true)
           echo "Unhandled errors: $count"
           [ "$count" -eq 0 ] || { grep -B2 -A20 'Unhandled error' service.log; exit 1; }
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: s3-compat

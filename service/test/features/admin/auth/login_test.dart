@@ -96,13 +96,13 @@ void main() {
 
     test('Should reject a token without exp (it would never expire)', () async {
       final token = JWT(claims)
-          .sign(SecretKey('test-jwt-secret-${server.port}'));
+          .sign(SecretKey(testJwtSecret(server.port)));
       expect(await listWith(token), 401);
     });
 
     test('Should reject an expired token', () async {
       final token = JWT({...claims, 'exp': 1000})
-          .sign(SecretKey('test-jwt-secret-${server.port}'));
+          .sign(SecretKey(testJwtSecret(server.port)));
       expect(await listWith(token), 401);
     });
 

@@ -217,7 +217,7 @@
   "anonymousRuleFormSectionAccess": "02 Tipo de acceso",
   "anonymousRulePrefixLabel": "Prefijo o patrón",
   "anonymousRulePrefixHint": "public/",
-  "anonymousRulePrefixHelper": "Sin *, cubre todo lo que empieza así (termina en / para una carpeta). Con *, tiene que coincidir la key entera (por ejemplo, *.jpg solo cubre ficheros .jpg).",
+  "anonymousRulePrefixHelper": "Sin *, cubre todo lo que empieza así (termina en / para una carpeta). Con *, tiene que coincidir la key entera (por ejemplo, *.jpg solo cubre ficheros .jpg), y solo abre los listados si termina en *.",
   "anonymousRulePrefixRequired": "El prefijo es obligatorio",
   "anonymousRuleFormErrorTitle": "No se pudo añadir la regla",
   "anonymousRuleCreatedSuccess": "Regla {prefix} añadida",

@@ -2,7 +2,7 @@ name: console
 description: "Console for the feather-io project"
 publish_to: 'none'
 
-version: 1.0.0-rc.5
+version: 1.0.0-rc.6
 
 environment:
   flutter: ^3.47.0
@@ -34,7 +34,6 @@ dependencies:
   syncfusion_flutter_core: 34.2.4            #tables utils
   desktop_drop: 0.8.0                     #to drop files
   cross_file: 0.3.5+4
-  crypto: 3.0.7
   material_ui: 1.0.1
 
   #utils

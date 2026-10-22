@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0-rc.6 (2026-10-22)
+
+- The preview opens images, video, audio and PDF as they are, and text, HTML, SVG and other markup
+  as plain text: an uploaded page opened as a `blob:` of the console could run script next to the
+  session. Anything else is downloaded.
+- nginx sends a Content-Security-Policy (only the build's scripts), `X-Content-Type-Options`,
+  `X-Frame-Options` and `Referrer-Policy`. The inline scripts of `index.html` moved to
+  `splash.js`, and the build serves CanvasKit itself instead of Google's CDN.
+- Object keys are encoded in the URLs: a `#` or `%` in a name pointed to another object.
+- Opening a big folder and then a small one no longer shows the big one under the small one's URL.
+- The help of the anonymous rule form says that a pattern only opens listings if it ends in `*`.
+- Removed the unused SigV4 signer; `pubspec.lock` is committed.
+
 ## 1.0.0-rc.5 (2026-10-19)
 
 - No changes; released with the service's upgrade to Winter `1.0.0-rc.3`.

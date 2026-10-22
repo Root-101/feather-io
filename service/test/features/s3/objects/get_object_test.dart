@@ -273,6 +273,69 @@ void main() {
     });
   });
 
+  group('S3Controller - Cache-Control', () {
+    test('Should send only the Cache-Control stored with the object, as S3', () async {
+      final plain = await http.get(server.url('/$bucket/test.txt'), headers: server.auth());
+      expect(plain.headers['cache-control'], isNull);
+      final listing = await http.get(server.url('/$bucket'), headers: server.auth());
+      expect(listing.headers['cache-control'], isNull);
+
+      await server.putObject(bucket, 'cached.txt', 'x', headers: {'cache-control': 'max-age=60'});
+      final cached = await http.get(server.url('/$bucket/cached.txt'), headers: server.auth());
+      expect(cached.headers['cache-control'], 'max-age=60');
+    });
+
+    test('Should keep the admin API private', () async {
+      final keys = await http.get(
+        server.url('/_admin/access-keys'),
+        headers: server.auth(),
+      );
+      expect(keys.statusCode, 200);
+      expect(keys.headers['cache-control'], 'private');
+    });
+  });
+
+  group('S3Controller - GET Object (sandbox for pages)', () {
+    test('Should sandbox HTML, SVG and XML so their scripts never run', () async {
+      for (final (key, type) in [
+        ('page.html', null),
+        ('drawing.svg', null),
+        ('doc.bin', 'application/xhtml+xml'),
+        ('feed.bin', 'text/xml; charset=utf-8'),
+      ]) {
+        await server.putObject(
+          bucket,
+          key,
+          '<script>alert(1)</script>',
+          headers: {'content-type': ?type},
+        );
+        final response = await http.get(server.url('/$bucket/$key'), headers: server.auth());
+        expect(response.statusCode, 200);
+        expect(response.headers['content-security-policy'], 'sandbox', reason: key);
+      }
+    });
+
+    test('Should sandbox a page made by response-content-type', () async {
+      final response = await http.get(
+        server.url('/$bucket/test.txt?response-content-type=text/html'),
+        headers: server.auth(),
+      );
+      expect(response.headers['content-security-policy'], 'sandbox');
+    });
+
+    test('Should not sandbox other types (a PDF is not shown in a sandbox)', () async {
+      for (final key in ['test.txt', 'image.png']) {
+        final response = await http.get(server.url('/$bucket/$key'), headers: server.auth());
+        expect(response.headers['content-security-policy'], isNull, reason: key);
+      }
+      final pdf = await http.get(
+        server.url('/$bucket/test.txt?response-content-type=application/pdf'),
+        headers: server.auth(),
+      );
+      expect(pdf.headers['content-security-policy'], isNull);
+    });
+  });
+
   group('S3Controller - GET Object (conditional requests)', () {
     Future<http.Response> getIf(Map<String, String> conditions) => http.get(
       server.url('/$bucket/test.txt'),

@@ -11,7 +11,7 @@ unless you'd rather not.
 
 ## Supported versions
 
-Only the latest release gets security fixes (today `1.0.0-rc.5`).
+Only the latest release gets security fixes (today `1.0.0-rc.6`).
 
 ## Security model
 
@@ -54,11 +54,14 @@ What the service protects and how; the reasons and the data behind each decision
   (so presigned URLs use `https://`) and `TRUSTED_PROXIES` (so rate limits see the client IP, not
   the proxy's). The proxy must forward the original `Host`, which is part of the signatures.
 - **Secrets**: use long random values for `FEATHER_SECRET`, `JWT_SECRET` and
-  `KEYS_ENCRYPTION_SECRET` (e.g. `openssl rand -hex 32`) and keep them out of the repository.
+  `KEYS_ENCRYPTION_SECRET` (e.g. `openssl rand -hex 32`) and keep them out of the repository. The
+  service warns at start-up when `FEATHER_SECRET` has fewer than 16 characters or the other two
+  fewer than 32.
   Rotating `JWT_SECRET` logs everyone out; changing `KEYS_ENCRYPTION_SECRET` makes the stored access
   keys unusable.
 - **Separate origins**: serve the service and the console on different origins (another port or
   domain). Objects are served with their own `Content-Type`, so an HTML file uploaded through an
-  anonymous write rule must never run on the console's origin.
+  anonymous write rule must never run on the console's origin. The console's nginx sends a CSP that
+  only allows its own scripts; a proxy in front should keep it.
 - **Backups** of the volume hold the objects and the database, with the access keys' secrets
   encrypted; protect them like the data itself.

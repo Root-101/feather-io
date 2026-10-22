@@ -482,6 +482,10 @@ A key ending in `/` without a body creates an empty folder:
 PUT /photos/empty/
 ```
 
+On disk a key and a folder can't share a name, as they can in S3: uploading `photos/2026` while
+`photos/2026/` holds objects, or `photos/2026/beach.jpg/x` under the object `beach.jpg`, answers
+`409 KeyConflict` (and the same for a copy or a multipart upload).
+
 ### Download
 
 ```http
@@ -593,6 +597,7 @@ How the console uploads files over 16 MiB (in 8 MiB parts). Every part but the l
    {"bucket": "photos", "key": "big.bin", "etag": "6a6d8d4533507d490ab007dfe8314ab7-1", "size_bytes": 6}
    ```
 
-To give up, `DELETE /photos/big.bin?uploadId=…` deletes the parts. S3 clients can also list the
+To give up, `DELETE /photos/big.bin?uploadId=…` deletes the parts; an upload left pending more than
+7 days is aborted by the service itself. S3 clients can also list the
 parts (`GET ?uploadId=`) and the pending uploads (`GET /photos?uploads`), and copy a part from
 another object (`x-amz-copy-source` on the part).

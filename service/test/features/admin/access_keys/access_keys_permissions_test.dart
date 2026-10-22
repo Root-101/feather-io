@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:http/http.dart' as http;
@@ -614,6 +615,27 @@ void main() {
         expect((await signed('GET', '/$other/seed.txt', key)).statusCode, 200);
       },
     );
+  });
+
+  group('Access keys - a bucket created again', () {
+    test('Does not inherit the grants and rules of a bucket whose folder went away', () async {
+      const bucket = 'pm-reborn';
+      await server.putObject(bucket, 'a.txt', 'old');
+      final key = await keyOn(bucket, 'readOnly');
+      final rule = await http.post(
+        server.url('/${env.adminPrefix}/bucket/$bucket/anonymous-access'),
+        headers: jsonAuth(),
+        body: jsonEncode({'prefix': 'a', 'access': 'readOnly'}),
+      );
+      expect(rule.statusCode, 200, reason: rule.body);
+
+      // A delete that failed after removing the folder, or a folder removed by hand
+      await Directory('${server.storagePath}/$bucket').delete(recursive: true);
+
+      await server.putObject(bucket, 'a.txt', 'new');
+      expect((await signed('GET', '/$bucket/a.txt', key)).statusCode, 403);
+      expect((await http.get(server.url('/$bucket/a.txt'))).statusCode, 401);
+    });
   });
 
   group('Access keys - edge cases', () {

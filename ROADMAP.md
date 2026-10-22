@@ -21,7 +21,7 @@ against MinIO or AWS as products:
 | Area                  |  Score  | Why                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-----------------------|:-------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | S3 compatibility      |  **9**  | AWS CLI 34/34 and rclone 19/19; every Mint failure is something out of scope (SigV2, versioning, POST policy, S3 Select…), none of what it supports. Fine details covered: `aws-chunked`, `encoding-type=url`, ranges, copy conditions, full multipart                                                                                                                                                 |
-| Security              | **8.5** | SigV4 with clock skew and body sha256, access keys encrypted with AES-GCM, login throttling, rate limit, errors without internal details, path traversal. Missing: its own TLS (it relies on a proxy) and an external audit                                                                                                                                                                            |
+| Security              | **8.5** | SigV4 with clock skew, body sha256 and every `x-amz-*` header signed, access keys encrypted with AES-GCM, login throttling, rate limit, errors without internal details, path traversal, a CSP on the console. An internal security audit (2026-10-21) is fixed in `1.0.0-rc.6`. Missing: its own TLS (it relies on a proxy) and an external audit                                                     |
 | Tests                 | **8.5** | About as many lines of tests as of code (~500 service tests, 132 console tests, the batteries against real clients), all run by CI on the main branches and their pull requests except Mint                                                                                                                                                                                                            |
 | Architecture and code |  **8**  | Clear layers, features like `admin/`, XML apart, Problem Details errors, `DECISIONS.md`. `ObjectService` is still big (~650 lines)                                                                                                                                                                                                                                                                     |
 | Performance           | **7.5** | Very light on memory (12 MiB at start); uploads as fast as MinIO or faster since SQLite runs in WAL mode (2037 PUTs/s of 1 KiB, MinIO 1040), and a listing page costs what its folder holds (25 ms with 1000 objects, 67 ms with 10 000). Still behind: reads of small objects (a third of MinIO), big single uploads, and ListBuckets walking the whole storage (`service/tool/benchmark/RESULTS.md`) |
@@ -65,6 +65,53 @@ tens of thousands of objects.
 - [x] A Railway template: the service (with its volume at `/data`) and the console, with the
   variables of `.env.example`.
 
+## Security and robustness issues (audit of 2026-10-21, fixed in 1.0.0-rc.6)
+
+Found by a security audit and a code audit of `0c1c3b2`, all fixed in `1.0.0-rc.6`. Every fix
+comes with its test, keeps S3 compatibility and updates the console if the API changes.
+
+- Security, confirmed:
+    - [x] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
+      plus an unsigned `x-amz-copy-source` copies any object the signer can read. Reject every
+      `x-amz-*` header that is not in `SignedHeaders` (but `x-amz-content-sha256`), as S3 does.
+    - [x] The login lock is checked before the body is read: requests whose bodies are held back all
+      get their guess past the lock. Check it again after reading the body.
+    - [x] An anonymous glob rule that doesn't end in `*` (`photos/*.jpg`) lets anyone list the keys
+      it doesn't cover (`?prefix=photos/cat.jpg` shows `photos/cat.jpg.zip`).
+    - [x] `AnonymousAccessFilter` matches the key without its trailing `/` while the handler acts on
+      the folder key: an anonymous writer creates or deletes folder markers outside the rule.
+- Security, to validate:
+    - [x] The console's preview opens the object as a `blob:` (console origin) with the uploader's
+      `Content-Type`: an HTML or SVG uploaded by an anonymous writer could run script next to the
+      root JWT. Preview only inert types (the rest as text or download); the CSP in nginx goes
+      with the security headers of the hardening below.
+    - Hardening:
+        - [x] A warning at start-up for a short `JWT_SECRET`/`FEATHER_SECRET`/
+          `KEYS_ENCRYPTION_SECRET` (not an error, so existing deployments keep starting).
+        - [x] `Content-Security-Policy: sandbox` on object GETs of HTML, SVG and XML.
+        - [x] A depth limit in the XML parser.
+        - [x] Keys with empty or `.` segments (`a//b`) rejected.
+        - [x] Security headers in the console's nginx, with a CSP.
+        - [x] Keys encoded in the console's URLs (`#`, `%`).
+        - [x] A bucket created again doesn't inherit the grants and rules left by one of the same
+          name (a delete that failed after removing the folder): `createBucket` clears them.
+        - [x] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
+          the CI actions pinned by SHA.
+- Robustness:
+    - [x] Two CompleteMultipartUpload of the same upload at once (a client that retries) write the
+      same `object.tmp` and corrupt the object; UploadPart of the same part shares `<n>.part.tmp`.
+    - [x] Two PUTs of the same key at once can save the ETag and headers of one with the size and
+      mtime of the other, so they never get recomputed.
+    - [x] A key that collides with a folder (`docs` and `docs/readme`) answers 500 (503 on Windows)
+      and leaves its temp file behind.
+    - [x] `.tmp/` and abandoned multipart uploads are never cleaned up.
+    - [x] The console can show a folder other than the one in the URL when two listings cross.
+    - [x] CopyObject ignores the trailing `/` of the destination key.
+    - [x] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
+    - [x] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
+    - [x] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
+      generator copied in `ObjectService` and `MultipartService`.
+
 ## After 1.0 (future improvements)
 
 - [ ] Redesign the login screen to feature the dot grid in the background and incorporate the visual
@@ -72,6 +119,8 @@ tens of thousands of objects.
 - [x] Upgrade to Winter `1.0.0-rc.3`: its complete Problem Details (RFC 9457, with `instance`),
   `TrustedProxies`, the `RateLimit` headers, `application/health+json` and conditional `GET`s
   (`304`/`412`); what is left out on purpose is in `DECISIONS.md` §12.
+- [x] Upgrade to Winter `1.0.0-rc.5`: `body<T>()` only reads a JSON `Content-Type`, and the S3
+  routes keep S3's `Cache-Control` with `AuthFilter(cacheControl: null)`.
 - [ ] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).
 - [ ] A promo video with real screenshots of the design.

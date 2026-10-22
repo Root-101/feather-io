@@ -7,7 +7,11 @@ import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
 const String testAccess = 'test_access';
-const String testSecret = 'test_secret';
+// Long enough not to trigger the start-up warning about short secrets
+const String testSecret = 'test_secret_key_1';
+
+/// The JWT secret of the server on [port] (32 characters or more).
+String testJwtSecret(int port) => 'test-jwt-secret-of-the-server-$port';
 
 /// Real server for a test file: its own port, its own folder in
 /// `./uploads_test/<name>` and an in-memory SQLite database (or, with
@@ -29,8 +33,8 @@ class TestServer {
   Future<void> start() async {
     env.put('FEATHER_ACCESS', testAccess);
     env.put('FEATHER_SECRET', testSecret);
-    env.put('JWT_SECRET', 'test-jwt-secret-$port');
-    env.put('KEYS_ENCRYPTION_SECRET', 'test-keys-secret-$port');
+    env.put('JWT_SECRET', testJwtSecret(port));
+    env.put('KEYS_ENCRYPTION_SECRET', 'test-keys-encryption-secret-$port');
     env.put('STORAGE_VOLUME_PATH', storagePath);
     // Only problems: every request would otherwise write two lines
     env.put('LOG_LEVEL', 'warning');

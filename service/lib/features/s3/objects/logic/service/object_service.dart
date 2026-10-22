@@ -48,6 +48,10 @@ class ObjectService {
     if (key.endsWith('/')) {
       await binary.drain<void>();
       final folder = Directory(p.join(_getBucketPath(bucketName), key));
+      await _checkNoObjectInPath(
+        File(p.join(folder.path, S3Validator.folderMarker)),
+        '$key${S3Validator.folderMarker}',
+      );
       await folder.create(recursive: true);
       await File(p.join(folder.path, S3Validator.folderMarker)).create();
       return ObjectMetaService.emptyEtag;
@@ -75,12 +79,13 @@ class ObjectService {
     final temp = await _tempFile();
     final etag = await Md5Tap.write(monitoredStream, temp);
     final file = _getFile(bucketName, key);
-    await replaceFile(temp, file, key: key);
+    final stat = await replaceFile(temp, file, key: key);
 
     await objectMeta.save(
       bucketName: bucketName,
       key: key,
       file: file,
+      stat: stat,
       etag: etag,
       headers: headers,
     );
@@ -91,7 +96,13 @@ class ObjectService {
   /// valid bucket and isn't listed.
   static const String tempFolderName = '.tmp';
 
-  final Random _random = Random.secure();
+  static final Random _random = Random.secure();
+
+  /// 32 random hex chars: a temp file's name, a multipart upload id.
+  static String randomId() => List.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 
   /// How long replacing an open object is retried (on Windows).
   static const Duration replaceTimeout = Duration(seconds: 5);
@@ -101,46 +112,112 @@ class ObjectService {
   /// download of the previous version that hasn't finished): it is retried for
   /// [replaceTimeout] and, if it is still open, [source] is deleted and the
   /// answer is `ServiceUnavailable` (503), which S3 clients retry.
-  static Future<void> replaceFile(
+  ///
+  /// Returns the stat of [source] taken before the move (a rename keeps its size
+  /// and date): the stat of [target] afterwards may already be that of a
+  /// parallel upload of the same key, and its metadata would be saved with the
+  /// ETag of this one.
+  static Future<FileStat> replaceFile(
     File source,
     File target, {
     required String key,
   }) async {
-    await target.parent.create(recursive: true);
-    final deadline = DateTime.now().add(replaceTimeout);
-    for (var attempt = 1; ; attempt++) {
-      try {
-        await source.rename(target.path);
-        return;
-      } on PathAccessException {
-        if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
-          await Future<void>.delayed(
-            Duration(milliseconds: min(50 * attempt, 500)),
-          );
-          continue;
-        }
-        if (await source.exists()) await source.delete();
-        logger.warning(
-          'An object stayed open for ${replaceTimeout.inSeconds} s and was not replaced',
-          fields: {'key': key},
-        );
+    final stat = await source.stat();
+    try {
+      // A key and a folder can't share a name on disk (in S3 they can): 409
+      // instead of a 500, or of 5 s of retries and a 503 on Windows
+      await _checkNoObjectInPath(target, key);
+      if (await FileSystemEntity.isDirectory(target.path)) {
         throw S3Exception(
-          S3ErrorCode.serviceUnavailable,
-          message: intl.errors.s3.objectInUse,
+          S3ErrorCode.keyConflict,
+          message: intl.errors.s3.keyIsFolder(key: key),
           resource: key,
         );
       }
+      await target.parent.create(recursive: true);
+      final deadline = DateTime.now().add(replaceTimeout);
+      for (var attempt = 1; ; attempt++) {
+        try {
+          await source.rename(target.path);
+          return stat;
+        } on PathAccessException {
+          if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
+            await Future<void>.delayed(
+              Duration(milliseconds: min(50 * attempt, 500)),
+            );
+            continue;
+          }
+          logger.warning(
+            'An object stayed open for ${replaceTimeout.inSeconds} s and was not replaced',
+            fields: {'key': key},
+          );
+          throw S3Exception(
+            S3ErrorCode.serviceUnavailable,
+            message: intl.errors.s3.objectInUse,
+            resource: key,
+          );
+        }
+      }
+    } catch (_) {
+      // Whatever failed, the file written aside doesn't stay in the volume
+      if (await source.exists()) await source.delete();
+      rethrow;
+    }
+  }
+
+  /// Fails with `KeyConflict` when a folder of [key] (`docs` for `docs/readme`)
+  /// is an object on disk, so [target] can't be created under it.
+  static Future<void> _checkNoObjectInPath(File target, String key) async {
+    final segments = key.split('/');
+    // A folder is checked through its marker, but answered as the folder
+    final shown = key.endsWith('/${S3Validator.folderMarker}')
+        ? key.substring(0, key.length - S3Validator.folderMarker.length)
+        : key;
+    var dir = target.parent;
+    for (var i = segments.length - 1; i > 0; i--) {
+      if (await FileSystemEntity.isFile(dir.path)) {
+        throw S3Exception(
+          S3ErrorCode.keyConflict,
+          message: intl.errors.s3.keyUnderObject(
+            key: shown,
+            object: segments.sublist(0, i).join('/'),
+          ),
+          resource: shown,
+        );
+      }
+      dir = dir.parent;
     }
   }
 
   Future<File> _tempFile() async {
     final dir = Directory(p.join(env.storageVolumePath, tempFolderName));
     await dir.create(recursive: true);
-    final id = List.generate(
-      16,
-      (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-    ).join();
-    return File(p.join(dir.path, '$id.tmp'));
+    return File(p.join(dir.path, '${randomId()}.tmp'));
+  }
+
+  /// Age after which a file of [tempFolderName] is left over (a process that
+  /// died during an upload): no upload takes that long.
+  static const Duration staleTempAge = Duration(days: 1);
+
+  /// Deletes the files of [tempFolderName] older than [olderThan] and returns
+  /// how many. One in use is skipped.
+  Future<int> deleteStaleTemps({Duration olderThan = staleTempAge}) async {
+    final dir = Directory(p.join(env.storageVolumePath, tempFolderName));
+    if (!await dir.exists()) return 0;
+    final limit = DateTime.now().subtract(olderThan);
+    var deleted = 0;
+    await for (final entity in dir.list()) {
+      if (entity is! File) continue;
+      try {
+        if ((await entity.stat()).modified.isBefore(limit)) {
+          await entity.delete();
+          deleted++;
+        }
+      } on FileSystemException {
+        // Open (Windows) or already gone: the next run will see it
+      }
+    }
+    return deleted;
   }
 
   /// For the health check: true when a file can be written to and deleted from
@@ -382,16 +459,18 @@ class ObjectService {
     );
     final etag = sourceMeta.etag;
     final target = _getFile(bucketName, key);
+    FileStat? copied;
     if (!sameObject) {
       // Like uploads: copied aside and moved at the end
       final temp = await _tempFile();
       await source.copy(temp.path);
-      await replaceFile(temp, target, key: key);
+      copied = await replaceFile(temp, target, key: key);
     }
     await objectMeta.save(
       bucketName: bucketName,
       key: key,
       file: target,
+      stat: copied,
       etag: etag,
       headers: {
         for (final MapEntry(key: name, :value)
@@ -401,7 +480,7 @@ class ObjectService {
       },
     );
 
-    final stat = await target.stat();
+    final stat = copied ?? await target.stat();
     return FileModel(
       key: key,
       size: stat.size,

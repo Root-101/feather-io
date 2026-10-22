@@ -43,12 +43,21 @@ class AnonymousAccessService {
 
   /// First rule of the bucket whose pattern matches [key], or null. See
   /// [matches] for the pattern semantics.
+  ///
+  /// With [listing], [key] is the prefix of a listing, which returns every key
+  /// that starts with it: only the rules that cover any longer key too count
+  /// (no `*`, or ending in `*`), or `photos/*.jpg` would list
+  /// `photos/a.jpg.zip` through the prefix `photos/a.jpg`.
   Future<AnonymousRuleModel?> findMatchingRule({
     required String bucket,
     required String key,
+    bool listing = false,
   }) async {
     if (!S3Validator.isValidBucketName(bucket)) return null;
     for (final rule in await _rules(bucket)) {
+      if (listing && rule.prefix.contains('*') && !rule.prefix.endsWith('*')) {
+        continue;
+      }
       if (matches(rule.prefix, key)) return rule;
     }
     return null;

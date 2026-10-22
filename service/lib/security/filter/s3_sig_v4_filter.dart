@@ -266,6 +266,31 @@ class S3SigV4Filter extends Filter {
     required Map<String, String> query,
     required String payloadHash,
   }) async {
+    // As in S3, every x-amz-* header must be signed: the routes choose the
+    // operation by them (x-amz-copy-source turns a PUT into a copy), so a
+    // presigned PUT plus an unsigned one would copy any object the signer reads.
+    // x-amz-content-sha256 is bound through the payload hash of the signature,
+    // and the ACL headers are ignored (there are no ACLs; minio-java sends
+    // x-amz-acl unsigned with a presigned PUT)
+    final signed = signedHeaders.toLowerCase().split(';').toSet();
+    final unsigned = [
+      for (final name in request.headers.keys.map((h) => h.toLowerCase()))
+        if (name.startsWith('x-amz-') &&
+            name != 'x-amz-content-sha256' &&
+            name != 'x-amz-acl' &&
+            !name.startsWith('x-amz-grant-') &&
+            !signed.contains(name))
+          name,
+    ];
+    if (unsigned.isNotEmpty) {
+      throw S3Exception(
+        S3ErrorCode.accessDenied,
+        message: intl.errors.signature.headersNotSigned(
+          headers: unsigned.join(', '),
+        ),
+      );
+    }
+
     // ACCESS_KEY/DATE/REGION/SERVICE/aws4_request
     final parts = credential.split('/');
     if (parts.length < 5) {

@@ -25,15 +25,17 @@ WORKDIR /src
 
 # Resolve dependencies (cached while the pubspec doesn't change)
 COPY pubspec.* ./
-RUN flutter pub get
+RUN flutter pub get --enforce-lockfile
 
 # Copy the source (except anything in .dockerignore) and build
 COPY . .
-RUN flutter build web --release
+# CanvasKit from the build itself, not from Google's CDN: the CSP only allows scripts of the origin
+RUN flutter build web --release --no-web-resources-cdn
 
 # Static files on nginx
 FROM nginx:1.29.1-alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/security_headers.conf /etc/nginx/security_headers.conf
 COPY docker/env.js.template /etc/nginx/env-templates/env.js.template
 COPY --from=build /src/build/web /usr/share/nginx/html
 
