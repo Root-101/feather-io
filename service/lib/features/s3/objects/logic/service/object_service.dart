@@ -96,7 +96,13 @@ class ObjectService {
   /// valid bucket and isn't listed.
   static const String tempFolderName = '.tmp';
 
-  final Random _random = Random.secure();
+  static final Random _random = Random.secure();
+
+  /// 32 random hex chars: a temp file's name, a multipart upload id.
+  static String randomId() => List.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 
   /// How long replacing an open object is retried (on Windows).
   static const Duration replaceTimeout = Duration(seconds: 5);
@@ -186,11 +192,7 @@ class ObjectService {
   Future<File> _tempFile() async {
     final dir = Directory(p.join(env.storageVolumePath, tempFolderName));
     await dir.create(recursive: true);
-    final id = List.generate(
-      16,
-      (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-    ).join();
-    return File(p.join(dir.path, '$id.tmp'));
+    return File(p.join(dir.path, '${randomId()}.tmp'));
   }
 
   /// Age after which a file of [tempFolderName] is left over (a process that

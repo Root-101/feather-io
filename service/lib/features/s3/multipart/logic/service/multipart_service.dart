@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
@@ -23,7 +22,6 @@ class MultipartService {
   static const String _infoFile = 'upload.json';
   static final RegExp _uploadIdPattern = RegExp(r'^[0-9a-f]{32}$');
 
-  final Random _random = Random.secure();
   final ObjectMetaService _objectMeta = ObjectMetaService();
 
   /// Completions in progress by upload id: a client that times out and retries
@@ -48,7 +46,7 @@ class MultipartService {
       throw S3Exception.noSuchBucket(bucketName);
     }
 
-    final uploadId = _newId();
+    final uploadId = ObjectService.randomId();
     final dir = Directory(p.join(_root.path, uploadId));
     await dir.create(recursive: true);
     final initiated = DateTime.now().toUtc();
@@ -87,7 +85,7 @@ class MultipartService {
     final dir = await _uploadDir(bucketName, key, uploadId);
     final part = File(p.join(dir.path, '$partNumber.part'));
     // Its own temp file: a retry of the same part may be uploading meanwhile
-    final temp = File('${part.path}.${_newId()}.tmp');
+    final temp = File('${part.path}.${ObjectService.randomId()}.tmp');
 
     final etag = await Md5Tap.write(binary, temp);
     final lock = '$uploadId/$partNumber';
@@ -352,12 +350,6 @@ class MultipartService {
       if (info?['bucket'] == bucketName) await entity.delete(recursive: true);
     }
   }
-
-  /// 32 random hex chars (an upload id or a unique temp name).
-  String _newId() => List.generate(
-    16,
-    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-  ).join();
 
   void _validate(String bucketName, String key) {
     if (!S3Validator.isValidBucketName(bucketName)) {

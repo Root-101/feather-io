@@ -109,7 +109,7 @@ compatibility and updates the console if the API changes.
     - [x] CopyObject ignores the trailing `/` of the destination key.
     - [x] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
     - [x] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
-    - [ ] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
+    - [x] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
       generator copied in `ObjectService` and `MultipartService`.
 
 ## After 1.0 (future improvements)
