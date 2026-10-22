@@ -74,7 +74,7 @@ compatibility and updates the console if the API changes.
     - [x] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
       plus an unsigned `x-amz-copy-source` copies any object the signer can read. Reject every
       `x-amz-*` header that is not in `SignedHeaders` (but `x-amz-content-sha256`), as S3 does.
-    - [ ] The login lock is checked before the body is read: requests whose bodies are held back all
+    - [x] The login lock is checked before the body is read: requests whose bodies are held back all
       get their guess past the lock. Check it again after reading the body.
     - [ ] An anonymous glob rule that doesn't end in `*` (`photos/*.jpg`) lets anyone list the keys
       it doesn't cover (`?prefix=photos/cat.jpg` shows `photos/cat.jpg.zip`).
