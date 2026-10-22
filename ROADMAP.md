@@ -108,7 +108,7 @@ compatibility and updates the console if the API changes.
     - [x] The console can show a folder other than the one in the URL when two listings cross.
     - [x] CopyObject ignores the trailing `/` of the destination key.
     - [x] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
-    - [ ] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
+    - [x] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
     - [ ] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
       generator copied in `ObjectService` and `MultipartService`.
 

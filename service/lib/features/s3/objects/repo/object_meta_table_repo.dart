@@ -59,7 +59,8 @@ class ObjectMetaTableRepo {
     await (_db.delete(_db.objectMetaTable)..where(
           (tbl) =>
               tbl.bucketName.equals(bucketName) &
-              tbl.objectKey.substr(1, prefix.length).equals(prefix),
+              // SQLite counts characters, Dart's length UTF-16 units (2 for an emoji)
+              tbl.objectKey.substr(1, prefix.runes.length).equals(prefix),
         ))
         .go();
   }
