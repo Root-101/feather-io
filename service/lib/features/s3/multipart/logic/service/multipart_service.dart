@@ -26,6 +26,14 @@ class MultipartService {
   final Random _random = Random.secure();
   final ObjectMetaService _objectMeta = ObjectMetaService();
 
+  /// Completions in progress by upload id: a client that times out and retries
+  /// gets the same result instead of joining the parts again over the first one.
+  static final Map<String, Future<CompletedMultipartModel>> _completing = {};
+
+  /// The last write of each part (`<uploadId>/<n>`), so that two uploads of the
+  /// same part store the file and the ETag of the same one.
+  static final Map<String, Future<void>> _partWrites = {};
+
   Directory get _root => Directory(p.join(env.storageVolumePath, folderName));
 
   /// CreateMultipartUpload. The object's [headers] (`Content-Type`,
@@ -40,10 +48,7 @@ class MultipartService {
       throw S3Exception.noSuchBucket(bucketName);
     }
 
-    final uploadId = List.generate(
-      16,
-      (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-    ).join();
+    final uploadId = _newId();
     final dir = Directory(p.join(_root.path, uploadId));
     await dir.create(recursive: true);
     final initiated = DateTime.now().toUtc();
@@ -81,16 +86,27 @@ class MultipartService {
     }
     final dir = await _uploadDir(bucketName, key, uploadId);
     final part = File(p.join(dir.path, '$partNumber.part'));
-    final temp = File('${part.path}.tmp');
+    // Its own temp file: a retry of the same part may be uploading meanwhile
+    final temp = File('${part.path}.${_newId()}.tmp');
 
     final etag = await Md5Tap.write(binary, temp);
-    await temp.rename(part.path);
-    await File(p.join(dir.path, '$partNumber.etag')).writeAsString(etag);
+    final lock = '$uploadId/$partNumber';
+    final write = (_partWrites[lock] ?? Future.value()).then((_) async {
+      await temp.rename(part.path);
+      await File(p.join(dir.path, '$partNumber.etag')).writeAsString(etag);
+    });
+    _partWrites[lock] = write.catchError((_) {});
+    try {
+      await write;
+    } finally {
+      if (identical(_partWrites[lock], write)) _partWrites.remove(lock);
+    }
     return etag;
   }
 
   /// CompleteMultipartUpload: joins [parts] (in order) into the final object,
-  /// which replaces any existing one, and deletes the upload.
+  /// which replaces any existing one, and deletes the upload. A Complete of an
+  /// upload already being completed waits for that one and answers the same.
   Future<CompletedMultipartModel> complete({
     required String bucketName,
     required String key,
@@ -98,6 +114,23 @@ class MultipartService {
     required List<CompletedPart> parts,
   }) async {
     final dir = await _uploadDir(bucketName, key, uploadId);
+    final running = _completing[uploadId];
+    if (running != null) return running;
+    final completion = _complete(bucketName, key, dir, parts);
+    _completing[uploadId] = completion;
+    try {
+      return await completion;
+    } finally {
+      _completing.remove(uploadId);
+    }
+  }
+
+  Future<CompletedMultipartModel> _complete(
+    String bucketName,
+    String key,
+    Directory dir,
+    List<CompletedPart> parts,
+  ) async {
     final info = await _readInfo(dir);
     if (parts.isEmpty) {
       throw S3Exception(
@@ -290,6 +323,12 @@ class MultipartService {
       if (info?['bucket'] == bucketName) await entity.delete(recursive: true);
     }
   }
+
+  /// 32 random hex chars (an upload id or a unique temp name).
+  String _newId() => List.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 
   void _validate(String bucketName, String key) {
     if (!S3Validator.isValidBucketName(bucketName)) {

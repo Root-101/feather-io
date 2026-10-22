@@ -98,7 +98,7 @@ compatibility and updates the console if the API changes.
         - [ ] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
           the CI actions pinned by SHA.
 - Robustness:
-    - [ ] Two CompleteMultipartUpload of the same upload at once (a client that retries) write the
+    - [x] Two CompleteMultipartUpload of the same upload at once (a client that retries) write the
       same `object.tmp` and corrupt the object; UploadPart of the same part shares `<n>.part.tmp`.
     - [ ] Two PUTs of the same key at once can save the ETag and headers of one with the size and
       mtime of the other, so they never get recomputed.
