@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 class S3Validator {
@@ -29,23 +31,25 @@ class S3Validator {
     if (key.isEmpty || key.length > 1024) return false;
     final segments = key.split('/');
     if (segments.contains(folderMarker)) return false;
-    // An empty or '.' segment (`a//b`, `a/./b`, `/a`) would be another name
-    // for the same file on disk, and the anonymous rules compare the key as
-    // written; only the last one may be empty (`photos/`, a folder)
+    // A '..' segment climbs out of the folder (`..` inside a name, as in
+    // `report..final.pdf`, is fine). An empty or '.' segment (`a//b`, `a/./b`,
+    // `/a`) would be another name for the same file on disk, and the anonymous
+    // rules compare the key as written; only the last one may be empty
+    // (`photos/`, a folder). Windows drops a trailing dot or space from a
+    // name, so there `a.` would be `a`
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
-      if (segment == '.' || (segment.isEmpty && i < segments.length - 1)) {
+      if (segment == '.' ||
+          segment == '..' ||
+          (segment.isEmpty && i < segments.length - 1) ||
+          (Platform.isWindows &&
+              (segment.endsWith('.') || segment.endsWith(' ')))) {
         return false;
       }
     }
 
-    // Blocks path traversal sequences and NUL bytes
-    if (key.contains('..') ||
-        key.contains(r'..\') ||
-        key.contains('\x00') ||
-        key.contains('%00')) {
-      return false;
-    }
+    // NUL bytes, also encoded
+    if (key.contains('\x00') || key.contains('%00')) return false;
 
     // Characters S3 recommends avoiding or that break the filesystem: control
     // characters, >, <, :, ", |, ?, * and \ (a folder separator on Windows,

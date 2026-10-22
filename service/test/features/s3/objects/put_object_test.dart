@@ -113,6 +113,19 @@ void main() {
       expect(await File('./uploads_test/escape.txt').exists(), isFalse);
     });
 
+    test('Should upload a key with ".." inside a name', () async {
+      final response = await http.put(
+        server.url('/$bucket/informe..final.pdf'),
+        headers: server.auth(),
+        body: 'data',
+      );
+      expect(response.statusCode, 200, reason: response.body);
+      expect(
+        await File('${server.storagePath}/$bucket/informe..final.pdf').readAsString(),
+        'data',
+      );
+    });
+
     test('Should not let a key with an empty segment overwrite another (400)', () async {
       await server.putObject(bucket, 'alias/file.txt', 'original');
       final response = await http.put(
