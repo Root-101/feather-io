@@ -38,7 +38,9 @@ class ObjectController {
       sourceBucket: sourceBucket,
       sourceKey: sourceKey,
       bucketName: request.bucketName,
-      key: request.pathParams['key']!,
+      // With its trailing '/', so a copy to a folder is rejected instead of
+      // landing on the key without it
+      key: request.objectKey,
       headers: replace ? request.objectHeaders() : null,
       storageClass: request.storageClass(),
       conditions: request.copyConditions(),

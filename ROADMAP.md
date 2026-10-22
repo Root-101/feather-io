@@ -106,7 +106,7 @@ compatibility and updates the console if the API changes.
       and leaves its temp file behind.
     - [x] `.tmp/` and abandoned multipart uploads are never cleaned up.
     - [x] The console can show a folder other than the one in the URL when two listings cross.
-    - [ ] CopyObject ignores the trailing `/` of the destination key.
+    - [x] CopyObject ignores the trailing `/` of the destination key.
     - [ ] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
     - [ ] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
     - [ ] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
