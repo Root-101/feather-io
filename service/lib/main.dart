@@ -144,7 +144,27 @@ class FeatherIO {
         cors: const CorsConfig(exposedHeaders: ['ETag']),
       ),
       router: router,
+      // What an interrupted upload leaves in the volume: once a day, and once
+      // when it starts (after a crash or a restart)
+      scheduler: Scheduler()
+        ..every(
+          const Duration(days: 1),
+          name: 'storage-cleanup',
+          task: _cleanStorage,
+          runOnStart: true,
+        ),
     );
+  }
+
+  static Future<void> _cleanStorage() async {
+    final temps = await di.find<ObjectService>().deleteStaleTemps();
+    final uploads = await MultipartService().abortStale();
+    if (temps + uploads > 0) {
+      logger.info(
+        'Storage cleaned',
+        fields: {'tempFiles': temps, 'abortedUploads': uploads},
+      );
+    }
   }
 }
 

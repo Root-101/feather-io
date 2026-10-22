@@ -193,6 +193,31 @@ class ObjectService {
     return File(p.join(dir.path, '$id.tmp'));
   }
 
+  /// Age after which a file of [tempFolderName] is left over (a process that
+  /// died during an upload): no upload takes that long.
+  static const Duration staleTempAge = Duration(days: 1);
+
+  /// Deletes the files of [tempFolderName] older than [olderThan] and returns
+  /// how many. One in use is skipped.
+  Future<int> deleteStaleTemps({Duration olderThan = staleTempAge}) async {
+    final dir = Directory(p.join(env.storageVolumePath, tempFolderName));
+    if (!await dir.exists()) return 0;
+    final limit = DateTime.now().subtract(olderThan);
+    var deleted = 0;
+    await for (final entity in dir.list()) {
+      if (entity is! File) continue;
+      try {
+        if ((await entity.stat()).modified.isBefore(limit)) {
+          await entity.delete();
+          deleted++;
+        }
+      } on FileSystemException {
+        // Open (Windows) or already gone: the next run will see it
+      }
+    }
+    return deleted;
+  }
+
   /// For the health check: true when a file can be written to and deleted from
   /// the volume (it throws otherwise: a missing, read-only or full volume).
   Future<bool> storageWritable() async {

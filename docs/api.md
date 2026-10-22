@@ -597,6 +597,7 @@ How the console uploads files over 16 MiB (in 8 MiB parts). Every part but the l
    {"bucket": "photos", "key": "big.bin", "etag": "6a6d8d4533507d490ab007dfe8314ab7-1", "size_bytes": 6}
    ```
 
-To give up, `DELETE /photos/big.bin?uploadId=…` deletes the parts. S3 clients can also list the
+To give up, `DELETE /photos/big.bin?uploadId=…` deletes the parts; an upload left pending more than
+7 days is aborted by the service itself. S3 clients can also list the
 parts (`GET ?uploadId=`) and the pending uploads (`GET /photos?uploads`), and copy a part from
 another object (`x-amz-copy-source` on the part).

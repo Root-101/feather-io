@@ -315,6 +315,34 @@ class MultipartService {
     return uploads;
   }
 
+  /// Age after which a pending upload is abandoned, like S3's lifecycle rule
+  /// `AbortIncompleteMultipartUpload`: its parts would stay in the volume forever.
+  static const Duration staleUploadAge = Duration(days: 7);
+
+  /// Aborts the uploads started more than [olderThan] ago (but one being
+  /// completed) and returns how many.
+  Future<int> abortStale({Duration olderThan = staleUploadAge}) async {
+    if (!await _root.exists()) return 0;
+    final limit = DateTime.now().toUtc().subtract(olderThan);
+    var aborted = 0;
+    await for (final entity in _root.list()) {
+      if (entity is! Directory) continue;
+      final uploadId = p.basename(entity.path);
+      if (_completing.containsKey(uploadId)) continue;
+      final initiated =
+          DateTime.tryParse('${(await _readInfo(entity))?['initiated']}') ??
+          (await entity.stat()).modified.toUtc();
+      if (initiated.isAfter(limit)) continue;
+      try {
+        await entity.delete(recursive: true);
+        aborted++;
+      } on FileSystemException {
+        // A part still open (Windows): the next run will see it
+      }
+    }
+    return aborted;
+  }
+
   /// Deletes the pending uploads of [bucketName] (when the bucket is deleted).
   Future<void> abortAll(String bucketName) async {
     if (!await _root.exists()) return;

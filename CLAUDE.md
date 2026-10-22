@@ -451,7 +451,10 @@ could otherwise list, overwrite parts of or abort other users' uploads). Pending
 is not a valid bucket, so it isn't listed. Complete checks ascending order, ETags and the 5 MiB
 minimum of every part but the last, joins the parts inside the upload folder and moves the result,
 so the object never shows half-written; the final ETag is S3's `md5(part md5s)-N`. Deleting a bucket
-aborts its uploads. The upload id is validated as 32 hex chars before it touches a path. ListParts
+aborts its uploads. A daily task of Winter's `Scheduler` (`storage-cleanup` in `main.dart`, also
+when the server starts) aborts the uploads started more than 7 days ago
+(`MultipartService.abortStale`, like S3's `AbortIncompleteMultipartUpload`) and deletes the
+files of `.tmp/` older than a day (`ObjectService.deleteStaleTemps`), what a dead process leaves. The upload id is validated as 32 hex chars before it touches a path. ListParts
 (`GET /{bucket}/{key}?uploadId=`, served by the get-object route) lists the uploaded parts with
 `part-number-marker`/`max-parts`, and requires `s3.put-object` like the rest of multipart. ListMultipartUploads (`GET /{bucket}?uploads`, list-objects route) lists the
 pending uploads of the bucket, sorted and without paging. UploadPartCopy (`PUT ?partNumber&uploadId`
@@ -530,7 +533,7 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
   in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8115.
+- Use one distinct port per file so files run in parallel. Ports in use: 8082–8116.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error

@@ -104,7 +104,7 @@ compatibility and updates the console if the API changes.
       mtime of the other, so they never get recomputed.
     - [x] A key that collides with a folder (`docs` and `docs/readme`) answers 500 (503 on Windows)
       and leaves its temp file behind.
-    - [ ] `.tmp/` and abandoned multipart uploads are never cleaned up.
+    - [x] `.tmp/` and abandoned multipart uploads are never cleaned up.
     - [ ] The console can show a folder other than the one in the URL when two listings cross.
     - [ ] CopyObject ignores the trailing `/` of the destination key.
     - [ ] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
