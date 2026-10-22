@@ -21,7 +21,7 @@ against MinIO or AWS as products:
 | Area                  |  Score  | Why                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-----------------------|:-------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | S3 compatibility      |  **9**  | AWS CLI 34/34 and rclone 19/19; every Mint failure is something out of scope (SigV2, versioning, POST policy, S3 Select…), none of what it supports. Fine details covered: `aws-chunked`, `encoding-type=url`, ranges, copy conditions, full multipart                                                                                                                                                 |
-| Security              | **8.5** | SigV4 with clock skew and body sha256, access keys encrypted with AES-GCM, login throttling, rate limit, errors without internal details, path traversal. Missing: its own TLS (it relies on a proxy) and an external audit                                                                                                                                                                            |
+| Security              | **8.5** | SigV4 with clock skew, body sha256 and every `x-amz-*` header signed, access keys encrypted with AES-GCM, login throttling, rate limit, errors without internal details, path traversal, a CSP on the console. An internal security audit (2026-10-21) is fixed in `1.0.0-rc.6`. Missing: its own TLS (it relies on a proxy) and an external audit                                                     |
 | Tests                 | **8.5** | About as many lines of tests as of code (~500 service tests, 132 console tests, the batteries against real clients), all run by CI on the main branches and their pull requests except Mint                                                                                                                                                                                                            |
 | Architecture and code |  **8**  | Clear layers, features like `admin/`, XML apart, Problem Details errors, `DECISIONS.md`. `ObjectService` is still big (~650 lines)                                                                                                                                                                                                                                                                     |
 | Performance           | **7.5** | Very light on memory (12 MiB at start); uploads as fast as MinIO or faster since SQLite runs in WAL mode (2037 PUTs/s of 1 KiB, MinIO 1040), and a listing page costs what its folder holds (25 ms with 1000 objects, 67 ms with 10 000). Still behind: reads of small objects (a third of MinIO), big single uploads, and ListBuckets walking the whole storage (`service/tool/benchmark/RESULTS.md`) |
@@ -65,10 +65,10 @@ tens of thousands of objects.
 - [x] A Railway template: the service (with its volume at `/data`) and the console, with the
   variables of `.env.example`.
 
-## Security and robustness issues (audit of 2026-10-21)
+## Security and robustness issues (audit of 2026-10-21, fixed in 1.0.0-rc.6)
 
-Found by a security audit and a code audit of `0c1c3b2`. Every fix comes with its test, keeps S3
-compatibility and updates the console if the API changes.
+Found by a security audit and a code audit of `0c1c3b2`, all fixed in `1.0.0-rc.6`. Every fix
+comes with its test, keeps S3 compatibility and updates the console if the API changes.
 
 - Security, confirmed:
     - [x] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
@@ -119,6 +119,8 @@ compatibility and updates the console if the API changes.
 - [x] Upgrade to Winter `1.0.0-rc.3`: its complete Problem Details (RFC 9457, with `instance`),
   `TrustedProxies`, the `RateLimit` headers, `application/health+json` and conditional `GET`s
   (`304`/`412`); what is left out on purpose is in `DECISIONS.md` §12.
+- [x] Upgrade to Winter `1.0.0-rc.5`: `body<T>()` only reads a JSON `Content-Type`, and the S3
+  routes keep S3's `Cache-Control` with `AuthFilter(cacheControl: null)`.
 - [ ] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).
 - [ ] A promo video with real screenshots of the design.
