@@ -9,6 +9,7 @@ export 'logic/cubit/share_link_cubit.dart';
 export 'logic/model/browser_object_model.dart';
 export 'logic/model/browser_pagination.dart';
 export 'logic/model/object_name.dart';
+export 'logic/model/preview_type.dart';
 export 'logic/model/shared_link_model.dart';
 export 'logic/model/object_filter.dart';
 export 'view/browser_screen.dart';

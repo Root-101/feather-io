@@ -81,7 +81,7 @@ compatibility and updates the console if the API changes.
     - [x] `AnonymousAccessFilter` matches the key without its trailing `/` while the handler acts on
       the folder key: an anonymous writer creates or deletes folder markers outside the rule.
 - Security, to validate:
-    - [ ] The console's preview opens the object as a `blob:` (console origin) with the uploader's
+    - [x] The console's preview opens the object as a `blob:` (console origin) with the uploader's
       `Content-Type`: an HTML or SVG uploaded by an anonymous writer could run script next to the
       root JWT. Preview only inert types (the rest as text or download); the CSP in nginx goes
       with the security headers of the hardening below.

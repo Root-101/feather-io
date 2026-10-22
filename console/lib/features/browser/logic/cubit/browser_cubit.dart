@@ -279,7 +279,10 @@ class BrowserCubit extends Cubit<BrowserState>
         key: key,
       );
 
-      BrowserWindow.openBytes(data.bytes, contentType: data.contentType);
+      BrowserWindow.openBytes(
+        data.bytes,
+        contentType: PreviewType.of(data.contentType),
+      );
 
       emit(_loadingSuccessFrom(currentState));
     });

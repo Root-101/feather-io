@@ -11,6 +11,39 @@ BrowserObjectWrapper _object(String name, {int size = 0, DateTime? at}) =>
     );
 
 void main() {
+  group('PreviewType', () {
+    test('Images, video, audio and PDF keep their type', () {
+      expect(PreviewType.of('image/png'), 'image/png');
+      expect(PreviewType.of('IMAGE/JPEG; q=1'), 'image/jpeg');
+      expect(PreviewType.of('video/mp4'), 'video/mp4');
+      expect(PreviewType.of('audio/mpeg'), 'audio/mpeg');
+      expect(PreviewType.of('application/pdf'), 'application/pdf');
+    });
+
+    test('HTML, SVG and other markup or scripts are shown as text', () {
+      for (final type in [
+        'text/html',
+        'text/html; charset=utf-8',
+        'image/svg+xml',
+        'application/xhtml+xml',
+        'text/xml',
+        'application/xml',
+        'application/javascript',
+        'text/plain',
+        'application/json',
+      ]) {
+        expect(PreviewType.of(type), PreviewType.text, reason: type);
+      }
+    });
+
+    test('Anything else, or no type, is downloaded', () {
+      expect(PreviewType.of(null), PreviewType.download);
+      expect(PreviewType.of(''), PreviewType.download);
+      expect(PreviewType.of('application/zip'), PreviewType.download);
+      expect(PreviewType.of('application/x-shockwave-flash'), PreviewType.download);
+    });
+  });
+
   group('ObjectName', () {
     ObjectNameError? validate(String name, {String? current}) =>
         ObjectName.validate(
