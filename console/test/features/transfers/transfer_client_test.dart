@@ -57,4 +57,14 @@ void main() {
 
     expect(sent.single.contentType, 'video/mp4');
   });
+
+  test('The key is encoded segment by segment in the URL', () async {
+    await put('fotos/a #1 50%.jpg');
+
+    final uri = sent.single.uri;
+    expect(uri.path, '/media/fotos/a%20%231%2050%25.jpg');
+    expect(uri.hasFragment, isFalse);
+    // What the service decodes is the key as it was written
+    expect(uri.pathSegments.skip(1).join('/'), 'fotos/a #1 50%.jpg');
+  });
 }

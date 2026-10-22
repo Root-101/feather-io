@@ -63,7 +63,7 @@ class BrowserClient extends BaseClient {
     required String key,
     String? token,
   }) async {
-    await dio.put('$baseUrl/$bucket/$key', options: options(token: token));
+    await dio.put(objectUrl(bucket, key), options: options(token: token));
   }
 
   /// CopyObject: copies `sourceBucket/sourceKey` to `bucket/key`
@@ -77,7 +77,7 @@ class BrowserClient extends BaseClient {
     final requestOptions = options(token: token);
     requestOptions.headers!['x-amz-copy-source'] =
         '/$sourceBucket/${Uri.encodeComponent(sourceKey)}';
-    await dio.put('$baseUrl/$bucket/$key', options: requestOptions);
+    await dio.put(objectUrl(bucket, key), options: requestOptions);
   }
 
   /// Headers of the object without downloading it (`HEAD`)
@@ -87,7 +87,7 @@ class BrowserClient extends BaseClient {
     String? token,
   }) async {
     Response response = await dio.head(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       options: options(token: token),
     );
     return ObjectInfoResponse.fromHeaders(response.headers);
@@ -99,7 +99,7 @@ class BrowserClient extends BaseClient {
     String? token,
   }) async {
     Response<List<int>> response = await dio.get<List<int>>(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       options: options(token: token).copyWith(responseType: ResponseType.bytes),
     );
     return ObjectDataResponse(

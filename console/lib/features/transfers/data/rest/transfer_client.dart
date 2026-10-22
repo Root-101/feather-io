@@ -36,7 +36,7 @@ class TransferClient extends BaseClient {
     requestOptions.headers!.addAll(_objectHeaders(key));
 
     await dio.put(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       data: data,
       options: requestOptions,
       cancelToken: cancelToken,
@@ -55,7 +55,7 @@ class TransferClient extends BaseClient {
     requestOptions.headers!.addAll(_objectHeaders(key));
 
     final response = await dio.post<Map<String, dynamic>>(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       queryParameters: {'uploads': ''},
       options: requestOptions,
       cancelToken: cancelToken,
@@ -79,7 +79,7 @@ class TransferClient extends BaseClient {
     requestOptions.headers!['content-length'] = length.toString();
 
     final response = await dio.put(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       queryParameters: {'partNumber': '$partNumber', 'uploadId': uploadId},
       data: data,
       options: requestOptions,
@@ -100,7 +100,7 @@ class TransferClient extends BaseClient {
   }) async {
     // joining several GB on the service can take a while: no time limit
     await dio.post(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       queryParameters: {'uploadId': uploadId},
       data: CompleteMultipartRequest(parts: parts).toJson(),
       options: _longOptions(token),
@@ -116,7 +116,7 @@ class TransferClient extends BaseClient {
     String? token,
   }) async {
     await dio.delete(
-      '$baseUrl/$bucket/$key',
+      objectUrl(bucket, key),
       queryParameters: {'uploadId': uploadId},
       options: options(token: token),
     );

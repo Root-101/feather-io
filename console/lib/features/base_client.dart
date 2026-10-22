@@ -16,6 +16,12 @@ abstract class BaseClient {
 
   BaseClient(this.dio);
 
+  /// The URL of an object: each segment of [key] encoded, so that a `#`, `?` or
+  /// `%` in a name is part of the key and not a fragment, a query or an escape
+  /// that the service would decode into another key
+  String objectUrl(String bucket, String key) =>
+      '$baseUrl/$bucket/${key.split('/').map(Uri.encodeComponent).join('/')}';
+
   Options options({String? token, AcceptedTypes? accept}) {
     return Options(
       headers: <String, dynamic>{
