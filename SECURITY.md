@@ -54,7 +54,9 @@ What the service protects and how; the reasons and the data behind each decision
   (so presigned URLs use `https://`) and `TRUSTED_PROXIES` (so rate limits see the client IP, not
   the proxy's). The proxy must forward the original `Host`, which is part of the signatures.
 - **Secrets**: use long random values for `FEATHER_SECRET`, `JWT_SECRET` and
-  `KEYS_ENCRYPTION_SECRET` (e.g. `openssl rand -hex 32`) and keep them out of the repository.
+  `KEYS_ENCRYPTION_SECRET` (e.g. `openssl rand -hex 32`) and keep them out of the repository. The
+  service warns at start-up when `FEATHER_SECRET` has fewer than 16 characters or the other two
+  fewer than 32.
   Rotating `JWT_SECRET` logs everyone out; changing `KEYS_ENCRYPTION_SECRET` makes the stored access
   keys unusable.
 - **Separate origins**: serve the service and the console on different origins (another port or

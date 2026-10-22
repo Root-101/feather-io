@@ -86,7 +86,7 @@ compatibility and updates the console if the API changes.
       root JWT. Preview only inert types (the rest as text or download); the CSP in nginx goes
       with the security headers of the hardening below.
     - Hardening:
-        - [ ] A warning at start-up for a short `JWT_SECRET`/`FEATHER_SECRET`/
+        - [x] A warning at start-up for a short `JWT_SECRET`/`FEATHER_SECRET`/
           `KEYS_ENCRYPTION_SECRET` (not an error, so existing deployments keep starting).
         - [ ] `Content-Security-Policy: sandbox` on object GETs of HTML, SVG and XML.
         - [ ] A depth limit in the XML parser.

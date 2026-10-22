@@ -24,6 +24,14 @@ class FeatherIO {
       exceptionHandler: S3ExceptionHandler(),
       localeConfig: serviceLocales(),
     );
+    // Only the name of the variable, never its value
+    for (final name in env.shortSecrets) {
+      logger.warning(
+        '$name is shorter than ${recommendedSecretLengths[name]} characters: '
+        'use a long random value',
+        fields: {'variable': name},
+      );
+    }
 
     //--------------- OM ---------------\\
     om

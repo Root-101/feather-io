@@ -12,7 +12,23 @@ const List<String> requiredEnvVariables = [
   'STORAGE_VOLUME_PATH',
 ];
 
+/// The length below which a secret is too easy to guess (an HS256 key or an
+/// encryption passphrase of 32 characters, a root secret of 16): the start-up
+/// warns about it but still starts, so that existing deployments keep working.
+const Map<String, int> recommendedSecretLengths = {
+  'FEATHER_SECRET': 16,
+  'JWT_SECRET': 32,
+  'KEYS_ENCRYPTION_SECRET': 32,
+};
+
 extension ExtendedEnv on Env {
+  /// The secrets shorter than [recommendedSecretLengths].
+  List<String> get shortSecrets => [
+    for (final MapEntry(key: name, value: min)
+        in recommendedSecretLengths.entries)
+      if ((find<String>(name) ?? '').length < min) name,
+  ];
+
   String get secret => require<String>('FEATHER_SECRET');
 
   String get access => require<String>('FEATHER_ACCESS');
