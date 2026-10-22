@@ -65,6 +65,53 @@ tens of thousands of objects.
 - [x] A Railway template: the service (with its volume at `/data`) and the console, with the
   variables of `.env.example`.
 
+## Security and robustness issues (audit of 2026-10-21)
+
+Found by a security audit and a code audit of `0c1c3b2`. Every fix comes with its test, keeps S3
+compatibility and updates the console if the API changes.
+
+- Security, confirmed:
+    - [ ] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
+      plus an unsigned `x-amz-copy-source` copies any object the signer can read. Reject every
+      `x-amz-*` header that is not in `SignedHeaders` (but `x-amz-content-sha256`), as S3 does.
+    - [ ] The login lock is checked before the body is read: requests whose bodies are held back all
+      get their guess past the lock. Check it again after reading the body.
+    - [ ] An anonymous glob rule that doesn't end in `*` (`photos/*.jpg`) lets anyone list the keys
+      it doesn't cover (`?prefix=photos/cat.jpg` shows `photos/cat.jpg.zip`).
+    - [ ] `AnonymousAccessFilter` matches the key without its trailing `/` while the handler acts on
+      the folder key: an anonymous writer creates or deletes folder markers outside the rule.
+- Security, to validate:
+    - [ ] The console's preview opens the object as a `blob:` (console origin) with the uploader's
+      `Content-Type`: an HTML or SVG uploaded by an anonymous writer could run script next to the
+      root JWT. Preview only inert types (the rest as text or download); the CSP in nginx goes
+      with the security headers of the hardening below.
+    - Hardening:
+        - [ ] A warning at start-up for a short `JWT_SECRET`/`FEATHER_SECRET`/
+          `KEYS_ENCRYPTION_SECRET` (not an error, so existing deployments keep starting).
+        - [ ] `Content-Security-Policy: sandbox` on object GETs of HTML, SVG and XML.
+        - [ ] A depth limit in the XML parser.
+        - [ ] Keys with empty or `.` segments (`a//b`) rejected.
+        - [ ] Security headers in the console's nginx, with a CSP.
+        - [ ] Keys encoded in the console's URLs (`#`, `%`).
+        - [ ] A bucket created again doesn't inherit the grants and rules left by one of the same
+          name (a delete that failed after removing the folder): `createBucket` clears them.
+        - [ ] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
+          the CI actions pinned by SHA.
+- Robustness:
+    - [ ] Two CompleteMultipartUpload of the same upload at once (a client that retries) write the
+      same `object.tmp` and corrupt the object; UploadPart of the same part shares `<n>.part.tmp`.
+    - [ ] Two PUTs of the same key at once can save the ETag and headers of one with the size and
+      mtime of the other, so they never get recomputed.
+    - [ ] A key that collides with a folder (`docs` and `docs/readme`) answers 500 (503 on Windows)
+      and leaves its temp file behind.
+    - [ ] `.tmp/` and abandoned multipart uploads are never cleaned up.
+    - [ ] The console can show a folder other than the one in the URL when two listings cross.
+    - [ ] CopyObject ignores the trailing `/` of the destination key.
+    - [ ] Keys with `..` inside a name (`informe..final.pdf`) are rejected.
+    - [ ] `deleteByPrefix` leaves rows behind for prefixes with characters outside the BMP (emoji).
+    - [ ] Dead code: the console's `S3SigV4Signer` (and its `crypto` dependency); the hex id
+      generator copied in `ObjectService` and `MultipartService`.
+
 ## After 1.0 (future improvements)
 
 - [ ] Redesign the login screen to feature the dot grid in the background and incorporate the visual
