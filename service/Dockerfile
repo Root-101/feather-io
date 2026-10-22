@@ -10,7 +10,7 @@ WORKDIR /src
 
 # Resolve app dependencies (cached while the pubspec doesn't change).
 COPY pubspec.* ./
-RUN dart pub get
+RUN dart pub get --enforce-lockfile
 
 # Copy the source (except anything in .dockerignore) and AOT compile it. `dart build cli` also runs
 # the build hook of the sqlite3 package, which bundles SQLite: bundle/bin/main and

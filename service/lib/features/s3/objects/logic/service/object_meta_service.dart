@@ -23,9 +23,10 @@ class ObjectMetaService {
     required String key,
     required File file,
     required String etag,
+    FileStat? stat,
     Map<String, String> headers = const {},
   }) async {
-    final stat = await file.stat();
+    stat ??= await file.stat();
     await repo.save(
       bucketName: bucketName,
       key: key,

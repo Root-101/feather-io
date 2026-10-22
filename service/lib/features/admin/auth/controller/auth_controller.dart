@@ -12,16 +12,23 @@ class AuthController {
     // Per IP (an IPv6 by its /64), as the general limit; behind your own
     // proxies, see TRUSTED_PROXIES
     final client = defaultClientId(request);
-    final locked = rateLimiter.lockedFor(client);
-    if (locked != null) {
-      throw TooManyRequestsException(
-        detail: intl.errors.admin.tooManyLoginAttempts,
-        retryAfter: (locked.inMilliseconds / 1000).ceil(),
-      );
+    void checkLock() {
+      final locked = rateLimiter.lockedFor(client);
+      if (locked != null) {
+        throw TooManyRequestsException(
+          detail: intl.errors.admin.tooManyLoginAttempts,
+          retryAfter: (locked.inMilliseconds / 1000).ceil(),
+        );
+      }
     }
 
+    checkLock();
     try {
       final loginReq = await request.body<LoginRequest>();
+      // Again once the body is read: requests that passed the first check
+      // while their bodies were held back would each get a guess past the lock.
+      // Nothing awaits from here to the count of the failure, so it is atomic
+      checkLock();
 
       // Always both comparisons, without stopping at the first different
       // character: the response time gives nothing away

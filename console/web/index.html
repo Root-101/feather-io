@@ -165,14 +165,8 @@
     <div class="loader"></div>
 </div>
 
-<script>
-    // The text follows the browser language (es/en), like the app
-    if ((navigator.language || "").toLowerCase().startsWith("es")) {
-      document.documentElement.lang = "es";
-      document.getElementById("splash-text").textContent =
-        "Conectando al servicio de almacenamiento…";
-    }
-</script>
+<!-- Splash: its language, and removing it on the first frame (no inline scripts, see the CSP) -->
+<script src="splash.js"></script>
 
 <!-- ENV -->
 <script src="env.js"></script>
@@ -180,21 +174,6 @@
 <!-- Flutter -->
 <script src="flutter_bootstrap.js" async=""></script>
 
-<!-- Remove splash when Flutter renders first frame -->
-<script>
-    window.addEventListener('flutter-first-frame', function () {
-      const splash = document.getElementById('splash');
-
-      if (splash) {
-        splash.classList.add('fade-out');
-
-        setTimeout(() => {
-          splash.remove();
-          document.body.style.background = 'transparent';
-        }, 400);
-      }
-    });
-</script>
 
 </body>
 

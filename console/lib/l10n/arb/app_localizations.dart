@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @anonymousRulePrefixHelper.
   ///
   /// In en, this message translates to:
-  /// **'Without *, it covers everything that starts with it (end it with / for a folder). With *, the whole key must match (for example, *.jpg covers only .jpg files).'**
+  /// **'Without *, it covers everything that starts with it (end it with / for a folder). With *, the whole key must match (for example, *.jpg covers only .jpg files), and it only opens listings if it ends in *.'**
   String get anonymousRulePrefixHelper;
 
   /// No description provided for @anonymousRulePrefixRequired.

@@ -24,6 +24,14 @@ class FeatherIO {
       exceptionHandler: S3ExceptionHandler(),
       localeConfig: serviceLocales(),
     );
+    // Only the name of the variable, never its value
+    for (final name in env.shortSecrets) {
+      logger.warning(
+        '$name is shorter than ${recommendedSecretLengths[name]} characters: '
+        'use a long random value',
+        fields: {'variable': name},
+      );
+    }
 
     //--------------- OM ---------------\\
     om
@@ -136,7 +144,27 @@ class FeatherIO {
         cors: const CorsConfig(exposedHeaders: ['ETag']),
       ),
       router: router,
+      // What an interrupted upload leaves in the volume: once a day, and once
+      // when it starts (after a crash or a restart)
+      scheduler: Scheduler()
+        ..every(
+          const Duration(days: 1),
+          name: 'storage-cleanup',
+          task: _cleanStorage,
+          runOnStart: true,
+        ),
     );
+  }
+
+  static Future<void> _cleanStorage() async {
+    final temps = await di.find<ObjectService>().deleteStaleTemps();
+    final uploads = await MultipartService().abortStale();
+    if (temps + uploads > 0) {
+      logger.info(
+        'Storage cleaned',
+        fields: {'tempFiles': temps, 'abortedUploads': uploads},
+      );
+    }
   }
 }
 

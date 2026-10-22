@@ -39,12 +39,21 @@ class AnonymousAccessFilter extends Filter {
         routeKey != null &&
         !keyHasIt &&
         _isAnonymousRoute(routeKey)) {
-      // For list-objects the query's prefix is checked; for an object, its key
-      final key = routeKey == 's3.list-objects'
+      // For list-objects the query's prefix is checked; for an object, the key
+      // the handler acts on (with its trailing '/', which Winter drops from the
+      // path param: 'photos/*.jpg' must not open the folder 'photos/a.jpg/')
+      final listing = routeKey == 's3.list-objects';
+      final key = listing
           ? request.queryParams['prefix'] ?? ''
-          : request.pathParams['key'] ?? '';
+          : request.pathParams['key'] == null
+          ? ''
+          : request.objectKey;
 
-      final rule = await _service.findMatchingRule(bucket: bucket, key: key);
+      final rule = await _service.findMatchingRule(
+        bucket: bucket,
+        key: key,
+        listing: listing,
+      );
       if (rule != null && _allowedKeys(rule.access).contains(routeKey)) {
         final anonymous = {
           for (final allowed in _allowedKeys(rule.access))

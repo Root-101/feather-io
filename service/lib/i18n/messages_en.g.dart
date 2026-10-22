@@ -154,6 +154,14 @@ class ServiceMessages$errors$s3$en {
   String get objectInUse =>
       'The object is in use and cannot be replaced; please retry.';
 
+  /// en: 'The key "{key: String}" is a folder that holds objects; use another key.'
+  String keyIsFolder({required String key}) =>
+      'The key "${key}" is a folder that holds objects; use another key.';
+
+  /// en: 'The key "{key: String}" cannot be created because "{object: String}" is an object.'
+  String keyUnderObject({required String key, required String object}) =>
+      'The key "${key}" cannot be created because "${object}" is an object.';
+
   /// en: 'The object could not be deleted; please retry.'
   String get objectNotDeleted =>
       'The object could not be deleted; please retry.';
@@ -314,6 +322,10 @@ class ServiceMessages$errors$signature$en {
   String get sha256Mismatch =>
       'The body does not match the signed x-amz-content-sha256.';
 
+  /// en: 'There were headers present in the request which were not signed: {headers: String}'
+  String headersNotSigned({required String headers}) =>
+      'There were headers present in the request which were not signed: ${headers}';
+
   /// en: 'The access key does not exist or is not active.'
   String get accessKeyInactive =>
       'The access key does not exist or is not active.';
@@ -448,6 +460,13 @@ extension on ServiceMessages {
       }) => 'The object is ${size} bytes and the maximum is ${max}.',
       'errors.s3.objectInUse' =>
         'The object is in use and cannot be replaced; please retry.',
+      'errors.s3.keyIsFolder' => ({
+        required String key,
+      }) => 'The key "${key}" is a folder that holds objects; use another key.',
+      'errors.s3.keyUnderObject' => ({
+        required String key,
+        required String object,
+      }) => 'The key "${key}" cannot be created because "${object}" is an object.',
       'errors.s3.objectNotDeleted' =>
         'The object could not be deleted; please retry.',
       'errors.s3.incompleteChunkedBody' =>
@@ -513,6 +532,9 @@ extension on ServiceMessages {
       'errors.signature.mismatch' => 'Signature mismatch',
       'errors.signature.sha256Mismatch' =>
         'The body does not match the signed x-amz-content-sha256.',
+      'errors.signature.headersNotSigned' => ({
+        required String headers,
+      }) => 'There were headers present in the request which were not signed: ${headers}',
       'errors.signature.accessKeyInactive' =>
         'The access key does not exist or is not active.',
       'errors.signature.presignMissingParam' => ({

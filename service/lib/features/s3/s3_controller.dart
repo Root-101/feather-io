@@ -21,6 +21,11 @@ class S3Controller {
     );
   }
 
+  /// Like S3, no response gets a `Cache-Control` it wasn't stored with:
+  /// `AuthFilter(cacheControl: null)` (Winter adds `private` by default). An
+  /// object is the same for whoever may read it, a shared cache doesn't keep
+  /// the answer to a request with `Authorization` (RFC 9111 §3.5), and a public
+  /// prefix stays cacheable by a CDN
   Route get routing {
     return Route.parent(
       path: '/',
@@ -37,7 +42,10 @@ class S3Controller {
           path: '/',
           handler: buckets.listBuckets,
           filterConfig: FilterConfig([
-            AuthFilter(rules: hasPermission('s3.list-buckets')),
+            AuthFilter(
+              cacheControl: null,
+              rules: hasPermission('s3.list-buckets'),
+            ),
           ]),
         ),
         Route.put(
@@ -45,7 +53,10 @@ class S3Controller {
           path: '/{bucket}',
           handler: buckets.createBucket,
           filterConfig: FilterConfig([
-            AuthFilter(rules: hasPermission('s3.create-bucket')),
+            AuthFilter(
+              cacheControl: null,
+              rules: hasPermission('s3.create-bucket'),
+            ),
             ReservedBucketFilter(),
           ]),
         ),
@@ -54,7 +65,10 @@ class S3Controller {
           path: '/{bucket}',
           handler: buckets.deleteBucket,
           filterConfig: FilterConfig([
-            AuthFilter(rules: hasPermission('s3.delete-bucket')),
+            AuthFilter(
+              cacheControl: null,
+              rules: hasPermission('s3.delete-bucket'),
+            ),
             ReservedBucketFilter(),
           ]),
         ),
@@ -64,6 +78,7 @@ class S3Controller {
           handler: _getBucket,
           filterConfig: FilterConfig([
             AuthFilter(
+              cacheControl: null,
               rules:
                   hasPermission('s3.list-objects') |
                   hasPermission('s3.anonymous.list-objects'),
@@ -82,6 +97,7 @@ class S3Controller {
               handler: _putObject,
               filterConfig: FilterConfig([
                 AuthFilter(
+                  cacheControl: null,
                   rules:
                       hasPermission('s3.put-object') |
                       hasPermission('s3.anonymous.put-object'),
@@ -94,7 +110,10 @@ class S3Controller {
               path: '/{key|.*}',
               handler: _postObject,
               filterConfig: FilterConfig([
-                AuthFilter(rules: hasPermission('s3.put-object')),
+                AuthFilter(
+                  cacheControl: null,
+                  rules: hasPermission('s3.put-object'),
+                ),
               ]),
             ),
             Route.get(
@@ -103,6 +122,7 @@ class S3Controller {
               handler: _getObject,
               filterConfig: FilterConfig([
                 AuthFilter(
+                  cacheControl: null,
                   rules:
                       hasPermission('s3.get-object') |
                       hasPermission('s3.anonymous.get-object'),
@@ -115,6 +135,7 @@ class S3Controller {
               handler: _deleteObject,
               filterConfig: FilterConfig([
                 AuthFilter(
+                  cacheControl: null,
                   rules:
                       hasPermission('s3.delete-object') |
                       hasPermission('s3.anonymous.delete-object'),
@@ -128,7 +149,10 @@ class S3Controller {
           path: '/{bucket}',
           handler: objects.deleteObjects,
           filterConfig: FilterConfig([
-            AuthFilter(rules: hasPermission('s3.multi-delete-objects')),
+            AuthFilter(
+              cacheControl: null,
+              rules: hasPermission('s3.multi-delete-objects'),
+            ),
             ReservedBucketFilter(),
           ]),
         ),

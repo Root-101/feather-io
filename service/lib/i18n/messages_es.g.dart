@@ -148,6 +148,12 @@ class ServiceMessages$errors$s3$es implements ServiceMessages$errors$s3$en {
   String get objectInUse =>
       'El objeto está en uso y no se puede reemplazar; vuelve a intentarlo.';
   @override
+  String keyIsFolder({required Object key}) =>
+      'La key "${key}" es una carpeta con objetos; usa otra key.';
+  @override
+  String keyUnderObject({required Object key, required Object object}) =>
+      'La key "${key}" no se puede crear porque "${object}" es un objeto.';
+  @override
   String get objectNotDeleted =>
       'El objeto no se pudo borrar; vuelve a intentarlo.';
   @override
@@ -279,6 +285,9 @@ class ServiceMessages$errors$signature$es
   String get sha256Mismatch =>
       'El cuerpo no coincide con el x-amz-content-sha256 firmado.';
   @override
+  String headersNotSigned({required Object headers}) =>
+      'La petición lleva cabeceras que no están firmadas: ${headers}';
+  @override
   String get accessKeyInactive =>
       'La clave de acceso no existe o no está activa.';
   @override
@@ -399,6 +408,13 @@ extension on ServiceMessagesEs {
       }) => 'El objeto tiene ${size} bytes y el máximo es ${max}.',
       'errors.s3.objectInUse' =>
         'El objeto está en uso y no se puede reemplazar; vuelve a intentarlo.',
+      'errors.s3.keyIsFolder' => ({
+        required Object key,
+      }) => 'La key "${key}" es una carpeta con objetos; usa otra key.',
+      'errors.s3.keyUnderObject' => ({
+        required Object key,
+        required Object object,
+      }) => 'La key "${key}" no se puede crear porque "${object}" es un objeto.',
       'errors.s3.objectNotDeleted' =>
         'El objeto no se pudo borrar; vuelve a intentarlo.',
       'errors.s3.incompleteChunkedBody' =>
@@ -468,6 +484,9 @@ extension on ServiceMessagesEs {
       'errors.signature.mismatch' => 'La firma no coincide',
       'errors.signature.sha256Mismatch' =>
         'El cuerpo no coincide con el x-amz-content-sha256 firmado.',
+      'errors.signature.headersNotSigned' => ({
+        required Object headers,
+      }) => 'La petición lleva cabeceras que no están firmadas: ${headers}',
       'errors.signature.accessKeyInactive' =>
         'La clave de acceso no existe o no está activa.',
       'errors.signature.presignMissingParam' => ({

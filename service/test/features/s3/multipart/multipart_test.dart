@@ -167,6 +167,62 @@ void main() {
       expect(object.bodyBytes.first, 1);
     });
 
+    test('Should answer the same to a Complete retried while the first runs', () async {
+      const key = 'retried.bin';
+      final uploadId = await createId(key);
+      final etags = await uploadBoth(key, uploadId);
+      final parts = [(1, etags[0]), (2, etags[1])];
+
+      final responses = await Future.wait([
+        completeJson(key, uploadId, parts),
+        completeJson(key, uploadId, parts),
+      ]);
+      for (final response in responses) {
+        expect(response.statusCode, 200, reason: response.body);
+      }
+      expect(
+        jsonDecode(responses[0].body)['etag'],
+        jsonDecode(responses[1].body)['etag'],
+      );
+
+      final object = await http.get(
+        server.url('/$bucket/$key'),
+        headers: server.auth(),
+      );
+      expect(object.bodyBytes.length, part1.length + part2.length);
+      expect(
+        md5.convert(object.bodyBytes).toString(),
+        md5.convert([...part1, ...part2]).toString(),
+      );
+    });
+
+    test('Should keep the file and the ETag of the same part uploaded twice at once', () async {
+      const key = 'part-race.bin';
+      final uploadId = await createId(key);
+      final responses = await Future.wait([
+        uploadPart(key, uploadId, 1, List<int>.filled(5 * mb, 7)),
+        uploadPart(key, uploadId, 1, List<int>.filled(5 * mb, 8)),
+      ]);
+      for (final response in responses) {
+        expect(response.statusCode, 200, reason: response.body);
+      }
+
+      final listed = await http.get(
+        server.url('/$bucket/$key?uploadId=$uploadId'),
+        headers: server.auth(json: true),
+      );
+      final etag = jsonDecode(listed.body)[0]['etag'] as String;
+      final completed = await completeJson(key, uploadId, [(1, etag)]);
+      expect(completed.statusCode, 200, reason: completed.body);
+
+      final object = await http.get(
+        server.url('/$bucket/$key'),
+        headers: server.auth(),
+      );
+      // The ETag of the part that stayed, whichever of the two it was
+      expect(md5.convert(object.bodyBytes).toString(), etag.replaceAll('"', ''));
+    });
+
     test('Should allow a single small part', () async {
       const key = 'small.txt';
       final uploadId = await createId(key);

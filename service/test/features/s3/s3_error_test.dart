@@ -272,4 +272,121 @@ void main() {
       expect(response.statusCode, 403);
     });
   });
+
+  group('S3SigV4Filter - unsigned x-amz-* headers', () {
+    const bucket = 'unsigned-headers';
+
+    setUpAll(() async {
+      await server.putObject('unsigned-vault', 'secret.txt', 'private');
+      await server.createBucket(bucket);
+    });
+
+    /// A presigned URL that signs only `host`, as the SDKs make them.
+    Uri presigned(String method, String path) {
+      final now = DateTime.now().toUtc();
+      final amzDate = SigV4Signer.amzDate(now);
+      final scope = SigV4Signer.scope(SigV4Signer.dateStamp(now));
+      final query = {
+        SigV4Signer.algorithmParam: SigV4Signer.algorithm,
+        SigV4Signer.credentialParam: '$testAccess/$scope',
+        SigV4Signer.dateParam: amzDate,
+        SigV4Signer.expiresParam: '600',
+        SigV4Signer.signedHeadersParam: 'host',
+      };
+      final signature = SigV4Signer.signature(
+        secret: testSecret,
+        amzDate: amzDate,
+        scope: scope,
+        canonicalRequest: SigV4Signer.canonicalRequest(
+          method: method,
+          path: path,
+          query: query,
+          headers: {'host': 'localhost:${server.port}'},
+          signedHeaders: 'host',
+          payloadHash: SigV4Signer.unsignedPayload,
+        ),
+      );
+      final signedQuery = SigV4Signer.canonicalQuery({
+        ...query,
+        SigV4Signer.signatureParam: signature,
+      });
+      return server.url('$path?$signedQuery');
+    }
+
+    File stored(String key) => File('${server.storagePath}/$bucket/$key');
+
+    test('Should upload with a presigned PUT URL', () async {
+      final response = await http.put(
+        presigned('PUT', '/$bucket/upload.txt'),
+        body: 'mine',
+      );
+      expect(response.statusCode, 200, reason: response.body);
+      expect(await stored('upload.txt').readAsString(), 'mine');
+    });
+
+    test('Should not turn a presigned PUT into a copy with an unsigned x-amz-copy-source (403)', () async {
+      final response = await http.put(
+        presigned('PUT', '/$bucket/copied.txt'),
+        headers: {'x-amz-copy-source': '/unsigned-vault/secret.txt'},
+      );
+      expect(response.statusCode, 403);
+      expect(response.body, contains('<Code>AccessDenied</Code>'));
+      expect(response.body, contains('x-amz-copy-source'));
+      expect(stored('copied.txt').existsSync(), isFalse);
+    });
+
+    test('Should reject unsigned x-amz-meta-* on a presigned PUT (403)', () async {
+      final response = await http.put(
+        presigned('PUT', '/$bucket/meta.txt'),
+        headers: {'x-amz-meta-injected': 'yes'},
+        body: 'x',
+      );
+      expect(response.statusCode, 403);
+      expect(stored('meta.txt').existsSync(), isFalse);
+    });
+
+    test('Should accept an unsigned x-amz-content-sha256 (bound by the payload hash)', () async {
+      final response = await http.put(
+        presigned('PUT', '/$bucket/sha.txt'),
+        headers: {'x-amz-content-sha256': SigV4Signer.unsignedPayload},
+        body: 'x',
+      );
+      expect(response.statusCode, 200, reason: response.body);
+    });
+
+    test('Should accept an unsigned x-amz-acl, which is ignored (minio-java)', () async {
+      final response = await http.put(
+        presigned('PUT', '/$bucket/acl.txt'),
+        headers: {'x-amz-acl': 'public-read'},
+        body: 'x',
+      );
+      expect(response.statusCode, 200, reason: response.body);
+    });
+
+    test('Should reject an unsigned x-amz-copy-source added to a header-signed PUT (403)', () async {
+      final response = await http.put(
+        server.url('/$bucket/replayed.txt'),
+        headers: {
+          ...server.sigV4('PUT', '/$bucket/replayed.txt'),
+          'x-amz-copy-source': '/unsigned-vault/secret.txt',
+        },
+      );
+      expect(response.statusCode, 403);
+      expect(stored('replayed.txt').existsSync(), isFalse);
+    });
+
+    test('Should copy when x-amz-copy-source is signed', () async {
+      final headers = server.sigV4(
+        'PUT',
+        '/$bucket/signed-copy.txt',
+        extraHeaders: {'x-amz-copy-source': '/unsigned-vault/secret.txt'},
+      );
+      final response = await http.put(
+        server.url('/$bucket/signed-copy.txt'),
+        headers: headers,
+      );
+      expect(response.statusCode, 200, reason: response.body);
+      expect(await stored('signed-copy.txt').readAsString(), 'private');
+    });
+  });
 }

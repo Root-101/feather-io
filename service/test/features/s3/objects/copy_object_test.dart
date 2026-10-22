@@ -159,6 +159,12 @@ void main() {
       }
     });
 
+    test('Should reject a folder as the target, not copy to the key without its slash (400)', () async {
+      final response = await copy('target-folder/', '/$bucket/source/report.pdf');
+      expect(response.statusCode, 400);
+      expect(File('${server.storagePath}/$bucket/target-folder').existsSync(), isFalse);
+    });
+
     test('Should reject a path traversal in the source (400)', () async {
       final response = await copy('x.txt', '/$bucket/..%2F..%2Fsecret.txt');
       expect(response.statusCode, 400);

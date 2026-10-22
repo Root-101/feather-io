@@ -113,6 +113,17 @@ void main() {
       }
     });
 
+    test('Should reject elements nested deeper than the limit, without overflowing the stack', () {
+      String nested(int depth) => '${'<a>' * depth}${'</a>' * depth}';
+      expect(XmlElement.parse(nested(XmlParser.maxDepth)).name, 'a');
+      expect(
+        () => XmlElement.parse(nested(XmlParser.maxDepth + 1)),
+        throwsFormatException,
+      );
+      // What a 2 MB body allows: a StackOverflowError without the limit
+      expect(() => XmlElement.parse(nested(300000)), throwsFormatException);
+    });
+
     test('Should reject a DeleteObjects body with another root or a part without number', () {
       expect(
         () => DeleteObjectsRequest.fromXml(XmlElement.parse('<Remove/>')),

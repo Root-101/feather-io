@@ -7,7 +7,7 @@ repository. It is the single source of truth for project rules.
 
 Monorepo for a lightweight S3-compatible storage system:
 
-- `service/` — Dart backend built on **Winter** `1.0.0-rc.3` (from pub.dev; its source is also at
+- `service/` — Dart backend built on **Winter** `1.0.0-rc.5` (from pub.dev; its source is also at
   `../winter`, a sibling of this repo). Its guides (`doc/`), examples (`example/`, the apps
   `auth_jwt` and `production` are the closest to this service) and `DECISIONS.md` are the
   reference; read its source when an API is unclear.
@@ -86,7 +86,10 @@ fvm flutter test                                                # on the VM, no 
   gitignored. `ADMIN_PREFIX` must match the service. `console/Dockerfile` builds the web app with
   the Flutter of `.fvmrc` (bump its `FLUTTER_VERSION` with it) and serves it with nginx; the
   image's envsubst fills `docker/env.js.template` into `env.js` from the container's env when it
-  starts.
+  starts. nginx sends a CSP (`docker/security_headers.conf`, included in every `location` with
+  its own `add_header`): only the build's scripts, so `web/index.html` has no inline scripts
+  (`web/splash.js`) and the build skips the CDN (`--no-web-resources-cdn`, CanvasKit is served by
+  nginx).
   `docker-compose.yml` at the root starts the service (volume) and the console, with the secrets
   in `.env` (`.env.example`).
 - Tests (`test/`, `bloc_test` + `mocktail`) run on the VM. Code that needs the browser
@@ -165,7 +168,11 @@ file.
   (that would stretch it past the 7-day maximum). When the client signs the body's sha256 (a hex
   `x-amz-content-sha256`), the filter wraps the body and fails with `XAmzContentSHA256Mismatch`
   after reading it if it doesn't match, so a captured request can't be replayed with another body
-  (`UNSIGNED-PAYLOAD` and `STREAMING-…` bodies are not checked). Authentication errors never
+  (`UNSIGNED-PAYLOAD` and `STREAMING-…` bodies are not checked). Like S3, every `x-amz-*` header
+  of the request must be in `SignedHeaders` (`AccessDenied` otherwise; the routes pick the
+  operation by them, and an unsigned `x-amz-copy-source` would turn a presigned PUT into a copy),
+  except `x-amz-content-sha256` (bound by the payload hash) and the ACL headers, which are
+  ignored. Authentication errors never
   include internal details. The `Authorization` fields may be separated by `,` with or without a space (s3cmd
   sends none). Canonical query names and values, and the paths `PresignService` builds, are encoded
 with `SigV4Signer.uriEncode` (everything but `A-Za-z0-9-_.~`, like AWS; `Uri.encodeComponent`
@@ -194,6 +201,8 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   its grants. See `DECISIONS.md`.
 - Each route declares its own permission with
   `AuthFilter(rules: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
+  The S3 routes pass `cacheControl: null`, so, like S3, a response only has the `Cache-Control`
+  stored with its object (Winter adds `private` by default, which the admin API keeps).
   Route keys and permission names match (`s3.*`, `admin.*`).
 - New endpoints need the route key, an `AuthFilter`, **and** the permission added to the list in
   `admin/auth/controller/auth_controller.dart` (and to `S3SigV4Filter` if native S3 clients should reach
@@ -205,9 +214,12 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   `AnonymousAccessService.findMatchingRule`) and grants the `s3.anonymous.*` permissions of the
   first matching rule. A rule without `*` is a prefix; with `*` (any characters, `/` included) the
   whole key must match, so `fotos/*.jpg` doesn't open `fotos/a.jpg.zip`; everything else matches
-  literally (`AnonymousAccessService.matches`). It covers
+  literally (`AnonymousAccessService.matches`). A listing checks its `prefix`, and it returns every
+  key that starts with it, so only rules that cover any longer key open it (no `*`, or ending in
+  `*`): `fotos/*.jpg` would list `fotos/a.jpg.zip` through the prefix `fotos/a.jpg`. It covers
   list/get/put/delete object; multi-delete is never anonymous, because its keys come in the body.
-  Deleting a bucket deletes its rules.
+  Deleting a bucket deletes its rules, and creating one clears any rules or key grants left with
+  its name.
 
 **Folder layout.** Every feature (or sub-feature) under `lib/features/` uses the same folders:
 
@@ -372,7 +384,14 @@ body wrapped by the filter, which fails with 413 while reading; Winter reads the
 discards it, so the client gets the answer (`EntityTooLarge` on the S3 API). Every bucket name goes through
 `S3Validator.isValidBucketName` and every key through `S3Validator.isValidKey` (path traversal
 protection) before touching the filesystem. Keys can't contain `\`: on Windows it is a folder
-separator, so `a\b` would alias `a/b` and could write a folder marker.
+separator, so `a\b` would alias `a/b` and could write a folder marker. For the same reason no
+segment may be `.` or empty but the last one (`a//b`, `a/./b` and `/a` are another name for a
+file; `photos/` is a folder), nor `..` (`..` inside a name, `report..final.pdf`, is fine), and on
+Windows none may end in a dot or a space, which Windows drops (`a.` would be `a`). A key and a
+folder can't share a name on disk (in S3 they can): an object
+under an object (`docs/readme` when `docs` is one) or over a folder that holds objects is
+`409 KeyConflict` (not an AWS code), and `replaceFile` always deletes the file written aside when
+it fails.
 
 **Folders and listing.** A key ending in `/` is a folder: `PUT /{bucket}/fotos/` creates the
 directory with a hidden `S3Validator.folderMarker` file (`.feather-folder`), so empty folders
@@ -415,7 +434,9 @@ back. Without a stored `Content-Type` it comes from the extension. `x-amz-storag
 validated (`InvalidStorageClass`) and stored like those headers, except `STANDARD`, which S3 never
 sends back; a copy takes it from the request, not from the source. A signed `GET` may override the
 response headers with `?response-content-type=…` (and `-disposition`, `-cache-control`, …); anonymous
-requests can't. CopyObject and UploadPartCopy check the `x-amz-copy-source-if-*` conditions
+requests can't. An HTML, SVG or XML object (by its final `Content-Type`) is sent with
+`Content-Security-Policy: sandbox`, so an uploaded page never runs script in the service's origin
+(not every type: a PDF isn't shown in a sandbox). CopyObject and UploadPartCopy check the `x-amz-copy-source-if-*` conditions
 (`CopyConditions`, `412 PreconditionFailed`). Uploads compute the md5 while streaming (`Md5Tap`, also used by UploadPart), copies
 reuse the source's ETag and multipart stores `md5(part md5s)-N`. On read (GET/HEAD, listings), a
 missing row or one whose size/mtime no longer match (the file changed outside the service) gets its
@@ -434,7 +455,10 @@ could otherwise list, overwrite parts of or abort other users' uploads). Pending
 is not a valid bucket, so it isn't listed. Complete checks ascending order, ETags and the 5 MiB
 minimum of every part but the last, joins the parts inside the upload folder and moves the result,
 so the object never shows half-written; the final ETag is S3's `md5(part md5s)-N`. Deleting a bucket
-aborts its uploads. The upload id is validated as 32 hex chars before it touches a path. ListParts
+aborts its uploads. A daily task of Winter's `Scheduler` (`storage-cleanup` in `main.dart`, also
+when the server starts) aborts the uploads started more than 7 days ago
+(`MultipartService.abortStale`, like S3's `AbortIncompleteMultipartUpload`) and deletes the
+files of `.tmp/` older than a day (`ObjectService.deleteStaleTemps`), what a dead process leaves. The upload id is validated as 32 hex chars before it touches a path. ListParts
 (`GET /{bucket}/{key}?uploadId=`, served by the get-object route) lists the uploaded parts with
 `part-number-marker`/`max-parts`, and requires `s3.put-object` like the rest of multipart. ListMultipartUploads (`GET /{bucket}?uploads`, list-objects route) lists the
 pending uploads of the bucket, sorted and without paging. UploadPartCopy (`PUT ?partNumber&uploadId`
@@ -463,7 +487,9 @@ and almost every incompatibility so far was found by them, not by `dart test`:
 | Before a release or after big protocol changes                      | also `run.sh mint`, i.e. the *Full test run* below        | ~5 min   |
 
 CI (`.github/workflows/ci.yml`, on `main`, `develop` and pull requests into them) runs the first two rows, the batteries against the
-Docker image; Mint stays manual.
+Docker image; Mint stays manual. Both `pubspec.lock` are committed and CI and the Dockerfiles
+resolve with `--enforce-lockfile` (after changing a `pubspec.yaml`, run `pub get` and commit the
+lock); the actions are pinned by commit SHA, with the version in a comment.
 
 **Full test run.** When asked to run every test (or to refresh the results summary), do all of it
 from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
@@ -511,7 +537,7 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
   in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8115.
+- Use one distinct port per file so files run in parallel. Ports in use: 8082–8116.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error
@@ -671,4 +697,3 @@ the export and review `docs/console.md` (see `docs/design/README.md`).
 In canvas artboards, draw coloured icons as inline `<svg>` with `currentColor`. CSS
 `mask-image: url(/_blob/…)` renders blank because the artboard iframe is sandboxed; `<img>` works.
 
-**Other.** `s3_sig_v4_signer.dart` exists in `features/` but the console uses JWT today.

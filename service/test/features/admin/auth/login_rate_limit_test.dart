@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
@@ -65,6 +66,46 @@ void main() {
         expect((await login('wrong$i')).statusCode, 403);
       }
       expect((await login(testSecret)).statusCode, 200);
+    });
+
+    test('Should not let requests that hold back their bodies guess past the lock', () async {
+      // Each one sends its headers, so all of them pass the check before any
+      // failure is counted, and then the bodies arrive together
+      final sockets = [
+        for (var i = 0; i < 10; i++)
+          await Socket.connect('localhost', server.port),
+      ];
+      final bodies = <String>[];
+      for (final (i, socket) in sockets.indexed) {
+        final body = jsonEncode({'access': testAccess, 'secret': 'held$i'});
+        bodies.add(body);
+        socket.write(
+          'POST /${env.adminPrefix}/login HTTP/1.1\r\n'
+          'Host: localhost:${server.port}\r\n'
+          'Content-Type: application/json\r\n'
+          'Content-Length: ${utf8.encode(body).length}\r\n'
+          'Connection: close\r\n\r\n',
+        );
+        await socket.flush();
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      for (final (i, socket) in sockets.indexed) {
+        socket.write(bodies[i]);
+      }
+
+      final statuses = await Future.wait([
+        for (final socket in sockets)
+          utf8.decoder
+              .bind(socket)
+              .join()
+              .then((raw) => int.parse(raw.split(' ')[1])),
+      ]);
+      // As many guesses as the limit allows, the rest locked
+      expect(statuses.where((s) => s == 403), hasLength(3));
+      expect(statuses.where((s) => s == 429), hasLength(7));
+
+      // So that the lock doesn't reach another test
+      await Future<void>.delayed(const Duration(milliseconds: 2100));
     });
   });
 }

@@ -6,7 +6,6 @@ uploads_local/
 service/.dart_tool/
 service/.packages
 service/build/
-service/pubspec.lock
 
 # AS/intellij
 .idea/
@@ -22,7 +21,6 @@ service/uploads_test/
 #------- CONSOLE related -------#
 console/.dart_tool/
 console/build/
-console/pubspec.lock
 console/.flutter-plugins-dependencies
 
 #fvm
