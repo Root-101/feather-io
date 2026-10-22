@@ -6,8 +6,14 @@ import 'package:service/feather.dart';
 /// a DOCTYPE are skipped. Not a validating parser: it only needs the elements
 /// of a well-formed document, and anything else is a [FormatException].
 class XmlParser {
+  /// How deep elements may nest. S3 documents use 3 or 4 levels; without a
+  /// limit each level is a recursive call, and a 2 MB body of `<a><a>…` would
+  /// overflow the stack instead of being a [FormatException].
+  static const int maxDepth = 64;
+
   final String _xml;
   int _position = 0;
+  int _depth = 0;
 
   XmlParser(this._xml);
 
@@ -21,6 +27,15 @@ class XmlParser {
   }
 
   XmlElement _element() {
+    if (++_depth > maxDepth) _fail('more than $maxDepth nested elements');
+    try {
+      return _elementBody();
+    } finally {
+      _depth--;
+    }
+  }
+
+  XmlElement _elementBody() {
     _expect('<');
     final qualified = _name();
     final attributes = <String, String>{};

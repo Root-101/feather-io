@@ -89,7 +89,7 @@ compatibility and updates the console if the API changes.
         - [x] A warning at start-up for a short `JWT_SECRET`/`FEATHER_SECRET`/
           `KEYS_ENCRYPTION_SECRET` (not an error, so existing deployments keep starting).
         - [x] `Content-Security-Policy: sandbox` on object GETs of HTML, SVG and XML.
-        - [ ] A depth limit in the XML parser.
+        - [x] A depth limit in the XML parser.
         - [ ] Keys with empty or `.` segments (`a//b`) rejected.
         - [ ] Security headers in the console's nginx, with a CSP.
         - [ ] Keys encoded in the console's URLs (`#`, `%`).
