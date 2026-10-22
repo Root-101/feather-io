@@ -27,6 +27,11 @@ class BrowserCubit extends Cubit<BrowserState>
   /// Items per page; kept when the folder changes
   int _pageSize = BrowserPagination.defaultPageSize;
 
+  /// Grows with every listing: an answer that arrives after another listing
+  /// started (a big folder opened just before a small one) is dropped, or the
+  /// screen would show a folder other than the one in the URL
+  int _listing = 0;
+
   BrowserCubit({required this.auth, required this.repo, this.initialViewType})
     : super(BrowserInitialState(viewType: initialViewType)) {
     onBus<BucketChangedEvent>(_onBucketChanged);
@@ -135,6 +140,7 @@ class BrowserCubit extends Cubit<BrowserState>
     }
     final bucket = current.selectedBucket;
     if (bucket == null) return;
+    final listing = ++_listing;
     try {
       emit(_loadingInProgressFrom(current));
       final page = await repo.listObjects(
@@ -145,6 +151,7 @@ class BrowserCubit extends Cubit<BrowserState>
         maxKeys: current.pageSize,
         continuationToken: current.objects?.nextContinuationToken,
       );
+      if (listing != _listing) return;
       emit(
         _loadingSuccessFrom(
           current,
@@ -153,6 +160,7 @@ class BrowserCubit extends Cubit<BrowserState>
         ),
       );
     } catch (exc) {
+      if (listing != _listing) return;
       emit(_loadingErrorFrom(current, exc));
     }
   }
@@ -193,6 +201,7 @@ class BrowserCubit extends Cubit<BrowserState>
     final previousPages = samePlace ? current!.pages : <ListObjectsModel>[];
     final previousIndex = samePlace ? current!.pageIndex : 0;
     final viewType = _viewType;
+    final listing = ++_listing;
 
     try {
       emit(
@@ -218,6 +227,7 @@ class BrowserCubit extends Cubit<BrowserState>
           maxKeys: _pageSize,
           continuationToken: continuationToken,
         );
+        if (listing != _listing) return;
         pages.add(page);
         continuationToken = page.nextContinuationToken;
       } while (pages.length <= pageIndex && continuationToken != null);
@@ -234,6 +244,7 @@ class BrowserCubit extends Cubit<BrowserState>
         ),
       );
     } catch (exc) {
+      if (listing != _listing) return;
       emit(
         BrowserLoadingErrorState(
           ExceptionConverter.parse(exc),
