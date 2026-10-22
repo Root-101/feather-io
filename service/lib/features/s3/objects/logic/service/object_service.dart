@@ -75,12 +75,13 @@ class ObjectService {
     final temp = await _tempFile();
     final etag = await Md5Tap.write(monitoredStream, temp);
     final file = _getFile(bucketName, key);
-    await replaceFile(temp, file, key: key);
+    final stat = await replaceFile(temp, file, key: key);
 
     await objectMeta.save(
       bucketName: bucketName,
       key: key,
       file: file,
+      stat: stat,
       etag: etag,
       headers: headers,
     );
@@ -101,17 +102,23 @@ class ObjectService {
   /// download of the previous version that hasn't finished): it is retried for
   /// [replaceTimeout] and, if it is still open, [source] is deleted and the
   /// answer is `ServiceUnavailable` (503), which S3 clients retry.
-  static Future<void> replaceFile(
+  ///
+  /// Returns the stat of [source] taken before the move (a rename keeps its size
+  /// and date): the stat of [target] afterwards may already be that of a
+  /// parallel upload of the same key, and its metadata would be saved with the
+  /// ETag of this one.
+  static Future<FileStat> replaceFile(
     File source,
     File target, {
     required String key,
   }) async {
+    final stat = await source.stat();
     await target.parent.create(recursive: true);
     final deadline = DateTime.now().add(replaceTimeout);
     for (var attempt = 1; ; attempt++) {
       try {
         await source.rename(target.path);
-        return;
+        return stat;
       } on PathAccessException {
         if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
           await Future<void>.delayed(
@@ -382,16 +389,18 @@ class ObjectService {
     );
     final etag = sourceMeta.etag;
     final target = _getFile(bucketName, key);
+    FileStat? copied;
     if (!sameObject) {
       // Like uploads: copied aside and moved at the end
       final temp = await _tempFile();
       await source.copy(temp.path);
-      await replaceFile(temp, target, key: key);
+      copied = await replaceFile(temp, target, key: key);
     }
     await objectMeta.save(
       bucketName: bucketName,
       key: key,
       file: target,
+      stat: copied,
       etag: etag,
       headers: {
         for (final MapEntry(key: name, :value)
@@ -401,7 +410,7 @@ class ObjectService {
       },
     );
 
-    final stat = await target.stat();
+    final stat = copied ?? await target.stat();
     return FileModel(
       key: key,
       size: stat.size,

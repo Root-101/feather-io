@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
@@ -49,6 +50,29 @@ void main() {
       );
       expect(get.headers['content-type'], 'image/jpeg');
       expect(get.headers['x-amz-meta-author'], 'alice');
+    });
+
+    test('Should keep the ETag and headers of the stored content with parallel PUTs of a key', () async {
+      // Same size, so a row saved with the stat of another upload would never be recomputed
+      final bodies = [for (var i = 0; i < 12; i++) 'body-${'$i'.padLeft(2, '0')}'];
+      final responses = await Future.wait([
+        for (final (i, body) in bodies.indexed)
+          http.put(
+            server.url('/$bucket/race.txt'),
+            headers: {...server.auth(), 'x-amz-meta-index': '$i'},
+            body: body,
+          ),
+      ]);
+      for (final response in responses) {
+        expect(response.statusCode, 200, reason: response.body);
+      }
+
+      final object = await http.get(
+        server.url('/$bucket/race.txt'),
+        headers: server.auth(),
+      );
+      expect(object.headers['etag'], '"${md5.convert(object.bodyBytes)}"');
+      expect(object.headers['x-amz-meta-index'], '${bodies.indexOf(object.body)}');
     });
 
     test('Should not store the other request headers', () async {

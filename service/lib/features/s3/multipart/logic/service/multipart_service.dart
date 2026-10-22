@@ -213,7 +213,7 @@ class MultipartService {
     final target = File(p.join(env.storageVolumePath, bucketName, key));
     // If it can't be replaced (an open object on Windows), the upload is still
     // there and the Complete can be retried
-    await ObjectService.replaceFile(joined, target, key: key);
+    final stat = await ObjectService.replaceFile(joined, target, key: key);
     await dir.delete(recursive: true);
 
     final etag = '${md5.convert(digests)}-${parts.length}';
@@ -221,6 +221,7 @@ class MultipartService {
       bucketName: bucketName,
       key: key,
       file: target,
+      stat: stat,
       etag: etag,
       headers: {
         for (final MapEntry(:key, :value)
