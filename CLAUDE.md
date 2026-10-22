@@ -421,7 +421,9 @@ back. Without a stored `Content-Type` it comes from the extension. `x-amz-storag
 validated (`InvalidStorageClass`) and stored like those headers, except `STANDARD`, which S3 never
 sends back; a copy takes it from the request, not from the source. A signed `GET` may override the
 response headers with `?response-content-type=…` (and `-disposition`, `-cache-control`, …); anonymous
-requests can't. CopyObject and UploadPartCopy check the `x-amz-copy-source-if-*` conditions
+requests can't. An HTML, SVG or XML object (by its final `Content-Type`) is sent with
+`Content-Security-Policy: sandbox`, so an uploaded page never runs script in the service's origin
+(not every type: a PDF isn't shown in a sandbox). CopyObject and UploadPartCopy check the `x-amz-copy-source-if-*` conditions
 (`CopyConditions`, `412 PreconditionFailed`). Uploads compute the md5 while streaming (`Md5Tap`, also used by UploadPart), copies
 reuse the source's ETag and multipart stores `md5(part md5s)-N`. On read (GET/HEAD, listings), a
 missing row or one whose size/mtime no longer match (the file changed outside the service) gets its

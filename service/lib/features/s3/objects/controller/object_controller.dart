@@ -146,6 +146,12 @@ class ObjectController {
         if (value != null) headers[name] = value;
       }
     }
+    // An uploaded page (HTML, SVG, XML) opened from a link must not run script
+    // in the service's origin. Only for those types: a PDF is not shown in a
+    // sandbox, and S3 clients ignore the header
+    if (_activeContent.hasMatch(headers['content-type'] ?? '')) {
+      headers['content-security-policy'] = 'sandbox';
+    }
 
     final range = _requestedRange(request, stat.size, key);
     if (range == null) {
@@ -166,6 +172,11 @@ class ObjectController {
       },
     );
   }
+
+  static final RegExp _activeContent = RegExp(
+    r'^\s*(text/html|[\w.+-]+/([\w.-]+\+)?xml)\s*(;|$)',
+    caseSensitive: false,
+  );
 
   static const List<String> _overridableHeaders = [
     'cache-control',
