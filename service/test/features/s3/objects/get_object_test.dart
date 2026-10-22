@@ -273,6 +273,28 @@ void main() {
     });
   });
 
+  group('S3Controller - Cache-Control', () {
+    test('Should send only the Cache-Control stored with the object, as S3', () async {
+      final plain = await http.get(server.url('/$bucket/test.txt'), headers: server.auth());
+      expect(plain.headers['cache-control'], isNull);
+      final listing = await http.get(server.url('/$bucket'), headers: server.auth());
+      expect(listing.headers['cache-control'], isNull);
+
+      await server.putObject(bucket, 'cached.txt', 'x', headers: {'cache-control': 'max-age=60'});
+      final cached = await http.get(server.url('/$bucket/cached.txt'), headers: server.auth());
+      expect(cached.headers['cache-control'], 'max-age=60');
+    });
+
+    test('Should keep the admin API private', () async {
+      final keys = await http.get(
+        server.url('/_admin/access-keys'),
+        headers: server.auth(),
+      );
+      expect(keys.statusCode, 200);
+      expect(keys.headers['cache-control'], 'private');
+    });
+  });
+
   group('S3Controller - GET Object (sandbox for pages)', () {
     test('Should sandbox HTML, SVG and XML so their scripts never run', () async {
       for (final (key, type) in [

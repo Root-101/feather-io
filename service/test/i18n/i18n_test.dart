@@ -31,7 +31,11 @@ void main() {
   Future<http.Response> createKey(Map<String, dynamic> body, String language) =>
       http.post(
         server.url(keysPath()),
-        headers: {...server.auth(json: true), 'accept-language': language},
+        headers: {
+          ...server.auth(json: true),
+          'content-type': 'application/json',
+          'accept-language': language,
+        },
         body: jsonEncode(body),
       );
 

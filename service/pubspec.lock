@@ -677,10 +677,10 @@ packages:
     dependency: "direct main"
     description:
       name: winter
-      sha256: eb5c01d7814e7c2f80ce4981b5cfe46b4a2e0d1315b979a6afa094df6f350091
+      sha256: fb5ff56f11d6359257faede5a6da9b648b81e040703855de2ef21ae52badcb28
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-rc.3"
+    version: "1.0.0-rc.5"
   yaml:
     dependency: transitive
     description:

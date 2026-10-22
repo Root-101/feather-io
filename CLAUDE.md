@@ -7,7 +7,7 @@ repository. It is the single source of truth for project rules.
 
 Monorepo for a lightweight S3-compatible storage system:
 
-- `service/` — Dart backend built on **Winter** `1.0.0-rc.3` (from pub.dev; its source is also at
+- `service/` — Dart backend built on **Winter** `1.0.0-rc.5` (from pub.dev; its source is also at
   `../winter`, a sibling of this repo). Its guides (`doc/`), examples (`example/`, the apps
   `auth_jwt` and `production` are the closest to this service) and `DECISIONS.md` are the
   reference; read its source when an API is unclear.
@@ -201,6 +201,8 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   its grants. See `DECISIONS.md`.
 - Each route declares its own permission with
   `AuthFilter(rules: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
+  The S3 routes pass `cacheControl: null`, so, like S3, a response only has the `Cache-Control`
+  stored with its object (Winter adds `private` by default, which the admin API keeps).
   Route keys and permission names match (`s3.*`, `admin.*`).
 - New endpoints need the route key, an `AuthFilter`, **and** the permission added to the list in
   `admin/auth/controller/auth_controller.dart` (and to `S3SigV4Filter` if native S3 clients should reach

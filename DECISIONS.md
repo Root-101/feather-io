@@ -166,3 +166,10 @@ GetObject; the rest is left out on purpose.
 | `checkPreconditions` on writes (`If-Match` on PUT) | S3's conditional writes are a late addition no client of the tests uses; CopyObject already checks its `x-amz-copy-source-if-*`                                |
 | `DeprecationFilter`, `WebLink`, `Prefer`           | No route is deprecated, S3 pages with its own tokens, and no client asks for `Prefer`                                                                          |
 
+Since `1.0.0-rc.4`, `AuthFilter` adds `Cache-Control: private` to a response without one. The admin
+API keeps it; the S3 routes pass `cacheControl: null` (Winter `1.0.0-rc.5`), because S3 sends only
+the `Cache-Control` stored with an object: with `private`, every object without one showed it as its
+metadata (`head-object`), and a public prefix couldn't be cached by a CDN. Nothing private leaks: a
+shared cache doesn't keep the answer to a request with `Authorization` (RFC 9111 §3.5), and a
+presigned URL carries its signature in the URL itself.
+
