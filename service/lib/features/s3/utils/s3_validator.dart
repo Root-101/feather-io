@@ -27,7 +27,17 @@ class S3Validator {
   /// Validates an object key with the AWS S3 rules and local safety checks.
   static bool isValidKey(String key) {
     if (key.isEmpty || key.length > 1024) return false;
-    if (key.split('/').contains(folderMarker)) return false;
+    final segments = key.split('/');
+    if (segments.contains(folderMarker)) return false;
+    // An empty or '.' segment (`a//b`, `a/./b`, `/a`) would be another name
+    // for the same file on disk, and the anonymous rules compare the key as
+    // written; only the last one may be empty (`photos/`, a folder)
+    for (var i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+      if (segment == '.' || (segment.isEmpty && i < segments.length - 1)) {
+        return false;
+      }
+    }
 
     // Blocks path traversal sequences and NUL bytes
     if (key.contains('..') ||

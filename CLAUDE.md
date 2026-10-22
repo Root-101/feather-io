@@ -378,7 +378,9 @@ body wrapped by the filter, which fails with 413 while reading; Winter reads the
 discards it, so the client gets the answer (`EntityTooLarge` on the S3 API). Every bucket name goes through
 `S3Validator.isValidBucketName` and every key through `S3Validator.isValidKey` (path traversal
 protection) before touching the filesystem. Keys can't contain `\`: on Windows it is a folder
-separator, so `a\b` would alias `a/b` and could write a folder marker.
+separator, so `a\b` would alias `a/b` and could write a folder marker. For the same reason no
+segment may be `.` or empty but the last one (`a//b`, `a/./b` and `/a` are another name for a
+file; `photos/` is a folder).
 
 **Folders and listing.** A key ending in `/` is a folder: `PUT /{bucket}/fotos/` creates the
 directory with a hidden `S3Validator.folderMarker` file (`.feather-folder`), so empty folders

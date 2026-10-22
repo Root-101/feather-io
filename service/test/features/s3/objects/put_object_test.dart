@@ -113,6 +113,21 @@ void main() {
       expect(await File('./uploads_test/escape.txt').exists(), isFalse);
     });
 
+    test('Should not let a key with an empty segment overwrite another (400)', () async {
+      await server.putObject(bucket, 'alias/file.txt', 'original');
+      final response = await http.put(
+        server.url('/$bucket/alias//file.txt'),
+        headers: server.auth(),
+        body: 'replaced',
+      );
+      expect(response.statusCode, 400);
+      expect(response.body, contains('<Code>InvalidArgument</Code>'));
+      expect(
+        await File('${server.storagePath}/$bucket/alias/file.txt').readAsString(),
+        'original',
+      );
+    });
+
     test('Should fail with invalid characters in key (400)', () async {
       final response = await http.put(
         server.url('/$bucket/invalid:file.txt'),
