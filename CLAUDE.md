@@ -216,7 +216,8 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   key that starts with it, so only rules that cover any longer key open it (no `*`, or ending in
   `*`): `fotos/*.jpg` would list `fotos/a.jpg.zip` through the prefix `fotos/a.jpg`. It covers
   list/get/put/delete object; multi-delete is never anonymous, because its keys come in the body.
-  Deleting a bucket deletes its rules.
+  Deleting a bucket deletes its rules, and creating one clears any rules or key grants left with
+  its name.
 
 **Folder layout.** Every feature (or sub-feature) under `lib/features/` uses the same folders:
 

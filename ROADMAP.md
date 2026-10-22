@@ -93,7 +93,7 @@ compatibility and updates the console if the API changes.
         - [x] Keys with empty or `.` segments (`a//b`) rejected.
         - [x] Security headers in the console's nginx, with a CSP.
         - [x] Keys encoded in the console's URLs (`#`, `%`).
-        - [ ] A bucket created again doesn't inherit the grants and rules left by one of the same
+        - [x] A bucket created again doesn't inherit the grants and rules left by one of the same
           name (a delete that failed after removing the folder): `createBucket` clears them.
         - [ ] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
           the CI actions pinned by SHA.

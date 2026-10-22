@@ -24,10 +24,15 @@ class BucketService {
     String? description,
     int? color,
   }) async {
-    // 1. Its folder
+    // 1. Its folder (409 if it exists, so the name was free)
     await _createFolder(bucketName);
 
-    // 2. Persistence via Repo
+    // 2. Rules and grants left by a bucket of the same name whose delete failed
+    // after removing its folder (or whose folder was removed by hand) must not
+    // open the new one
+    await _deleteAccess(bucketName);
+
+    // 3. Persistence via Repo
     await bucketRepo.save(
       name: bucketName,
       description: description,
@@ -47,10 +52,15 @@ class BucketService {
 
     // 3. Database delete (its anonymous access rules and the access keys'
     // grants first)
-    await accessRuleRepo.deleteByBucket(bucketName);
-    await accessKeyRepo.deleteGrantsByBucket(bucketName);
+    await _deleteAccess(bucketName);
     await bucketRepo.delete(bucketName);
     logger.info('Bucket deleted', fields: {'bucket': bucketName});
+  }
+
+  /// The anonymous rules and the access keys' grants of [bucketName].
+  Future<void> _deleteAccess(String bucketName) async {
+    await accessRuleRepo.deleteByBucket(bucketName);
+    await accessKeyRepo.deleteGrantsByBucket(bucketName);
   }
 
   Future<BucketModel> getBucket({required String bucketName}) async {
