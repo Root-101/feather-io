@@ -20,6 +20,8 @@ errors:
     objectOverMaximum: 'El objeto supera el máximo de {max} bytes.'
     objectSizeOverMaximum: 'El objeto tiene {size} bytes y el máximo es {max}.'
     objectInUse: 'El objeto está en uso y no se puede reemplazar; vuelve a intentarlo.'
+    keyIsFolder: 'La key "{key}" es una carpeta con objetos; usa otra key.'
+    keyUnderObject: 'La key "{key}" no se puede crear porque "{object}" es un objeto.'
     objectNotDeleted: 'El objeto no se pudo borrar; vuelve a intentarlo.'
     incompleteChunkedBody: 'El cuerpo aws-chunked está incompleto o mal formado.'
     nothingToDownload: 'No se encontraron objetos para descargar.'

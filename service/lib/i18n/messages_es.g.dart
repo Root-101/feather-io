@@ -148,6 +148,12 @@ class ServiceMessages$errors$s3$es implements ServiceMessages$errors$s3$en {
   String get objectInUse =>
       'El objeto está en uso y no se puede reemplazar; vuelve a intentarlo.';
   @override
+  String keyIsFolder({required Object key}) =>
+      'La key "${key}" es una carpeta con objetos; usa otra key.';
+  @override
+  String keyUnderObject({required Object key, required Object object}) =>
+      'La key "${key}" no se puede crear porque "${object}" es un objeto.';
+  @override
   String get objectNotDeleted =>
       'El objeto no se pudo borrar; vuelve a intentarlo.';
   @override
@@ -402,6 +408,13 @@ extension on ServiceMessagesEs {
       }) => 'El objeto tiene ${size} bytes y el máximo es ${max}.',
       'errors.s3.objectInUse' =>
         'El objeto está en uso y no se puede reemplazar; vuelve a intentarlo.',
+      'errors.s3.keyIsFolder' => ({
+        required Object key,
+      }) => 'La key "${key}" es una carpeta con objetos; usa otra key.',
+      'errors.s3.keyUnderObject' => ({
+        required Object key,
+        required Object object,
+      }) => 'La key "${key}" no se puede crear porque "${object}" es un objeto.',
       'errors.s3.objectNotDeleted' =>
         'El objeto no se pudo borrar; vuelve a intentarlo.',
       'errors.s3.incompleteChunkedBody' =>

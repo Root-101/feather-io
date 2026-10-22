@@ -482,6 +482,10 @@ A key ending in `/` without a body creates an empty folder:
 PUT /photos/empty/
 ```
 
+On disk a key and a folder can't share a name, as they can in S3: uploading `photos/2026` while
+`photos/2026/` holds objects, or `photos/2026/beach.jpg/x` under the object `beach.jpg`, answers
+`409 KeyConflict` (and the same for a copy or a multipart upload).
+
 ### Download
 
 ```http

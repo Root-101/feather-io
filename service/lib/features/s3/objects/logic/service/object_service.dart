@@ -48,6 +48,10 @@ class ObjectService {
     if (key.endsWith('/')) {
       await binary.drain<void>();
       final folder = Directory(p.join(_getBucketPath(bucketName), key));
+      await _checkNoObjectInPath(
+        File(p.join(folder.path, S3Validator.folderMarker)),
+        '$key${S3Validator.folderMarker}',
+      );
       await folder.create(recursive: true);
       await File(p.join(folder.path, S3Validator.folderMarker)).create();
       return ObjectMetaService.emptyEtag;
@@ -113,30 +117,69 @@ class ObjectService {
     required String key,
   }) async {
     final stat = await source.stat();
-    await target.parent.create(recursive: true);
-    final deadline = DateTime.now().add(replaceTimeout);
-    for (var attempt = 1; ; attempt++) {
-      try {
-        await source.rename(target.path);
-        return stat;
-      } on PathAccessException {
-        if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
-          await Future<void>.delayed(
-            Duration(milliseconds: min(50 * attempt, 500)),
-          );
-          continue;
-        }
-        if (await source.exists()) await source.delete();
-        logger.warning(
-          'An object stayed open for ${replaceTimeout.inSeconds} s and was not replaced',
-          fields: {'key': key},
-        );
+    try {
+      // A key and a folder can't share a name on disk (in S3 they can): 409
+      // instead of a 500, or of 5 s of retries and a 503 on Windows
+      await _checkNoObjectInPath(target, key);
+      if (await FileSystemEntity.isDirectory(target.path)) {
         throw S3Exception(
-          S3ErrorCode.serviceUnavailable,
-          message: intl.errors.s3.objectInUse,
+          S3ErrorCode.keyConflict,
+          message: intl.errors.s3.keyIsFolder(key: key),
           resource: key,
         );
       }
+      await target.parent.create(recursive: true);
+      final deadline = DateTime.now().add(replaceTimeout);
+      for (var attempt = 1; ; attempt++) {
+        try {
+          await source.rename(target.path);
+          return stat;
+        } on PathAccessException {
+          if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
+            await Future<void>.delayed(
+              Duration(milliseconds: min(50 * attempt, 500)),
+            );
+            continue;
+          }
+          logger.warning(
+            'An object stayed open for ${replaceTimeout.inSeconds} s and was not replaced',
+            fields: {'key': key},
+          );
+          throw S3Exception(
+            S3ErrorCode.serviceUnavailable,
+            message: intl.errors.s3.objectInUse,
+            resource: key,
+          );
+        }
+      }
+    } catch (_) {
+      // Whatever failed, the file written aside doesn't stay in the volume
+      if (await source.exists()) await source.delete();
+      rethrow;
+    }
+  }
+
+  /// Fails with `KeyConflict` when a folder of [key] (`docs` for `docs/readme`)
+  /// is an object on disk, so [target] can't be created under it.
+  static Future<void> _checkNoObjectInPath(File target, String key) async {
+    final segments = key.split('/');
+    // A folder is checked through its marker, but answered as the folder
+    final shown = key.endsWith('/${S3Validator.folderMarker}')
+        ? key.substring(0, key.length - S3Validator.folderMarker.length)
+        : key;
+    var dir = target.parent;
+    for (var i = segments.length - 1; i > 0; i--) {
+      if (await FileSystemEntity.isFile(dir.path)) {
+        throw S3Exception(
+          S3ErrorCode.keyConflict,
+          message: intl.errors.s3.keyUnderObject(
+            key: shown,
+            object: segments.sublist(0, i).join('/'),
+          ),
+          resource: shown,
+        );
+      }
+      dir = dir.parent;
     }
   }
 

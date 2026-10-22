@@ -102,7 +102,7 @@ compatibility and updates the console if the API changes.
       same `object.tmp` and corrupt the object; UploadPart of the same part shares `<n>.part.tmp`.
     - [x] Two PUTs of the same key at once can save the ETag and headers of one with the size and
       mtime of the other, so they never get recomputed.
-    - [ ] A key that collides with a folder (`docs` and `docs/readme`) answers 500 (503 on Windows)
+    - [x] A key that collides with a folder (`docs` and `docs/readme`) answers 500 (503 on Windows)
       and leaves its temp file behind.
     - [ ] `.tmp/` and abandoned multipart uploads are never cleaned up.
     - [ ] The console can show a folder other than the one in the URL when two listings cross.

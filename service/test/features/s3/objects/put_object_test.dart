@@ -235,4 +235,56 @@ void main() {
       );
     });
   });
+
+  group('S3Controller - PUT Object over a folder or under an object (409)', () {
+    List<FileSystemEntity> temps() {
+      final dir = Directory('${server.storagePath}/${ObjectService.tempFolderName}');
+      return dir.existsSync() ? dir.listSync() : [];
+    }
+
+    Future<http.Response> put(String key, {Map<String, String> headers = const {}}) =>
+        http.put(
+          server.url('/$bucket/$key'),
+          headers: {...server.auth(), ...headers},
+          body: 'data',
+        );
+
+    test('Should not create a key under an object', () async {
+      await server.putObject(bucket, 'conflict/docs', 'a file');
+      final response = await put('conflict/docs/readme.txt');
+      expect(response.statusCode, 409, reason: response.body);
+      expect(response.body, contains('<Code>KeyConflict</Code>'));
+      expect(response.body, contains('conflict/docs'));
+      expect(temps(), isEmpty);
+
+      final folder = await put('conflict/docs/sub/');
+      expect(folder.statusCode, 409, reason: folder.body);
+      expect(
+        await File('${server.storagePath}/$bucket/conflict/docs').readAsString(),
+        'a file',
+      );
+    });
+
+    test('Should not replace a folder that holds objects with an object', () async {
+      await server.putObject(bucket, 'conflict/pics/a.jpg', 'jpg');
+      final response = await put('conflict/pics');
+      expect(response.statusCode, 409, reason: response.body);
+      expect(response.body, contains('<Code>KeyConflict</Code>'));
+      expect(temps(), isEmpty);
+      expect(
+        await File('${server.storagePath}/$bucket/conflict/pics/a.jpg').readAsString(),
+        'jpg',
+      );
+    });
+
+    test('Should not copy onto a folder (409)', () async {
+      await server.putObject(bucket, 'conflict/source.txt', 'source');
+      final response = await put(
+        'conflict/pics',
+        headers: {'x-amz-copy-source': '/$bucket/conflict/source.txt'},
+      );
+      expect(response.statusCode, 409, reason: response.body);
+      expect(temps(), isEmpty);
+    });
+  });
 }

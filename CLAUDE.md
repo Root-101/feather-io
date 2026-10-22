@@ -384,7 +384,10 @@ discards it, so the client gets the answer (`EntityTooLarge` on the S3 API). Eve
 protection) before touching the filesystem. Keys can't contain `\`: on Windows it is a folder
 separator, so `a\b` would alias `a/b` and could write a folder marker. For the same reason no
 segment may be `.` or empty but the last one (`a//b`, `a/./b` and `/a` are another name for a
-file; `photos/` is a folder).
+file; `photos/` is a folder). A key and a folder can't share a name on disk (in S3 they can): an object
+under an object (`docs/readme` when `docs` is one) or over a folder that holds objects is
+`409 KeyConflict` (not an AWS code), and `replaceFile` always deletes the file written aside when
+it fails.
 
 **Folders and listing.** A key ending in `/` is a folder: `PUT /{bucket}/fotos/` creates the
 directory with a hidden `S3Validator.folderMarker` file (`.feather-folder`), so empty folders
