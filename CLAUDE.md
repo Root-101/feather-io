@@ -209,7 +209,9 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   `AnonymousAccessService.findMatchingRule`) and grants the `s3.anonymous.*` permissions of the
   first matching rule. A rule without `*` is a prefix; with `*` (any characters, `/` included) the
   whole key must match, so `fotos/*.jpg` doesn't open `fotos/a.jpg.zip`; everything else matches
-  literally (`AnonymousAccessService.matches`). It covers
+  literally (`AnonymousAccessService.matches`). A listing checks its `prefix`, and it returns every
+  key that starts with it, so only rules that cover any longer key open it (no `*`, or ending in
+  `*`): `fotos/*.jpg` would list `fotos/a.jpg.zip` through the prefix `fotos/a.jpg`. It covers
   list/get/put/delete object; multi-delete is never anonymous, because its keys come in the body.
   Deleting a bucket deletes its rules.
 

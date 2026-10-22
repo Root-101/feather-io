@@ -168,7 +168,8 @@ for the details and [`PUT /_admin/bucket/{bucket}`](api.md#edit-description-and-
 
 Rules that open part of a bucket to requests without credentials: read only (list and download),
 write only (upload and delete) or both. A rule without `*` is a prefix (`public/`, everything
-below it); with `*` the whole key must match the pattern (`photos/*.jpg`).
+below it); with `*` the whole key must match the pattern (`photos/*.jpg`), and it only opens
+listings if it ends in `*` (a listing shows every key under its prefix).
 
 ![Add a rule](design/screens/23-bucket-add-rule.png)
 

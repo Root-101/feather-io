@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
@@ -157,6 +158,40 @@ void main() {
     test('Should match the whole key when the rule has *', () async {
       // photos/*.jpg doesn't open photos/cat.jpg.zip
       expect((await http.get(server.url('/$bucket/photos/cat.jpg.zip'))).statusCode, 401);
+    });
+
+    test('Should not list through a glob the keys it does not cover (401)', () async {
+      // The prefix matches photos/*.jpg, but the listing would show photos/cat.jpg.zip
+      final response = await http.get(server.url('/$bucket?prefix=photos/cat.jpg'));
+      expect(response.statusCode, 401);
+    });
+
+    test('Should list with a glob ending in *, which covers every longer key', () async {
+      await server.putObject(bucket, 'gallery/2026/a.jpg', 'a');
+      expect((await addRule('gallery/*', 'readOnly')).statusCode, 200);
+      final response = await http.get(
+        server.url('/$bucket?prefix=gallery/2026/'),
+        headers: {'accept': 'application/json'},
+      );
+      expect(response.statusCode, 200, reason: response.body);
+      final keys = (jsonDecode(response.body)['contents'] as List).map((e) => e['key']);
+      expect(keys, ['gallery/2026/a.jpg']);
+    });
+
+    test('Should check a folder key with its trailing slash against the rule', () async {
+      expect((await addRule('drop/*.txt', 'writeOnly')).statusCode, 200);
+      expect((await http.put(server.url('/$bucket/drop/a.txt'), body: 'a')).statusCode, 200);
+
+      // drop/*.txt doesn't cover the folders drop/b.txt/ and drop/c.txt/
+      expect((await http.put(server.url('/$bucket/drop/b.txt/'))).statusCode, 401);
+      expect(Directory('${server.storagePath}/$bucket/drop/b.txt').existsSync(), isFalse);
+      final folder = await http.put(server.url('/$bucket/drop/c.txt/'), headers: server.auth());
+      expect(folder.statusCode, 200);
+      expect((await http.delete(server.url('/$bucket/drop/c.txt/'))).statusCode, 401);
+
+      // A prefix rule covers its folders, as before
+      expect((await http.put(server.url('/$bucket/shared/folder/'))).statusCode, 200);
+      expect((await http.delete(server.url('/$bucket/shared/folder/'))).statusCode, 204);
     });
 
     test('Should treat regex characters in the prefix literally', () async {

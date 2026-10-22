@@ -76,9 +76,9 @@ compatibility and updates the console if the API changes.
       `x-amz-*` header that is not in `SignedHeaders` (but `x-amz-content-sha256`), as S3 does.
     - [x] The login lock is checked before the body is read: requests whose bodies are held back all
       get their guess past the lock. Check it again after reading the body.
-    - [ ] An anonymous glob rule that doesn't end in `*` (`photos/*.jpg`) lets anyone list the keys
+    - [x] An anonymous glob rule that doesn't end in `*` (`photos/*.jpg`) lets anyone list the keys
       it doesn't cover (`?prefix=photos/cat.jpg` shows `photos/cat.jpg.zip`).
-    - [ ] `AnonymousAccessFilter` matches the key without its trailing `/` while the handler acts on
+    - [x] `AnonymousAccessFilter` matches the key without its trailing `/` while the handler acts on
       the folder key: an anonymous writer creates or deletes folder markers outside the rule.
 - Security, to validate:
     - [ ] The console's preview opens the object as a `blob:` (console origin) with the uploader's

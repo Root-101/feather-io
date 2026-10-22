@@ -70,6 +70,7 @@ it; a higher limit for signed requests is under *After 1.0* in `ROADMAP.md`.
 | No anonymous copies (CopyObject, UploadPartCopy) nor `response-*` overrides           | A copy reads a source that no rule may cover                                                                      |
 | Multi-delete is never anonymous                                                       | Its keys come in the body and can't be checked against the rules before reading it                                |
 | A rule without `*` is a prefix; with `*` the whole key must match                     | `public/` works like an S3 prefix; with `*` a pattern is meant, so `photos/*.jpg` doesn't open `photos/a.jpg.zip` |
+| A listing is only opened by a rule without `*` or ending in `*`                       | A listing returns every key under its prefix: `photos/*.jpg` would list `photos/a.jpg.zip` through `photos/a.jpg` |
 | No limit of its own, only the general one per IP                                      | That already stops floods; a lower one would only matter for buckets published with many downloads                |
 
 ## 5. Access keys
