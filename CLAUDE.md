@@ -477,7 +477,9 @@ and almost every incompatibility so far was found by them, not by `dart test`:
 | Before a release or after big protocol changes                      | also `run.sh mint`, i.e. the *Full test run* below        | ~5 min   |
 
 CI (`.github/workflows/ci.yml`, on `main`, `develop` and pull requests into them) runs the first two rows, the batteries against the
-Docker image; Mint stays manual.
+Docker image; Mint stays manual. Both `pubspec.lock` are committed and CI and the Dockerfiles
+resolve with `--enforce-lockfile` (after changing a `pubspec.yaml`, run `pub get` and commit the
+lock); the actions are pinned by commit SHA, with the version in a comment.
 
 **Full test run.** When asked to run every test (or to refresh the results summary), do all of it
 from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to

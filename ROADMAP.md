@@ -95,7 +95,7 @@ compatibility and updates the console if the API changes.
         - [x] Keys encoded in the console's URLs (`#`, `%`).
         - [x] A bucket created again doesn't inherit the grants and rules left by one of the same
           name (a delete that failed after removing the folder): `createBucket` clears them.
-        - [ ] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
+        - [x] The `pubspec.lock` files committed (`--enforce-lockfile` in CI and the Dockerfiles) and
           the CI actions pinned by SHA.
 - Robustness:
     - [x] Two CompleteMultipartUpload of the same upload at once (a client that retries) write the

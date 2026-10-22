@@ -25,7 +25,7 @@ WORKDIR /src
 
 # Resolve dependencies (cached while the pubspec doesn't change)
 COPY pubspec.* ./
-RUN flutter pub get
+RUN flutter pub get --enforce-lockfile
 
 # Copy the source (except anything in .dockerignore) and build
 COPY . .
