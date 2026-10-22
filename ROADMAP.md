@@ -71,7 +71,7 @@ Found by a security audit and a code audit of `0c1c3b2`. Every fix comes with it
 compatibility and updates the console if the API changes.
 
 - Security, confirmed:
-    - [ ] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
+    - [x] SigV4 accepts unsigned `x-amz-*` headers: a presigned PUT URL (or a captured signed PUT)
       plus an unsigned `x-amz-copy-source` copies any object the signer can read. Reject every
       `x-amz-*` header that is not in `SignedHeaders` (but `x-amz-content-sha256`), as S3 does.
     - [ ] The login lock is checked before the body is read: requests whose bodies are held back all

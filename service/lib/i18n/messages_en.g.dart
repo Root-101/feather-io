@@ -314,6 +314,10 @@ class ServiceMessages$errors$signature$en {
   String get sha256Mismatch =>
       'The body does not match the signed x-amz-content-sha256.';
 
+  /// en: 'There were headers present in the request which were not signed: {headers: String}'
+  String headersNotSigned({required String headers}) =>
+      'There were headers present in the request which were not signed: ${headers}';
+
   /// en: 'The access key does not exist or is not active.'
   String get accessKeyInactive =>
       'The access key does not exist or is not active.';
@@ -513,6 +517,9 @@ extension on ServiceMessages {
       'errors.signature.mismatch' => 'Signature mismatch',
       'errors.signature.sha256Mismatch' =>
         'The body does not match the signed x-amz-content-sha256.',
+      'errors.signature.headersNotSigned' => ({
+        required String headers,
+      }) => 'There were headers present in the request which were not signed: ${headers}',
       'errors.signature.accessKeyInactive' =>
         'The access key does not exist or is not active.',
       'errors.signature.presignMissingParam' => ({

@@ -165,7 +165,11 @@ file.
   (that would stretch it past the 7-day maximum). When the client signs the body's sha256 (a hex
   `x-amz-content-sha256`), the filter wraps the body and fails with `XAmzContentSHA256Mismatch`
   after reading it if it doesn't match, so a captured request can't be replayed with another body
-  (`UNSIGNED-PAYLOAD` and `STREAMING-…` bodies are not checked). Authentication errors never
+  (`UNSIGNED-PAYLOAD` and `STREAMING-…` bodies are not checked). Like S3, every `x-amz-*` header
+  of the request must be in `SignedHeaders` (`AccessDenied` otherwise; the routes pick the
+  operation by them, and an unsigned `x-amz-copy-source` would turn a presigned PUT into a copy),
+  except `x-amz-content-sha256` (bound by the payload hash) and the ACL headers, which are
+  ignored. Authentication errors never
   include internal details. The `Authorization` fields may be separated by `,` with or without a space (s3cmd
   sends none). Canonical query names and values, and the paths `PresignService` builds, are encoded
 with `SigV4Signer.uriEncode` (everything but `A-Za-z0-9-_.~`, like AWS; `Uri.encodeComponent`

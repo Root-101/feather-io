@@ -66,6 +66,7 @@ errors:
     clockSkew: 'The signature date is more than {minutes: int} minutes away from the server''s time.'
     mismatch: 'Signature mismatch'
     sha256Mismatch: 'The body does not match the signed x-amz-content-sha256.'
+    headersNotSigned: 'There were headers present in the request which were not signed: {headers: String}'
     accessKeyInactive: 'The access key does not exist or is not active.'
     presignMissingParam: 'Missing {name: String} in the presigned URL'
     unsupportedAlgorithm: 'Unsupported signing algorithm'

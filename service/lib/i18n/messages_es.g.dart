@@ -279,6 +279,9 @@ class ServiceMessages$errors$signature$es
   String get sha256Mismatch =>
       'El cuerpo no coincide con el x-amz-content-sha256 firmado.';
   @override
+  String headersNotSigned({required Object headers}) =>
+      'La petición lleva cabeceras que no están firmadas: ${headers}';
+  @override
   String get accessKeyInactive =>
       'La clave de acceso no existe o no está activa.';
   @override
@@ -468,6 +471,9 @@ extension on ServiceMessagesEs {
       'errors.signature.mismatch' => 'La firma no coincide',
       'errors.signature.sha256Mismatch' =>
         'El cuerpo no coincide con el x-amz-content-sha256 firmado.',
+      'errors.signature.headersNotSigned' => ({
+        required Object headers,
+      }) => 'La petición lleva cabeceras que no están firmadas: ${headers}',
       'errors.signature.accessKeyInactive' =>
         'La clave de acceso no existe o no está activa.',
       'errors.signature.presignMissingParam' => ({

@@ -57,6 +57,7 @@ errors:
     clockSkew: 'La fecha de la firma se aleja más de {minutes} minutos de la hora del servidor.'
     mismatch: 'La firma no coincide'
     sha256Mismatch: 'El cuerpo no coincide con el x-amz-content-sha256 firmado.'
+    headersNotSigned: 'La petición lleva cabeceras que no están firmadas: {headers}'
     accessKeyInactive: 'La clave de acceso no existe o no está activa.'
     presignMissingParam: 'Falta {name} en la URL prefirmada'
     unsupportedAlgorithm: 'Algoritmo de firma no soportado'
