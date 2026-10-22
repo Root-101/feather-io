@@ -72,6 +72,9 @@ jobs:
           for _ in $(seq 15); do curl -sf http://localhost:8081/ > /dev/null && break; sleep 1; done
           curl -sf http://localhost:8081/ | grep -q flutter_bootstrap.js
           curl -sf http://localhost:8081/env.js | grep -q '"http://service.test"'
+          # The CSP and the security headers, also on index.html (a location with its own add_header)
+          curl -sfI http://localhost:8081/ | grep -qi "^content-security-policy: script-src 'self'"
+          curl -sfI http://localhost:8081/main.dart.js | grep -qi '^x-content-type-options: nosniff'
 
   s3-compat:
     name: S3 clients (AWS CLI + rclone)

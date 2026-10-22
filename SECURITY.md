@@ -61,6 +61,7 @@ What the service protects and how; the reasons and the data behind each decision
   keys unusable.
 - **Separate origins**: serve the service and the console on different origins (another port or
   domain). Objects are served with their own `Content-Type`, so an HTML file uploaded through an
-  anonymous write rule must never run on the console's origin.
+  anonymous write rule must never run on the console's origin. The console's nginx sends a CSP that
+  only allows its own scripts; a proxy in front should keep it.
 - **Backups** of the volume hold the objects and the database, with the access keys' secrets
   encrypted; protect them like the data itself.

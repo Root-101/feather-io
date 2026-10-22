@@ -91,7 +91,7 @@ compatibility and updates the console if the API changes.
         - [x] `Content-Security-Policy: sandbox` on object GETs of HTML, SVG and XML.
         - [x] A depth limit in the XML parser.
         - [x] Keys with empty or `.` segments (`a//b`) rejected.
-        - [ ] Security headers in the console's nginx, with a CSP.
+        - [x] Security headers in the console's nginx, with a CSP.
         - [ ] Keys encoded in the console's URLs (`#`, `%`).
         - [ ] A bucket created again doesn't inherit the grants and rules left by one of the same
           name (a delete that failed after removing the folder): `createBucket` clears them.

@@ -86,7 +86,10 @@ fvm flutter test                                                # on the VM, no 
   gitignored. `ADMIN_PREFIX` must match the service. `console/Dockerfile` builds the web app with
   the Flutter of `.fvmrc` (bump its `FLUTTER_VERSION` with it) and serves it with nginx; the
   image's envsubst fills `docker/env.js.template` into `env.js` from the container's env when it
-  starts.
+  starts. nginx sends a CSP (`docker/security_headers.conf`, included in every `location` with
+  its own `add_header`): only the build's scripts, so `web/index.html` has no inline scripts
+  (`web/splash.js`) and the build skips the CDN (`--no-web-resources-cdn`, CanvasKit is served by
+  nginx).
   `docker-compose.yml` at the root starts the service (volume) and the console, with the secrets
   in `.env` (`.env.example`).
 - Tests (`test/`, `bloc_test` + `mocktail`) run on the VM. Code that needs the browser
