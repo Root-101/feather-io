@@ -695,4 +695,3 @@ the export and review `docs/console.md` (see `docs/design/README.md`).
 In canvas artboards, draw coloured icons as inline `<svg>` with `currentColor`. CSS
 `mask-image: url(/_blob/…)` renders blank because the artboard iframe is sandboxed; `<img>` works.
 
-**Other.** `s3_sig_v4_signer.dart` exists in `features/` but the console uses JWT today.
