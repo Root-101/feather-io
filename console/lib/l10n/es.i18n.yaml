@@ -51,6 +51,7 @@ login:
   title: 'Inicia sesión'
   description: 'Gestiona tus buckets y tus claves de acceso.'
   envHint: 'Las claves se definen en el servidor con:'
+  envHintAnd: 'y'
   tagline: 'S3, sin el peso.'
   pitch: 'Sin configuración ni curva de aprendizaje. Apunta aquí tus herramientas de AWS de siempre y empieza a subir.'
   tags:

@@ -360,7 +360,8 @@ class _Brand extends StatelessWidget {
 /// Where the keys come from: a line of text and, under it, the names of the
 /// variables in monospace
 class _EnvHint extends StatelessWidget {
-  static const _variables = ['FEATHER_ACCESS', 'FEATHER_SECRET'];
+  static const _access = 'FEATHER_ACCESS';
+  static const _secret = 'FEATHER_SECRET';
 
   const _EnvHint();
 
@@ -370,22 +371,21 @@ class _EnvHint extends StatelessWidget {
       color: app.colors.neutral.grey4,
       height: 18 / 12,
     );
+    final mono = style?.copyWith(
+      fontFamily: 'monospace',
+      color: app.colors.neutral.grey2,
+    );
     return Column(
       children: [
         Text(app.intl.login.envHint, style: style, textAlign: TextAlign.center),
         app.dimensions.padding.xs.gap(),
         Wrap(
           alignment: WrapAlignment.center,
-          spacing: app.dimensions.padding.l,
+          spacing: app.dimensions.padding.s,
           children: [
-            for (final name in _variables)
-              Text(
-                name,
-                style: style?.copyWith(
-                  fontFamily: 'monospace',
-                  color: app.colors.neutral.grey2,
-                ),
-              ),
+            Text(_access, style: mono),
+            Text(app.intl.login.envHintAnd, style: style),
+            Text(_secret, style: mono),
           ],
         ),
       ],

@@ -255,6 +255,9 @@ class AppMessages$login$en {
   /// en: 'The keys are set on the server with:'
   String get envHint => 'The keys are set on the server with:';
 
+  /// en: 'and'
+  String get envHintAnd => 'and';
+
   /// en: 'S3, without the weight.'
   String get tagline => 'S3, without the weight.';
 
@@ -1468,6 +1471,7 @@ extension on AppMessages {
       'login.title' => 'Sign in',
       'login.description' => 'Manage your buckets and access keys.',
       'login.envHint' => 'The keys are set on the server with:',
+      'login.envHintAnd' => 'and',
       'login.tagline' => 'S3, without the weight.',
       'login.pitch' => 'No setup, no learning curve. Point your usual AWS tools here and start uploading.',
       'login.tags.0' => 'Self-hosted',

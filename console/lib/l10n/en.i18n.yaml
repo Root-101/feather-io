@@ -53,6 +53,7 @@ login:
   title: 'Sign in'
   description: 'Manage your buckets and access keys.'
   envHint: 'The keys are set on the server with:'
+  envHintAnd: 'and'
   tagline: 'S3, without the weight.'
   pitch: 'No setup, no learning curve. Point your usual AWS tools here and start uploading.'
   tags:
