@@ -245,6 +245,26 @@ class AppMessages$login$en {
 
   /// en: 'Login'
   String get button => 'Login';
+
+  /// en: 'Sign in'
+  String get title => 'Sign in';
+
+  /// en: 'Use the access and secret keys of the service.'
+  String get description => 'Use the access and secret keys of the service.';
+
+  /// en: 'S3, without the weight.'
+  String get tagline => 'S3, without the weight.';
+
+  /// en: 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.'
+  String get pitch =>
+      'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.';
+
+  List<String> get tags => [
+    'Self-hosted',
+    'S3-compatible',
+    'Lightweight',
+    'Built in Dart',
+  ];
 }
 
 // Path: buckets
@@ -1442,6 +1462,14 @@ extension on AppMessages {
       'login.secretKey' => 'Secret Key',
       'login.secretKeyHint' => 'Enter your secret key',
       'login.button' => 'Login',
+      'login.title' => 'Sign in',
+      'login.description' => 'Use the access and secret keys of the service.',
+      'login.tagline' => 'S3, without the weight.',
+      'login.pitch' => 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.',
+      'login.tags.0' => 'Self-hosted',
+      'login.tags.1' => 'S3-compatible',
+      'login.tags.2' => 'Lightweight',
+      'login.tags.3' => 'Built in Dart',
       'buckets.title' => 'Buckets',
       'buckets.subtitle' =>
         'Manage your S3 compatible buckets and storage resources.',

@@ -48,6 +48,15 @@ login:
   secretKey: 'Clave secreta'
   secretKeyHint: 'Introduce tu clave secreta'
   button: 'Iniciar sesión'
+  title: 'Inicia sesión'
+  description: 'Usa las claves de acceso y secreta del servicio.'
+  tagline: 'S3, sin el peso.'
+  pitch: 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.'
+  tags:
+    - 'Autoalojado'
+    - 'Compatible con S3'
+    - 'Ligero'
+    - 'Hecho en Dart'
 buckets:
   title: 'Buckets'
   subtitle: 'Gestiona tus buckets compatibles con S3 y tus recursos de almacenamiento.'

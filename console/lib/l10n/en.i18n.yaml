@@ -50,6 +50,15 @@ login:
   secretKey: 'Secret Key'
   secretKeyHint: 'Enter your secret key'
   button: 'Login'
+  title: 'Sign in'
+  description: 'Use the access and secret keys of the service.'
+  tagline: 'S3, without the weight.'
+  pitch: 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.'
+  tags:
+    - 'Self-hosted'
+    - 'S3-compatible'
+    - 'Lightweight'
+    - 'Built in Dart'
 buckets:
   title: 'Buckets'
   subtitle: 'Manage your S3 compatible buckets and storage resources.'

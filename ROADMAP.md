@@ -44,7 +44,7 @@ Overall **8**; within its scope it can reach **8.5–9**.
 
 - [x] Migrate the console's localization from `gen-l10n` (ARB) to slang with YAML files, like the
   service (`lib/i18n/*.i18n.yaml`).
-- [ ] Redesign the login screen to feature the dot grid in the background and incorporate the visual
+- [x] Redesign the login screen to feature the dot grid in the background and incorporate the visual
   identity (Logo, phrases, tags...).
 - [ ] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).

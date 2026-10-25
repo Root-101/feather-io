@@ -221,6 +221,22 @@ class AppMessages$login$es implements AppMessages$login$en {
   String get secretKeyHint => 'Introduce tu clave secreta';
   @override
   String get button => 'Iniciar sesión';
+  @override
+  String get title => 'Inicia sesión';
+  @override
+  String get description => 'Usa las claves de acceso y secreta del servicio.';
+  @override
+  String get tagline => 'S3, sin el peso.';
+  @override
+  String get pitch =>
+      'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.';
+  @override
+  List<String> get tags => [
+    'Autoalojado',
+    'Compatible con S3',
+    'Ligero',
+    'Hecho en Dart',
+  ];
 }
 
 // Path: buckets
@@ -1107,6 +1123,14 @@ extension on AppMessagesEs {
       'login.secretKey' => 'Clave secreta',
       'login.secretKeyHint' => 'Introduce tu clave secreta',
       'login.button' => 'Iniciar sesión',
+      'login.title' => 'Inicia sesión',
+      'login.description' => 'Usa las claves de acceso y secreta del servicio.',
+      'login.tagline' => 'S3, sin el peso.',
+      'login.pitch' => 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.',
+      'login.tags.0' => 'Autoalojado',
+      'login.tags.1' => 'Compatible con S3',
+      'login.tags.2' => 'Ligero',
+      'login.tags.3' => 'Hecho en Dart',
       'buckets.title' => 'Buckets',
       'buckets.subtitle' => 'Gestiona tus buckets compatibles con S3 y tus recursos de almacenamiento.',
       'buckets.create' => 'Crear bucket',
