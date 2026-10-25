@@ -103,13 +103,14 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AppWordmark(name: app.intl.appName, fontSize: 32),
+              AppWordmark(name: app.intl.app.name, fontSize: 32),
               app.dimensions.padding.xl.gap(),
               AppFormInput(
                 controller: _accessController,
-                label: app.intl.loginAccessKey,
-                hint: app.intl.loginAccessKeyHint,
-                validator: (v) => v?.isEmpty == true ? app.intl.required : null,
+                label: app.intl.login.accessKey,
+                hint: app.intl.login.accessKeyHint,
+                validator: (v) =>
+                    v?.isEmpty == true ? app.intl.common.required : null,
                 autofillHints: const [AutofillHints.username],
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _onLogin(),
@@ -117,16 +118,17 @@ class _LoginScreenState extends State<LoginScreen> {
               app.dimensions.padding.m.gap(),
               AppFormPasswordInput(
                 controller: _secretController,
-                label: app.intl.loginSecretKey,
-                hint: app.intl.loginSecretKeyHint,
-                validator: (v) => v?.isEmpty == true ? app.intl.required : null,
+                label: app.intl.login.secretKey,
+                hint: app.intl.login.secretKeyHint,
+                validator: (v) =>
+                    v?.isEmpty == true ? app.intl.common.required : null,
                 autofillHints: const [AutofillHints.password],
                 onSubmitted: (_) => _onLogin(),
               ),
               app.dimensions.padding.xl.gap(),
               PrimaryButton.primary(
                 onPressed: _onLogin,
-                title: app.intl.loginButton,
+                title: app.intl.login.button,
               ),
             ],
           ),

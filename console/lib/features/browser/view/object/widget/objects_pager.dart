@@ -40,11 +40,11 @@ class ObjectsPager extends StatelessWidget {
           Expanded(
             child: Text(
               totalPages > 1
-                  ? app.intl.objectsPagerHintPages(
-                      state.pages.length,
-                      totalPages,
+                  ? app.intl.objects.pagerHintPages(
+                      loaded: state.pages.length,
+                      total: totalPages,
                     )
-                  : app.intl.objectsPagerHint,
+                  : app.intl.objects.pagerHint,
               overflow: TextOverflow.ellipsis,
               style: app.textTheme.bodySmall?.copyWith(
                 color: app.colors.neutral.grey3,
@@ -53,7 +53,7 @@ class ObjectsPager extends StatelessWidget {
           ),
           app.dimensions.padding.xl.gap(),
           Text(
-            app.intl.objectsPageSize,
+            app.intl.objects.pageSize,
             style: app.textTheme.bodyMedium?.copyWith(
               color: app.colors.neutral.grey2,
             ),
@@ -76,7 +76,7 @@ class ObjectsPager extends StatelessWidget {
           ),
           (2 * app.dimensions.padding.l).gap(),
           IconButton(
-            tooltip: app.intl.objectsPreviousPage,
+            tooltip: app.intl.objects.previousPage,
             onPressed: !busy && state.canGoPrevious ? onPrevious : null,
             icon: app.assets.icons.navigation.left.build(
               size: 18,
@@ -88,13 +88,16 @@ class ObjectsPager extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              app.intl.objectsPageOf(state.pageIndex + 1, totalPages),
+              app.intl.objects.pageOf(
+                page: state.pageIndex + 1,
+                total: totalPages,
+              ),
               textAlign: TextAlign.center,
               style: app.textTheme.bodyMedium,
             ),
           ),
           IconButton(
-            tooltip: app.intl.objectsNextPage,
+            tooltip: app.intl.objects.nextPage,
             onPressed: !busy && state.canGoNext ? onNext : null,
             icon: app.assets.icons.navigation.right.build(
               size: 18,

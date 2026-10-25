@@ -76,7 +76,7 @@ volume, `503` when one fails); how to back up the volume is in `service/README.m
 
 ```bash
 fvm flutter pub get
-fvm flutter gen-l10n                                            # after editing lib/l10n/arb/*.arb
+fvm dart run slang                                              # after editing lib/l10n/*.i18n.yaml
 fvm flutter run -d chrome --web-port=8081
 fvm flutter analyze
 fvm flutter test                                                # on the VM, no browser
@@ -655,16 +655,19 @@ dialog text, error message and validation message comes from `app.intl.<key>` (o
 `context.intl.<key>` inside a `MaterialApp` builder before the navigator exists, e.g. splash).
 Rules:
 
-- Add each key to **both** `lib/l10n/arb/app_en.arb` (template) and `app_es.arb`, use
-  placeholders/plurals instead of concatenation, then run `fvm flutter gen-l10n`. `l10n_errors.txt`
-  must stay `{}`.
-- Delete keys that are no longer referenced. Don't add "section" pseudo-keys.
-- `MaterialApp` gets `AppLocalizations.delegate` plus `material_ui`'s
-  `GlobalMaterialLocalizations.delegates` (`appLocalizationsDelegates` in `main.dart`, also used by
-  the splash), never the
-  generated `AppLocalizations.localizationsDelegates`: those register `flutter_localizations`'
-  Material strings, which `material_ui` widgets can't see, so any locale but English fails with "No
-  MaterialLocalizations found".
+- The texts are slang YAML, like the service's: `lib/l10n/en.i18n.yaml` (base, with the
+  parameter types, `{name: String}`) and `es.i18n.yaml`, grouped by feature
+  (`app.intl.accessKeys.create`, `app.intl.common.cancel`); `fvm dart run slang` generates
+  `messages*.g.dart` (versioned), and a key missing in Spanish doesn't compile. Use named
+  placeholders (`objects.renamed(name: n)`) and plurals (`moved(plural, param=count)`) instead of
+  concatenation.
+- Delete keys that are no longer referenced.
+- The language is the `MaterialApp`'s (`LanguageCubit`): `context.intl` reads
+  `Localizations.localeOf`, so there is no slang `LocaleSettings`. `MaterialApp` gets
+  `supportedLocales: appSupportedLocales` and `material_ui`'s `GlobalMaterialLocalizations.delegates`
+  (`appLocalizationsDelegates` in `main.dart`, also used by the splash), never
+  `flutter_localizations`' Material strings, which `material_ui` widgets can't see (any locale but
+  English would fail with "No MaterialLocalizations found").
 - Exempt: brand-neutral technical tokens (`PDF`, `JSON`, units like `KB`), JSON/header keys, file
   names, log/`toString` output.
 

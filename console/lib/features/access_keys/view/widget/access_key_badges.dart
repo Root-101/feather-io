@@ -43,15 +43,15 @@ class AccessKeyStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (text, color) = switch (status) {
       AccessKeyStatus.active => (
-        app.intl.accessKeyStatusActive,
+        app.intl.accessKeys.statusActive,
         app.colors.palette.green,
       ),
       AccessKeyStatus.disabled => (
-        app.intl.accessKeyStatusDisabled,
+        app.intl.accessKeys.statusDisabled,
         app.colors.neutral.grey4,
       ),
       AccessKeyStatus.expired => (
-        app.intl.accessKeyStatusExpired,
+        app.intl.accessKeys.statusExpired,
         app.colors.primary.error,
       ),
     };
@@ -79,10 +79,10 @@ class AccessKeyPermissions extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (all != null) ...[
-          _GrantTag(scope: app.intl.accessKeyAllBuckets, level: all),
+          _GrantTag(scope: app.intl.accessKeys.allBuckets, level: all),
           if (all != AccessKeyLevel.readOnly)
             Text(
-              app.intl.accessKeyCreatesBuckets,
+              app.intl.accessKeys.createsBuckets,
               style: app.textTheme.bodySmall?.copyWith(
                 color: app.colors.neutral.grey3,
               ),
@@ -90,7 +90,7 @@ class AccessKeyPermissions extends StatelessWidget {
         ] else if (keyModel.grants.isEmpty)
           // Its buckets were deleted: the key reaches nothing until edited
           Text(
-            app.intl.accessKeyNoBuckets,
+            app.intl.accessKeys.noBuckets,
             style: app.textTheme.bodySmall?.copyWith(
               color: app.colors.neutral.grey3,
             ),
@@ -145,22 +145,22 @@ class _GrantTag extends StatelessWidget {
 
 extension AccessKeyLevelView on AccessKeyLevel {
   String get label => switch (this) {
-    AccessKeyLevel.readOnly => app.intl.accessKeyLevelReadOnly,
-    AccessKeyLevel.writeOnly => app.intl.accessKeyLevelWriteOnly,
-    AccessKeyLevel.readWrite => app.intl.accessKeyLevelReadWrite,
+    AccessKeyLevel.readOnly => app.intl.accessKeys.levelReadOnly,
+    AccessKeyLevel.writeOnly => app.intl.accessKeys.levelWriteOnly,
+    AccessKeyLevel.readWrite => app.intl.accessKeys.levelReadWrite,
   };
 
   /// For the per-bucket selector
   String get shortLabel => switch (this) {
-    AccessKeyLevel.readOnly => app.intl.accessKeyLevelShortRead,
-    AccessKeyLevel.writeOnly => app.intl.accessKeyLevelShortWrite,
-    AccessKeyLevel.readWrite => app.intl.accessKeyLevelShortBoth,
+    AccessKeyLevel.readOnly => app.intl.accessKeys.levelShortRead,
+    AccessKeyLevel.writeOnly => app.intl.accessKeys.levelShortWrite,
+    AccessKeyLevel.readWrite => app.intl.accessKeys.levelShortBoth,
   };
 
   String get description => switch (this) {
-    AccessKeyLevel.readOnly => app.intl.accessKeyLevelReadOnlyDescription,
-    AccessKeyLevel.writeOnly => app.intl.accessKeyLevelWriteOnlyDescription,
-    AccessKeyLevel.readWrite => app.intl.accessKeyLevelReadWriteDescription,
+    AccessKeyLevel.readOnly => app.intl.accessKeys.levelReadOnlyDescription,
+    AccessKeyLevel.writeOnly => app.intl.accessKeys.levelWriteOnlyDescription,
+    AccessKeyLevel.readWrite => app.intl.accessKeys.levelReadWriteDescription,
   };
 
   Color get color => switch (this) {
@@ -174,14 +174,18 @@ extension AccessKeyModelView on AccessKeyModel {
   /// "Never", "Just now", "5 min ago", "2 h ago", "3 days ago" or the date
   String get lastUsedLabel {
     final used = lastUsedAt;
-    if (used == null) return app.intl.accessKeyNeverUsed;
+    if (used == null) return app.intl.accessKeys.neverUsed;
     final elapsed = DateTime.now().difference(used);
-    if (elapsed.inMinutes < 1) return app.intl.accessKeyUsedNow;
+    if (elapsed.inMinutes < 1) return app.intl.accessKeys.usedNow;
     if (elapsed.inHours < 1) {
-      return app.intl.accessKeyUsedMinutes(elapsed.inMinutes);
+      return app.intl.accessKeys.usedMinutes(count: elapsed.inMinutes);
     }
-    if (elapsed.inDays < 1) return app.intl.accessKeyUsedHours(elapsed.inHours);
-    if (elapsed.inDays <= 30) return app.intl.accessKeyUsedDays(elapsed.inDays);
+    if (elapsed.inDays < 1) {
+      return app.intl.accessKeys.usedHours(count: elapsed.inHours);
+    }
+    if (elapsed.inDays <= 30) {
+      return app.intl.accessKeys.usedDays(count: elapsed.inDays);
+    }
     return app.dateFormatter.m.format(used);
   }
 }

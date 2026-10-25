@@ -197,9 +197,9 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
     final keys = selected.map((w) => w.fullPath).toList();
 
     ConfirmDialog.show(
-      title: app.intl.objectsDeleteTitle,
-      description: app.intl.objectsDeleteConfirm(keys.length),
-      confirmTitle: app.intl.delete,
+      title: app.intl.objects.deleteTitle,
+      description: app.intl.objects.deleteConfirm(count: keys.length),
+      confirmTitle: app.intl.common.delete,
       confirmColor: app.colors.primary.errorAction,
       confirmAction: () => widget.onDelete(keys),
     );
@@ -316,7 +316,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                 ),
                 app.dimensions.padding.m.gap(),
                 Text(
-                  app.intl.preview,
+                  app.intl.common.preview,
                   style: app.textTheme.bodyMedium?.copyWith(
                     color: app.colors.neutral.white,
                   ),
@@ -336,7 +336,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.download,
+                app.intl.common.download,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.white,
                 ),
@@ -348,13 +348,13 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
           _menuItem(
             value: 'details',
             icon: app.assets.icons.actions.info,
-            label: app.intl.objectsDetails,
+            label: app.intl.objects.details,
             onTap: () => _onDetails(wrapper),
           ),
           _menuItem(
             value: 'share',
             icon: app.assets.icons.actions.link,
-            label: app.intl.objectsShareLink,
+            label: app.intl.objects.shareLink,
             onTap: () {
               final bucket = widget.state.selectedBucket;
               if (bucket != null) {
@@ -368,13 +368,13 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
           _menuItem(
             value: 'rename',
             icon: app.assets.icons.actions.edit,
-            label: app.intl.objectsRename,
+            label: app.intl.objects.rename,
             onTap: () => _onRename(wrapper),
           ),
           _menuItem(
             value: 'move',
             icon: app.assets.icons.storage.folder,
-            label: app.intl.objectsMove,
+            label: app.intl.objects.move,
             onTap: () => _onMove([wrapper]),
           ),
         ],
@@ -390,7 +390,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.delete,
+                app.intl.common.delete,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.primary.error,
                 ),
@@ -443,7 +443,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.objectsUploadFiles,
+                app.intl.objects.uploadFiles,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.white,
                 ),
@@ -466,7 +466,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.objectsUploadDirectory,
+                app.intl.objects.uploadDirectory,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.white,
                 ),
@@ -547,7 +547,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                     Row(
                       children: [
                         PrimaryButton.secondary(
-                          title: app.intl.objectsNewFolder,
+                          title: app.intl.objects.newFolder,
                           icon: app.assets.icons.storage.folder,
                           onPressed: _onCreateFolder,
                           w: 170,
@@ -557,7 +557,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                         Builder(
                           builder: (context) {
                             return PrimaryButton.primary(
-                              title: app.intl.upload,
+                              title: app.intl.common.upload,
                               icon: app.assets.icons.actions.upload,
                               onPressed: () => _onShowUploadMenu(context),
                               w: 150,
@@ -585,7 +585,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                             // filters the folder already loaded: no wait
                             delay: 0,
                             onSearch: (_) => _applyFilters(),
-                            hint: app.intl.objectsSearchHint,
+                            hint: app.intl.objects.searchHint,
                           ),
                         ],
                       ),
@@ -627,7 +627,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                         ),
                         app.dimensions.padding.xs.gap(),
                         Tooltip(
-                          message: app.intl.objectsMoveSelection,
+                          message: app.intl.objects.moveSelection,
                           child: PrimaryButton.svgIcon(
                             icon: app.assets.icons.storage.folder,
                             onPressed: _canMoveSelection
@@ -712,15 +712,15 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                       child: ColoredBox(
                         color: app.colors.primary.background1,
                         child: BrowserNotFoundPage(
-                          title: app.intl.browserFolderNotFound(
-                            widget.state.prefix.substring(
+                          title: app.intl.browser.folderNotFound(
+                            folder: widget.state.prefix.substring(
                               0,
                               widget.state.prefix.length - 1,
                             ),
                           ),
                           description:
-                              app.intl.browserFolderNotFoundDescription,
-                          action: app.intl.browserGoToBucketRoot,
+                              app.intl.browser.folderNotFoundDescription,
+                          action: app.intl.browser.goToBucketRoot,
                           onAction: () => widget.onNavigate(''),
                         ),
                       ),
@@ -813,7 +813,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
           ),
           app.dimensions.padding.l.gap(),
           PrimaryButton.primary(
-            title: app.intl.bucketSettings,
+            title: app.intl.buckets.settings,
             icon: app.assets.icons.actions.settings,
             color: app.colors.primary.background3,
             onPressed: () => RouteNames.openBucketSettings(bucket.name),

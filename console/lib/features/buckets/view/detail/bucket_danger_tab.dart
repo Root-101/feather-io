@@ -25,21 +25,26 @@ class BucketDangerTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _DangerCard(
-            title: app.intl.bucketEmptyTitle,
+            title: app.intl.bucketAdmin.emptyTitle,
             description: _isEmpty
-                ? app.intl.bucketEmptyAlreadyEmpty
-                : app.intl.bucketEmptyDescription(bucket.objectCount, size),
-            action: app.intl.bucketEmptyTitle,
+                ? app.intl.bucketAdmin.emptyAlreadyEmpty
+                : app.intl.bucketAdmin.emptyDescription(
+                    count: bucket.objectCount,
+                    size: size,
+                  ),
+            action: app.intl.bucketAdmin.emptyTitle,
             onPressed: _isEmpty ? null : onEmpty,
           ),
           app.dimensions.padding.l.gap(),
           _DangerCard(
-            title: app.intl.bucketsDeleteTitle,
-            description: app.intl.bucketDeleteDescription,
+            title: app.intl.buckets.deleteTitle,
+            description: app.intl.bucketAdmin.deleteDescription,
             warning: _isEmpty
                 ? null
-                : app.intl.bucketDeleteNotEmpty(bucket.objectCount),
-            action: app.intl.bucketsDeleteTitle,
+                : app.intl.bucketAdmin.deleteNotEmpty(
+                    count: bucket.objectCount,
+                  ),
+            action: app.intl.buckets.deleteTitle,
             onPressed: _isEmpty ? onDelete : null,
             filled: true,
           ),

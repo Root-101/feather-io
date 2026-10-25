@@ -6,14 +6,17 @@ import 'package:material_ui/material_ui.dart';
 class AnonymousRuleForm extends StatefulWidget {
   /// Opens the drawer with its own [AnonymousRuleFormCubit]. On save, it reloads
   /// the screen's [AnonymousAccessCubit]
-  static Future<void> open(BuildContext context, {required String bucket}) async {
+  static Future<void> open(
+    BuildContext context, {
+    required String bucket,
+  }) async {
     final key = GlobalKey<_AnonymousRuleFormState>();
     final accessCubit = context.read<AnonymousAccessCubit>();
     final formCubit = AnonymousRuleFormCubit(app.di.find(), app.di.find());
 
     await FormDrawerTemplate.showAsDialog(
-      title: app.intl.anonymousRuleFormTitle,
-      description: app.intl.anonymousRuleFormDescription(bucket),
+      title: app.intl.anonymousAccess.ruleFormTitle,
+      description: app.intl.anonymousAccess.ruleFormDescription(bucket: bucket),
       icon: app.assets.icons.actions.lock,
       loadingId: loadingId,
       footerActions: [
@@ -77,7 +80,7 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
 
   String? _validatePrefix(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return app.intl.anonymousRulePrefixRequired;
+      return app.intl.anonymousAccess.rulePrefixRequired;
     }
     return null;
   }
@@ -115,7 +118,9 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
           Navigator.of(context).pop();
           accessCubit.load(bucket: widget.bucket);
           app.snack.showSuccess(
-            message: app.intl.anonymousRuleCreatedSuccess(state.prefix),
+            message: app.intl.anonymousAccess.ruleCreatedSuccess(
+              prefix: state.prefix,
+            ),
             context: app.context,
           );
         } else if (state is AnonymousRuleFormProcessingErrorState) {
@@ -144,16 +149,16 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
           children: [
             if (_formError != null) ...[
               AppFormAlert(
-                title: app.intl.anonymousRuleFormErrorTitle,
+                title: app.intl.anonymousAccess.ruleFormErrorTitle,
                 message: _formError!,
               ),
               app.dimensions.padding.xl.gap(),
             ],
-            _buildSectionTitle(app.intl.anonymousRuleFormSectionPrefix),
+            _buildSectionTitle(app.intl.anonymousAccess.ruleFormSectionPrefix),
             app.dimensions.padding.l.gap(),
             _buildPrefix(),
             app.dimensions.padding.xl.gap(),
-            _buildSectionTitle(app.intl.anonymousRuleFormSectionAccess),
+            _buildSectionTitle(app.intl.anonymousAccess.ruleFormSectionAccess),
             app.dimensions.padding.l.gap(),
             _buildAccess(),
           ],
@@ -168,9 +173,9 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
         controller: _prefixController,
         focusNode: _prefixFocus,
         autofocus: true,
-        label: app.intl.anonymousRulePrefixLabel,
-        hint: app.intl.anonymousRulePrefixHint,
-        helperText: app.intl.anonymousRulePrefixHelper,
+        label: app.intl.anonymousAccess.rulePrefixLabel,
+        hint: app.intl.anonymousAccess.rulePrefixHint,
+        helperText: app.intl.anonymousAccess.rulePrefixHelper,
         errorText: _serverErrors[AnonymousRuleFormField.prefix],
         prefix: Padding(
           padding: EdgeInsets.only(left: app.dimensions.padding.m),
@@ -259,17 +264,18 @@ class _AccessOption extends StatelessWidget {
   });
 
   String get _description => switch (access) {
-    AnonymousAccessType.readOnly => app.intl.anonymousAccessReadOnlyDescription,
+    AnonymousAccessType.readOnly =>
+      app.intl.anonymousAccess.readOnlyDescription,
     AnonymousAccessType.writeOnly =>
-      app.intl.anonymousAccessWriteOnlyDescription,
+      app.intl.anonymousAccess.writeOnlyDescription,
     AnonymousAccessType.readWrite =>
-      app.intl.anonymousAccessReadWriteDescription,
+      app.intl.anonymousAccess.readWriteDescription,
   };
 
   String get _useCase => switch (access) {
-    AnonymousAccessType.readOnly => app.intl.anonymousAccessReadOnlyUseCase,
-    AnonymousAccessType.writeOnly => app.intl.anonymousAccessWriteOnlyUseCase,
-    AnonymousAccessType.readWrite => app.intl.anonymousAccessReadWriteUseCase,
+    AnonymousAccessType.readOnly => app.intl.anonymousAccess.readOnlyUseCase,
+    AnonymousAccessType.writeOnly => app.intl.anonymousAccess.writeOnlyUseCase,
+    AnonymousAccessType.readWrite => app.intl.anonymousAccess.readWriteUseCase,
   };
 
   @override
@@ -354,14 +360,14 @@ class _AnonymousRuleFormFooter extends StatelessWidget {
       children: [
         PrimaryButton.secondary(
           onPressed: () => Navigator.of(context).maybePop(),
-          title: app.intl.cancel,
+          title: app.intl.common.cancel,
           h: 40,
           w: 100,
         ),
         app.dimensions.padding.m.gap(),
         PrimaryButton.primary(
           onPressed: onSubmit,
-          title: app.intl.anonymousRuleAdd,
+          title: app.intl.anonymousAccess.ruleAdd,
           h: 40,
           w: 170,
           icon: app.assets.icons.actions.add,

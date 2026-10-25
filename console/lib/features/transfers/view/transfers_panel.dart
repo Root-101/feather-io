@@ -19,7 +19,7 @@ class TransfersPanel extends StatelessWidget {
     showGeneralDialog(
       context: anchor,
       barrierDismissible: true,
-      barrierLabel: app.intl.close,
+      barrierLabel: app.intl.common.close,
       barrierColor: app.colors.neutral.transparent,
       transitionDuration: const Duration(milliseconds: 150),
       pageBuilder: (context, animation, secondaryAnimation) {
@@ -42,10 +42,10 @@ class TransfersPanel extends StatelessWidget {
   /// Summary of the queue status, or null if it is empty
   static String? summary(TransferState state) => switch (state) {
     TransferProcessInProgressState(:final activeCount) =>
-      app.intl.transfersActive(activeCount),
+      app.intl.transfers.active(count: activeCount),
     TransferProcessingOKState(:final failedCount) when failedCount > 0 =>
-      app.intl.transfersFailed(failedCount),
-    TransferProcessingOKState() => app.intl.transfersAllDone,
+      app.intl.transfers.failed(count: failedCount),
+    TransferProcessingOKState() => app.intl.transfers.allDone,
     _ => null,
   };
 
@@ -78,7 +78,7 @@ class TransfersPanel extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.all(app.dimensions.padding.xxl),
                     child: Text(
-                      app.intl.transfersEmpty,
+                      app.intl.transfers.empty,
                       textAlign: TextAlign.center,
                       style: app.textTheme.bodyMedium?.copyWith(
                         color: app.colors.neutral.grey3,
@@ -128,7 +128,7 @@ class TransfersPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  app.intl.transfersTitle,
+                  app.intl.transfers.title,
                   style: app.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -145,10 +145,10 @@ class TransfersPanel extends StatelessWidget {
           ),
           TextButton(
             onPressed: state.finishedCount > 0 ? cubit.clearFinished : null,
-            child: Text(app.intl.transfersClearFinished),
+            child: Text(app.intl.transfers.clearFinished),
           ),
           IconButton(
-            tooltip: app.intl.close,
+            tooltip: app.intl.common.close,
             onPressed: () => app.navigator.pop(),
             icon: app.assets.icons.actions.close.build(
               size: 18,
@@ -171,34 +171,34 @@ class _TransferRow extends StatelessWidget {
     final size = app.storageFormatter.formatSize(task.size);
     return switch (task.status) {
       TransferStatus.queued => (
-        app.intl.transferStatusQueued,
+        app.intl.transfers.statusQueued,
         app.colors.neutral.grey3,
       ),
       // a download without a size yet: the service is building the zip
       TransferStatus.running when !task.isUpload && task.size == 0 => (
-        app.intl.transferStatusPreparing,
+        app.intl.transfers.statusPreparing,
         app.colors.neutral.grey3,
       ),
       TransferStatus.running => (
-        app.intl.transferStatusProgress(
-          app.storageFormatter.formatSize(task.transferred),
-          size,
-          (task.progress * 100).floor(),
+        app.intl.transfers.statusProgress(
+          done: app.storageFormatter.formatSize(task.transferred),
+          total: size,
+          percent: (task.progress * 100).floor(),
         ),
         app.colors.neutral.grey3,
       ),
       TransferStatus.done => (
         task.isUpload
-            ? app.intl.transferStatusUploaded(size)
-            : app.intl.transferStatusDownloaded(size),
+            ? app.intl.transfers.statusUploaded(size: size)
+            : app.intl.transfers.statusDownloaded(size: size),
         app.colors.primary.green,
       ),
       TransferStatus.failed => (
-        app.intl.transferStatusFailed(task.error?.message ?? ''),
+        app.intl.transfers.statusFailed(message: task.error?.message ?? ''),
         app.colors.primary.error,
       ),
       TransferStatus.cancelled => (
-        app.intl.transferStatusCancelled,
+        app.intl.transfers.statusCancelled,
         app.colors.neutral.grey4,
       ),
     };
@@ -223,8 +223,8 @@ class _TransferRow extends StatelessWidget {
         children: [
           Tooltip(
             message: task.isUpload
-                ? app.intl.transferUpload
-                : app.intl.transferDownload,
+                ? app.intl.transfers.upload
+                : app.intl.transfers.download,
             child: Container(
               width: 32,
               height: 32,
@@ -292,19 +292,19 @@ class _TransferRow extends StatelessWidget {
           app.dimensions.padding.s.gap(),
           if (task.status.isActive)
             _action(
-              tooltip: app.intl.transferCancel,
+              tooltip: app.intl.transfers.cancel,
               icon: app.assets.icons.actions.close,
               onPressed: () => cubit.cancel(task.id),
             ),
           if (retryable)
             _action(
-              tooltip: app.intl.tryAgain,
+              tooltip: app.intl.common.tryAgain,
               icon: app.assets.icons.actions.refresh,
               onPressed: () => cubit.retry(task.id),
             ),
           if (!task.status.isActive)
             _action(
-              tooltip: app.intl.transferRemove,
+              tooltip: app.intl.transfers.remove,
               icon: app.assets.icons.actions.close,
               onPressed: () => cubit.remove(task.id),
             ),

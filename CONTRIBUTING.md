@@ -29,7 +29,8 @@ the package you touch before changing it. The most important ones:
   `S3Exception`s with an S3 code; their messages are translated (`lib/i18n/*.i18n.yaml`, both
   languages).
 - **Console**: a feature is `data/rest` → `data/repo` → `logic/cubit` → `view`; views only call
-  cubit methods. No user-visible text is hardcoded (`lib/l10n/arb/app_en.arb` and `app_es.arb`).
+  cubit methods. No user-visible text is hardcoded (`lib/l10n/*.i18n.yaml`, both
+  languages).
 - **Both**: JSON keys are `snake_case`. A field renamed in the service changes the console's DTO in
   the same change.
 - Don't add a dependency for something Dart, Flutter or Winter already does.

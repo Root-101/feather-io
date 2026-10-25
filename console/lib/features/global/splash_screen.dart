@@ -10,7 +10,7 @@ class SplashScreen extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeConfig.theme,
       localizationsDelegates: appLocalizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: appSupportedLocales,
       builder: (context, child) => Scaffold(
         body: SizedBox.expand(
           child: Stack(
@@ -26,10 +26,10 @@ class SplashScreen extends StatelessWidget {
                   children: [
                     Image.asset(app.assets.appIcon, width: 96, height: 96),
                     app.dimensions.padding.xxl.gap(),
-                    AppWordmark(name: context.intl.appName, fontSize: 56),
+                    AppWordmark(name: context.intl.app.name, fontSize: 56),
                     app.dimensions.padding.l.gap(),
                     Text(
-                      context.intl.splashTitle,
+                      context.intl.app.splashTitle,
                       style: TextTheme.of(context).titleLarge
                           ?.copyWith(color: app.colors.neutral.grey3),
                     ),
@@ -42,7 +42,7 @@ class SplashScreen extends StatelessWidget {
                 bottom: 20,
                 child: Center(
                   child: Text(
-                    context.intl.splashFooter,
+                    context.intl.app.splashFooter,
                     style: TextTheme.of(context).titleSmall
                         ?.copyWith(color: app.colors.neutral.grey3),
                   ),

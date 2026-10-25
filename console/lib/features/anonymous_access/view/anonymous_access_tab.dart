@@ -31,9 +31,11 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
 
   void _onDelete(AnonymousRuleModel rule) {
     ConfirmDialog.show(
-      title: app.intl.anonymousRuleDeleteTitle,
-      description: app.intl.anonymousRuleDeleteConfirm(rule.prefix),
-      confirmTitle: app.intl.delete,
+      title: app.intl.anonymousAccess.ruleDeleteTitle,
+      description: app.intl.anonymousAccess.ruleDeleteConfirm(
+        prefix: rule.prefix,
+      ),
+      confirmTitle: app.intl.common.delete,
       confirmColor: app.colors.primary.errorAction,
       confirmAction: () => cubit.deleteRule(prefix: rule.prefix),
       h: 270,
@@ -61,7 +63,7 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
               children: [
                 Expanded(
                   child: Text(
-                    app.intl.anonymousAccessDescription,
+                    app.intl.anonymousAccess.description,
                     style: app.textTheme.bodyMedium?.copyWith(
                       color: app.colors.neutral.grey2,
                     ),
@@ -69,7 +71,7 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
                 ),
                 app.dimensions.padding.l.gap(),
                 PrimaryButton.primary(
-                  title: app.intl.anonymousRuleAdd,
+                  title: app.intl.anonymousAccess.ruleAdd,
                   icon: app.assets.icons.actions.add,
                   onPressed: () =>
                       AnonymousRuleForm.open(context, bucket: widget.bucket),
@@ -119,9 +121,9 @@ class _RulesTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSimpleTable(
       columns: [
-        AppTableColumn(app.intl.anonymousRulePrefix, width: 280),
-        AppTableColumn(app.intl.anonymousRuleAccess, width: 200),
-        AppTableColumn(app.intl.anonymousRuleOps),
+        AppTableColumn(app.intl.anonymousAccess.rulePrefix, width: 280),
+        AppTableColumn(app.intl.anonymousAccess.ruleAccess, width: 200),
+        AppTableColumn(app.intl.anonymousAccess.ruleOps),
         const AppTableColumn.actions(),
       ],
       rows: [
@@ -136,7 +138,7 @@ class _RulesTable extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: app.intl.anonymousRuleDeleteTitle,
+              tooltip: app.intl.anonymousAccess.ruleDeleteTitle,
               onPressed: () => onDelete(rule),
               icon: app.assets.icons.actions.delete.build(
                 size: 18,
@@ -145,7 +147,7 @@ class _RulesTable extends StatelessWidget {
             ),
           ]),
       ],
-      hint: app.intl.anonymousRuleHint,
+      hint: app.intl.anonymousAccess.ruleHint,
     );
   }
 }
@@ -234,14 +236,14 @@ class _PrivateBucketPage extends StatelessWidget {
             ),
             app.dimensions.padding.m.gap(),
             Text(
-              app.intl.anonymousAccessPrivateTitle,
+              app.intl.anonymousAccess.privateTitle,
               style: app.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             app.dimensions.padding.s.gap(),
             Text(
-              app.intl.anonymousAccessPrivateDescription,
+              app.intl.anonymousAccess.privateDescription,
               textAlign: TextAlign.center,
               style: app.textTheme.bodyMedium?.copyWith(
                 color: app.colors.neutral.grey3,
@@ -256,16 +258,16 @@ class _PrivateBucketPage extends StatelessWidget {
 
 extension AnonymousAccessTypeView on AnonymousAccessType {
   String get label => switch (this) {
-    AnonymousAccessType.readOnly => app.intl.anonymousAccessReadOnly,
-    AnonymousAccessType.writeOnly => app.intl.anonymousAccessWriteOnly,
-    AnonymousAccessType.readWrite => app.intl.anonymousAccessReadWrite,
+    AnonymousAccessType.readOnly => app.intl.anonymousAccess.readOnly,
+    AnonymousAccessType.writeOnly => app.intl.anonymousAccess.writeOnly,
+    AnonymousAccessType.readWrite => app.intl.anonymousAccess.readWrite,
   };
 
   /// What can be done without credentials
   String get operations => switch (this) {
-    AnonymousAccessType.readOnly => app.intl.anonymousAccessReadOnlyOps,
-    AnonymousAccessType.writeOnly => app.intl.anonymousAccessWriteOnlyOps,
-    AnonymousAccessType.readWrite => app.intl.anonymousAccessReadWriteOps,
+    AnonymousAccessType.readOnly => app.intl.anonymousAccess.readOnlyOps,
+    AnonymousAccessType.writeOnly => app.intl.anonymousAccess.writeOnlyOps,
+    AnonymousAccessType.readWrite => app.intl.anonymousAccess.readWriteOps,
   };
 
   Color get color => switch (this) {

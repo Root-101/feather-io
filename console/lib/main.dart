@@ -10,19 +10,18 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final String loadingOverlayGlobalId = 'app-global-loading';
 
-/// The texts of the app and those of `material_ui`. The ones gen-l10n generates
-/// (`AppLocalizations.localizationsDelegates`) bring the Material ones of
-/// `flutter_localizations`, which `material_ui` widgets can't see: outside
-/// English (which `material_ui` ships by default) they would fail with "No
-/// MaterialLocalizations found". Every MaterialApp uses these (app and splash)
+/// The Material texts that `material_ui` widgets read; the app's own come from
+/// `context.intl` (slang). `flutter_localizations`' delegates alone wouldn't
+/// do: `material_ui` can't see them, so outside English (which it ships by
+/// default) it would fail with "No MaterialLocalizations found". Every
+/// MaterialApp uses these (app and splash)
 const List<LocalizationsDelegate<dynamic>> appLocalizationsDelegates = [
-  AppLocalizations.delegate,
   ...GlobalMaterialLocalizations.delegates,
 ];
 
 // generate code
 // fvm flutter pub run build_runner build --delete-conflicting-outputs
-// fvm flutter gen-l10n
+// fvm dart run slang
 
 // versions
 // fvm flutter pub outdated
@@ -95,9 +94,9 @@ class App extends StatelessWidget {
             theme: ThemeConfig.theme,
             locale: locale,
             localizationsDelegates: appLocalizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
+            supportedLocales: appSupportedLocales,
             builder: (context, child) => Scaffold(
-              body: Center(child: Text(context.intl.appNeedMoreSpace)),
+              body: Center(child: Text(context.intl.app.needMoreSpace)),
             ),
           );
         } else {
@@ -105,7 +104,8 @@ class App extends StatelessWidget {
             builder: (BuildContext context, Widget? child) {
               // DateFormat uses it: dates follow the app's language
               // (`06/sept/2026 09:22:32 p. m.` in Spanish)
-              Intl.defaultLocale = context.intl.localeName;
+              Intl.defaultLocale = Localizations.localeOf(context)
+                  .toLanguageTag();
               return LoadingOverlay(
                 id: loadingOverlayGlobalId,
                 overlayWidgetBuilder: LoadingOverlayStyles.global,
@@ -118,12 +118,12 @@ class App extends StatelessWidget {
               );
             },
             debugShowCheckedModeBanner: false,
-            onGenerateTitle: (context) => context.intl.appName,
+            onGenerateTitle: (context) => context.intl.app.name,
             theme: ThemeConfig.theme,
             locale: locale,
             routerConfig: RouteConfig.router,
             localizationsDelegates: appLocalizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
+            supportedLocales: appSupportedLocales,
           );
         }
       },
@@ -148,10 +148,10 @@ class AppGlobal {
 
   /// Texts of the app's language; without a navigator yet (or in tests), those
   /// of `Intl.defaultLocale`, English by default
-  AppLocalizations get intl {
+  AppMessages get intl {
     final context = navigatorKey.currentContext;
     if (context != null) return context.intl;
-    return lookupAppLocalizations(Locale(Intl.defaultLocale ?? 'en'));
+    return messagesOf(Locale(Intl.defaultLocale ?? 'en'));
   }
 
   Logger logger = Logger();

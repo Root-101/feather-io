@@ -95,7 +95,7 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.build(title: app.intl.navBuckets),
+      appBar: CustomAppBar.build(title: app.intl.nav.buckets),
       body: BlocConsumer<BucketCubit, BucketState>(
         listener: (context, state) {
           if (state is BucketProcessInProgressState) {
@@ -154,16 +154,16 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
     }
     if (state is BucketLoadingSuccessState && widget.bucket != null) {
       return BrowserNotFoundPage(
-        title: app.intl.browserBucketNotFound(widget.bucket!),
-        description: app.intl.browserBucketNotFoundDescription,
-        action: app.intl.browserBackToBuckets,
+        title: app.intl.browser.bucketNotFound(name: widget.bucket!),
+        description: app.intl.browser.bucketNotFoundDescription,
+        action: app.intl.browser.backToBuckets,
         onAction: () => BucketAdminScreen.navigator.show(tab: widget.tab),
       );
     }
     if (state is BucketLoadingSuccessState) {
       return NoDataPage(
-        title: app.intl.bucketsEmpty,
-        description: app.intl.bucketAdminEmptyDescription,
+        title: app.intl.buckets.empty,
+        description: app.intl.bucketAdmin.noBucketsDescription,
       );
     }
     return const LoadingPage();

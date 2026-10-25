@@ -143,7 +143,7 @@ class _ColorPopoverState extends State<ColorPopover> {
       children: [
         Expanded(
           child: Text(
-            app.intl.colorCustom,
+            app.intl.colors.custom,
             style: app.textTheme.titleSmall?.copyWith(
               color: app.colors.neutral.white,
             ),
@@ -153,7 +153,7 @@ class _ColorPopoverState extends State<ColorPopover> {
           width: 28,
           height: 28,
           child: IconButton(
-            tooltip: app.intl.close,
+            tooltip: app.intl.common.close,
             padding: EdgeInsets.zero,
             iconSize: 18,
             onPressed: widget.onCancel,
@@ -256,17 +256,17 @@ class _ColorPopoverState extends State<ColorPopover> {
     if (_showHexError) {
       icon = Icons.error_outline;
       color = iconColor = app.colors.primary.error;
-      text = app.intl.colorHexInvalid;
+      text = app.intl.colors.hexInvalid;
     } else if (widget.contrastAgainst != null) {
       final ratio = _color.contrastWith(widget.contrastAgainst!);
       final formatted = ratio.toStringAsFixed(1);
       if (ratio < _minContrast) {
         icon = Icons.warning_rounded;
         color = iconColor = app.colors.primary.secondary;
-        text = app.intl.colorContrastLow(formatted);
+        text = app.intl.colors.contrastLow(ratio: formatted);
       } else {
         icon = Icons.check_circle_outline;
-        text = app.intl.colorContrast(formatted);
+        text = app.intl.colors.contrast(ratio: formatted);
       }
     }
 
@@ -295,7 +295,7 @@ class _ColorPopoverState extends State<ColorPopover> {
         PrimaryButton(
           onPressed: widget.onCancel,
           color: app.colors.primary.background3,
-          title: app.intl.cancel,
+          title: app.intl.common.cancel,
           titleStyle: actionStyle,
           h: 32,
         ),
@@ -306,7 +306,7 @@ class _ColorPopoverState extends State<ColorPopover> {
           disabledColor: app.colors.primary.purple
               .brighten(0.15)
               .withValues(alpha: 0.55),
-          title: app.intl.colorApply,
+          title: app.intl.colors.apply,
           titleStyle: actionStyle?.copyWith(fontWeight: FontWeight.w500),
           h: 32,
         ),
@@ -367,7 +367,7 @@ class _SaturationValueArea extends StatelessWidget {
     final hue = HSVColor.fromAHSV(1, hsv.hue, 1, 1).toColor();
     return Semantics(
       slider: true,
-      label: app.intl.colorSaturationBrightness,
+      label: app.intl.colors.saturationBrightness,
       value:
           '${(hsv.saturation * 100).round()}%, ${(hsv.value * 100).round()}%',
       child: _FocusRing(
@@ -463,7 +463,7 @@ class _HueSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       slider: true,
-      label: app.intl.colorHue,
+      label: app.intl.colors.hue,
       value: '${hsv.hue.round()}°',
       child: _FocusRing(
         onKeyEvent: _onKey,
