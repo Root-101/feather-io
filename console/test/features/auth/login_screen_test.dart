@@ -39,10 +39,7 @@ void main() {
       await pump(tester, const Size(1536, 720));
       final intl = messagesOf(const Locale('en'));
       expect(find.text(intl.login.pitch), findsOneWidget);
-      expect(
-        find.textContaining('FEATHER_SECRET', findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.text('FEATHER_SECRET'), findsOneWidget);
       expect(find.text(intl.app.splashFooter), findsOneWidget);
       expect(find.byType(LanguageWidget), findsOneWidget);
       expect(find.text(intl.login.tagline), findsOneWidget);

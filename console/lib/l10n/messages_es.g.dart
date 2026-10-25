@@ -226,8 +226,7 @@ class AppMessages$login$es implements AppMessages$login$en {
   @override
   String get description => 'Gestiona tus buckets y tus claves de acceso.';
   @override
-  String envHint({required Object access, required Object secret}) =>
-      'Las claves se definen en el servidor con ${access} y ${secret}.';
+  String get envHint => 'Las claves se definen en el servidor con:';
   @override
   String get tagline => 'S3, sin el peso.';
   @override
@@ -1128,10 +1127,7 @@ extension on AppMessagesEs {
       'login.button' => 'Iniciar sesión',
       'login.title' => 'Inicia sesión',
       'login.description' => 'Gestiona tus buckets y tus claves de acceso.',
-      'login.envHint' => ({
-        required Object access,
-        required Object secret,
-      }) => 'Las claves se definen en el servidor con ${access} y ${secret}.',
+      'login.envHint' => 'Las claves se definen en el servidor con:',
       'login.tagline' => 'S3, sin el peso.',
       'login.pitch' => 'Sin configuración ni curva de aprendizaje. Apunta aquí tus herramientas de AWS de siempre y empieza a subir.',
       'login.tags.0' => 'Autoalojado',

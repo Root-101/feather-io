@@ -357,38 +357,38 @@ class _Brand extends StatelessWidget {
   }
 }
 
-/// Where the keys come from, with the names of the variables in monospace
+/// Where the keys come from: a line of text and, under it, the names of the
+/// variables in monospace
 class _EnvHint extends StatelessWidget {
-  static const _access = 'FEATHER_ACCESS';
-  static const _secret = 'FEATHER_SECRET';
+  static const _variables = ['FEATHER_ACCESS', 'FEATHER_SECRET'];
 
   const _EnvHint();
 
   @override
   Widget build(BuildContext context) {
-    final text = app.intl.login.envHint(access: _access, secret: _secret);
     final style = app.textTheme.bodySmall?.copyWith(
       color: app.colors.neutral.grey4,
       height: 18 / 12,
     );
-    final mono = style?.copyWith(
-      fontFamily: 'monospace',
-      color: app.colors.neutral.grey2,
-    );
-    return Text.rich(
-      TextSpan(
-        style: style,
-        children: [
-          for (final part in text.split(
-            RegExp('(?=$_access|$_secret)|(?<=$_access|$_secret)'),
-          ))
-            TextSpan(
-              text: part,
-              style: part == _access || part == _secret ? mono : null,
-            ),
-        ],
-      ),
-      textAlign: TextAlign.center,
+    return Column(
+      children: [
+        Text(app.intl.login.envHint, style: style, textAlign: TextAlign.center),
+        app.dimensions.padding.xs.gap(),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: app.dimensions.padding.l,
+          children: [
+            for (final name in _variables)
+              Text(
+                name,
+                style: style?.copyWith(
+                  fontFamily: 'monospace',
+                  color: app.colors.neutral.grey2,
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

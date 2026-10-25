@@ -52,7 +52,7 @@ login:
   button: 'Login'
   title: 'Sign in'
   description: 'Manage your buckets and access keys.'
-  envHint: 'The keys are set on the server with {access: String} and {secret: String}.'
+  envHint: 'The keys are set on the server with:'
   tagline: 'S3, without the weight.'
   pitch: 'No setup, no learning curve. Point your usual AWS tools here and start uploading.'
   tags:
