@@ -259,9 +259,9 @@ class AppMessages$login$en {
   /// en: 'S3, without the weight.'
   String get tagline => 'S3, without the weight.';
 
-  /// en: 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.'
+  /// en: 'No setup, no learning curve. Point your usual AWS tools here and start uploading.'
   String get pitch =>
-      'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.';
+      'No setup, no learning curve. Point your usual AWS tools here and start uploading.';
 
   List<String> get tags => [
     'Self-hosted',
@@ -1473,7 +1473,7 @@ extension on AppMessages {
         required String secret,
       }) => 'The keys are set on the server with ${access} and ${secret}.',
       'login.tagline' => 'S3, without the weight.',
-      'login.pitch' => 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.',
+      'login.pitch' => 'No setup, no learning curve. Point your usual AWS tools here and start uploading.',
       'login.tags.0' => 'Self-hosted',
       'login.tags.1' => 'S3-compatible',
       'login.tags.2' => 'Lightweight',

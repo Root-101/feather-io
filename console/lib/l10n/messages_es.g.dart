@@ -232,7 +232,7 @@ class AppMessages$login$es implements AppMessages$login$en {
   String get tagline => 'S3, sin el peso.';
   @override
   String get pitch =>
-      'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.';
+      'Sin configuración ni curva de aprendizaje. Apunta aquí tus herramientas de AWS de siempre y empieza a subir.';
   @override
   List<String> get tags => [
     'Autoalojado',
@@ -1133,7 +1133,7 @@ extension on AppMessagesEs {
         required Object secret,
       }) => 'Las claves se definen en el servidor con ${access} y ${secret}.',
       'login.tagline' => 'S3, sin el peso.',
-      'login.pitch' => 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.',
+      'login.pitch' => 'Sin configuración ni curva de aprendizaje. Apunta aquí tus herramientas de AWS de siempre y empieza a subir.',
       'login.tags.0' => 'Autoalojado',
       'login.tags.1' => 'Compatible con S3',
       'login.tags.2' => 'Ligero',

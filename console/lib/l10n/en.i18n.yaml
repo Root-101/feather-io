@@ -54,7 +54,7 @@ login:
   description: 'Manage your buckets and access keys.'
   envHint: 'The keys are set on the server with {access: String} and {secret: String}.'
   tagline: 'S3, without the weight.'
-  pitch: 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.'
+  pitch: 'No setup, no learning curve. Point your usual AWS tools here and start uploading.'
   tags:
     - 'Self-hosted'
     - 'S3-compatible'

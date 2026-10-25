@@ -52,7 +52,7 @@ login:
   description: 'Gestiona tus buckets y tus claves de acceso.'
   envHint: 'Las claves se definen en el servidor con {access} y {secret}.'
   tagline: 'S3, sin el peso.'
-  pitch: 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.'
+  pitch: 'Sin configuración ni curva de aprendizaje. Apunta aquí tus herramientas de AWS de siempre y empieza a subir.'
   tags:
     - 'Autoalojado'
     - 'Compatible con S3'
