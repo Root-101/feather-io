@@ -85,8 +85,8 @@ class AppMessages$app$en {
   /// en: 'Admin'
   String get splashTitle => 'Admin';
 
-  /// en: 'With ♥ from Maple'
-  String get splashFooter => 'With ♥ from Maple';
+  /// en: 'With ♥ from Root101'
+  String get splashFooter => 'With ♥ from Root101';
 }
 
 // Path: common
@@ -249,8 +249,12 @@ class AppMessages$login$en {
   /// en: 'Sign in'
   String get title => 'Sign in';
 
-  /// en: 'Use the access and secret keys of the service.'
-  String get description => 'Use the access and secret keys of the service.';
+  /// en: 'Manage your buckets and access keys.'
+  String get description => 'Manage your buckets and access keys.';
+
+  /// en: 'The keys are set on the server with {access: String} and {secret: String}.'
+  String envHint({required String access, required String secret}) =>
+      'The keys are set on the server with ${access} and ${secret}.';
 
   /// en: 'S3, without the weight.'
   String get tagline => 'S3, without the weight.';
@@ -1418,7 +1422,7 @@ extension on AppMessages {
       'app.name' => 'Feather IO',
       'app.needMoreSpace' => 'Need more space',
       'app.splashTitle' => 'Admin',
-      'app.splashFooter' => 'With ♥ from Maple',
+      'app.splashFooter' => 'With ♥ from Root101',
       'common.loading' => 'Loading',
       'common.error' => 'Error',
       'common.tryAgain' => 'Try again',
@@ -1463,7 +1467,11 @@ extension on AppMessages {
       'login.secretKeyHint' => 'Enter your secret key',
       'login.button' => 'Login',
       'login.title' => 'Sign in',
-      'login.description' => 'Use the access and secret keys of the service.',
+      'login.description' => 'Manage your buckets and access keys.',
+      'login.envHint' => ({
+        required String access,
+        required String secret,
+      }) => 'The keys are set on the server with ${access} and ${secret}.',
       'login.tagline' => 'S3, without the weight.',
       'login.pitch' => 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.',
       'login.tags.0' => 'Self-hosted',

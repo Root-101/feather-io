@@ -6,7 +6,12 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockRepo extends Mock implements AuthRepo {}
 
+class _MockLanguageRepo extends Mock implements LanguageRepo {}
+
 void main() {
+  final languages = _MockLanguageRepo();
+  when(languages.loadKey).thenAnswer((_) async => null);
+
   Future<void> pump(WidgetTester tester, Size size) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -17,8 +22,11 @@ void main() {
         theme: ThemeConfig.theme,
         localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: appSupportedLocales,
-        home: BlocProvider(
-          create: (_) => AuthCubit(_MockRepo()),
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => AuthCubit(_MockRepo())),
+            BlocProvider(create: (_) => LanguageCubit(repo: languages)),
+          ],
           child: const LoginScreen(),
         ),
       ),
@@ -31,6 +39,12 @@ void main() {
       await pump(tester, const Size(1536, 720));
       final intl = messagesOf(const Locale('en'));
       expect(find.text(intl.login.pitch), findsOneWidget);
+      expect(
+        find.textContaining('FEATHER_SECRET', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.text(intl.app.splashFooter), findsOneWidget);
+      expect(find.byType(LanguageWidget), findsOneWidget);
       expect(find.text(intl.login.tagline), findsOneWidget);
       expect(
         tester.getCenter(find.text(intl.login.tagline)).dx,

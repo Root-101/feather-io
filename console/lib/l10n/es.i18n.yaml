@@ -3,7 +3,7 @@ app:
   name: 'Feather IO'
   needMoreSpace: 'Se necesita más espacio'
   splashTitle: 'Administración'
-  splashFooter: 'Con ♥ desde Maple'
+  splashFooter: 'Con ♥ desde Root101'
 common:
   loading: 'Cargando'
   error: 'Error'
@@ -49,7 +49,8 @@ login:
   secretKeyHint: 'Introduce tu clave secreta'
   button: 'Iniciar sesión'
   title: 'Inicia sesión'
-  description: 'Usa las claves de acceso y secreta del servicio.'
+  description: 'Gestiona tus buckets y tus claves de acceso.'
+  envHint: 'Las claves se definen en el servidor con {access} y {secret}.'
   tagline: 'S3, sin el peso.'
   pitch: 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.'
   tags:

@@ -100,7 +100,7 @@ class AppMessages$app$es implements AppMessages$app$en {
   @override
   String get splashTitle => 'Administración';
   @override
-  String get splashFooter => 'Con ♥ desde Maple';
+  String get splashFooter => 'Con ♥ desde Root101';
 }
 
 // Path: common
@@ -224,7 +224,10 @@ class AppMessages$login$es implements AppMessages$login$en {
   @override
   String get title => 'Inicia sesión';
   @override
-  String get description => 'Usa las claves de acceso y secreta del servicio.';
+  String get description => 'Gestiona tus buckets y tus claves de acceso.';
+  @override
+  String envHint({required Object access, required Object secret}) =>
+      'Las claves se definen en el servidor con ${access} y ${secret}.';
   @override
   String get tagline => 'S3, sin el peso.';
   @override
@@ -1079,7 +1082,7 @@ extension on AppMessagesEs {
       'app.name' => 'Feather IO',
       'app.needMoreSpace' => 'Se necesita más espacio',
       'app.splashTitle' => 'Administración',
-      'app.splashFooter' => 'Con ♥ desde Maple',
+      'app.splashFooter' => 'Con ♥ desde Root101',
       'common.loading' => 'Cargando',
       'common.error' => 'Error',
       'common.tryAgain' => 'Reintentar',
@@ -1124,7 +1127,11 @@ extension on AppMessagesEs {
       'login.secretKeyHint' => 'Introduce tu clave secreta',
       'login.button' => 'Iniciar sesión',
       'login.title' => 'Inicia sesión',
-      'login.description' => 'Usa las claves de acceso y secreta del servicio.',
+      'login.description' => 'Gestiona tus buckets y tus claves de acceso.',
+      'login.envHint' => ({
+        required Object access,
+        required Object secret,
+      }) => 'Las claves se definen en el servidor con ${access} y ${secret}.',
       'login.tagline' => 'S3, sin el peso.',
       'login.pitch' => 'Los buckets son carpetas en tu disco. AWS CLI, rclone y los SDK de S3 se conectan con SigV4. Un binario de Dart y una consola web.',
       'login.tags.0' => 'Autoalojado',

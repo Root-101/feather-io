@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 final padding = app.dimensions.padding.xxl;
                 // Scrolls when the window is too short; otherwise the content is
                 // centered and the footer sits at the bottom
-                return SingleChildScrollView(
+                final content = SingleChildScrollView(
                   padding: EdgeInsets.all(padding),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
@@ -129,18 +129,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         Padding(
                           padding: EdgeInsets.only(top: padding),
-                          child: Text(
-                            app.intl.app.splashFooter,
-                            style: app.textTheme.bodySmall?.copyWith(
-                              color: app.colors.neutral.grey4,
-                              height: 18 / 13,
-                              fontSize: 13,
-                            ),
-                          ),
+                          child: const _Credit(),
                         ),
                       ],
                     ),
                   ),
+                );
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    content,
+                    Positioned(
+                      top: padding,
+                      right: padding,
+                      child: const LanguageWidget(),
+                    ),
+                  ],
                 );
               },
             ),
@@ -217,6 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _onLogin,
                 title: app.intl.login.button,
               ),
+              app.dimensions.padding.l.gap(),
+              const _EnvHint(),
             ],
           ),
         ),
@@ -347,6 +353,71 @@ class _Brand extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Where the keys come from, with the names of the variables in monospace
+class _EnvHint extends StatelessWidget {
+  static const _access = 'FEATHER_ACCESS';
+  static const _secret = 'FEATHER_SECRET';
+
+  const _EnvHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = app.intl.login.envHint(access: _access, secret: _secret);
+    final style = app.textTheme.bodySmall?.copyWith(
+      color: app.colors.neutral.grey4,
+      height: 18 / 12,
+    );
+    final mono = style?.copyWith(
+      fontFamily: 'monospace',
+      color: app.colors.neutral.grey2,
+    );
+    return Text.rich(
+      TextSpan(
+        style: style,
+        children: [
+          for (final part in text.split(
+            RegExp('(?=$_access|$_secret)|(?<=$_access|$_secret)'),
+          ))
+            TextSpan(
+              text: part,
+              style: part == _access || part == _secret ? mono : null,
+            ),
+        ],
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+}
+
+/// The credit at the bottom, a link to Root101's site
+class _Credit extends StatelessWidget {
+  static const url = 'https://root101.dev';
+
+  const _Credit();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      link: true,
+      child: InkWell(
+        onTap: () => BrowserWindow.openUrl(url),
+        borderRadius: app.dimensions.border.borderRadius.xs,
+        child: Padding(
+          padding: EdgeInsets.all(app.dimensions.padding.xs),
+          child: Text(
+            app.intl.app.splashFooter,
+            style: app.textTheme.bodySmall?.copyWith(
+              color: app.colors.neutral.grey4,
+              height: 18 / 13,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

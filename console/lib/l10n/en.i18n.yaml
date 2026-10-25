@@ -5,7 +5,7 @@ app:
   name: 'Feather IO'
   needMoreSpace: 'Need more space'
   splashTitle: 'Admin'
-  splashFooter: 'With ♥ from Maple'
+  splashFooter: 'With ♥ from Root101'
 common:
   loading: 'Loading'
   error: 'Error'
@@ -51,7 +51,8 @@ login:
   secretKeyHint: 'Enter your secret key'
   button: 'Login'
   title: 'Sign in'
-  description: 'Use the access and secret keys of the service.'
+  description: 'Manage your buckets and access keys.'
+  envHint: 'The keys are set on the server with {access: String} and {secret: String}.'
   tagline: 'S3, without the weight.'
   pitch: 'Buckets are folders on your disk. AWS CLI, rclone and the S3 SDKs connect with SigV4. One Dart binary and a web console.'
   tags:

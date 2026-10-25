@@ -34,6 +34,8 @@ docker run -p 8081:80 -e SERVICE_URL=https://s3.example.com -e ADMIN_PREFIX=_adm
 
 The screen shows the brand (icon, tagline, what the service is and its tags) next to the form; in a
 window narrower than 1200 px the brand goes above it, without the description.
+The language selector sits at the top right, the hint under the form names the variables of the
+keys, and the credit at the bottom links to [Root101](https://root101.dev).
 
 You log in with the **root key** of the service: *Access key* is its `FEATHER_ACCESS` and *Secret
 key* its `FEATHER_SECRET`. Access keys created in the console are for S3 clients and can't log in.
