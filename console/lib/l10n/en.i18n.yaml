@@ -4,8 +4,8 @@
 app:
   name: 'Feather IO'
   needMoreSpace: 'Need more space'
-  splashTitle: 'Admin'
-  splashFooter: 'With ♥ from Root101'
+  splashText: 'Connecting to the storage service…'
+  credit: 'With ♥ from Root101'
 common:
   loading: 'Loading'
   error: 'Error'

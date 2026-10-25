@@ -40,7 +40,7 @@ void main() {
       final intl = messagesOf(const Locale('en'));
       expect(find.text(intl.login.pitch), findsOneWidget);
       expect(find.text('FEATHER_SECRET'), findsOneWidget);
-      expect(find.text(intl.app.splashFooter), findsOneWidget);
+      expect(find.text(intl.app.credit), findsOneWidget);
       expect(find.byType(LanguageWidget), findsOneWidget);
       expect(find.text(intl.login.tagline), findsOneWidget);
       expect(

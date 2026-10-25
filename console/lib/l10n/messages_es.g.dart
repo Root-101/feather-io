@@ -98,9 +98,9 @@ class AppMessages$app$es implements AppMessages$app$en {
   @override
   String get needMoreSpace => 'Se necesita más espacio';
   @override
-  String get splashTitle => 'Administración';
+  String get splashText => 'Conectando al servicio de almacenamiento…';
   @override
-  String get splashFooter => 'Con ♥ desde Root101';
+  String get credit => 'Con ♥ desde Root101';
 }
 
 // Path: common
@@ -1082,8 +1082,8 @@ extension on AppMessagesEs {
     return switch (path) {
       'app.name' => 'Feather IO',
       'app.needMoreSpace' => 'Se necesita más espacio',
-      'app.splashTitle' => 'Administración',
-      'app.splashFooter' => 'Con ♥ desde Root101',
+      'app.splashText' => 'Conectando al servicio de almacenamiento…',
+      'app.credit' => 'Con ♥ desde Root101',
       'common.loading' => 'Cargando',
       'common.error' => 'Error',
       'common.tryAgain' => 'Reintentar',

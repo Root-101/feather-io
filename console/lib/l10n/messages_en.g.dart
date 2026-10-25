@@ -82,11 +82,11 @@ class AppMessages$app$en {
   /// en: 'Need more space'
   String get needMoreSpace => 'Need more space';
 
-  /// en: 'Admin'
-  String get splashTitle => 'Admin';
+  /// en: 'Connecting to the storage service…'
+  String get splashText => 'Connecting to the storage service…';
 
   /// en: 'With ♥ from Root101'
-  String get splashFooter => 'With ♥ from Root101';
+  String get credit => 'With ♥ from Root101';
 }
 
 // Path: common
@@ -1423,8 +1423,8 @@ extension on AppMessages {
     return switch (path) {
       'app.name' => 'Feather IO',
       'app.needMoreSpace' => 'Need more space',
-      'app.splashTitle' => 'Admin',
-      'app.splashFooter' => 'With ♥ from Root101',
+      'app.splashText' => 'Connecting to the storage service…',
+      'app.credit' => 'With ♥ from Root101',
       'common.loading' => 'Loading',
       'common.error' => 'Error',
       'common.tryAgain' => 'Try again',

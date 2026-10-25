@@ -420,7 +420,7 @@ class _Credit extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(app.dimensions.padding.xs),
           child: Text(
-            app.intl.app.splashFooter,
+            app.intl.app.credit,
             style: app.textTheme.bodySmall?.copyWith(
               color: app.colors.neutral.grey4,
               height: 18 / 13,
