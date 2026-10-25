@@ -46,7 +46,7 @@ Overall **8**; within its scope it can reach **8.5–9**.
   service (`lib/i18n/*.i18n.yaml`).
 - [x] Redesign the login screen to feature the dot grid in the background and incorporate the visual
   identity (Logo, phrases, tags...).
-- [ ] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
+- [x] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).
 - [ ] A promo video with real screenshots of the design.
 - [ ] Rename and move folders (all their content has to be copied and deleted, and it must be
