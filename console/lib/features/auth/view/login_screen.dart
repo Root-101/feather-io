@@ -94,19 +94,30 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
                 final padding = app.dimensions.padding.xxl;
+                // The credit's tap area pads its text: the text still ends at
+                // `padding` from the bottom
+                final creditPadding = app.dimensions.padding.xs;
                 // Scrolls when the window is too short; otherwise the content is
                 // centered and the footer sits at the bottom
                 final content = SingleChildScrollView(
-                  padding: EdgeInsets.all(padding),
+                  padding: EdgeInsets.fromLTRB(
+                    padding,
+                    padding,
+                    padding,
+                    padding - creditPadding,
+                  ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: max(0, constraints.maxHeight - 2 * padding),
+                      minHeight: max(
+                        0,
+                        constraints.maxHeight - 2 * padding + creditPadding,
+                      ),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // As tall as the footer, so the content stays centered
-                        SizedBox(height: padding + 18),
+                        SizedBox(height: padding + 18 + creditPadding),
                         if (wide)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
