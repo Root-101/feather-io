@@ -48,7 +48,6 @@ Overall **8**; within its scope it can reach **8.5–9**.
   identity (Logo, phrases, tags...).
 - [x] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
   only offers it once the repository is public).
-- [ ] A promo video with real screenshots of the design.
 - [ ] Rename and move folders (all their content has to be copied and deleted, and it must be
   decided what happens if it fails halfway).
 - [ ] Move object search and filters to the service, to search the whole folder and not only the
