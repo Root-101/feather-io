@@ -15,14 +15,14 @@ class ObjectsEmptyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (query.isNotEmpty) {
-      return NoDataPage(title: app.intl.objectsNoMatch(query));
+      return NoDataPage(title: app.intl.objects.noMatch(query: query));
     }
     if (hasActiveFilter) {
-      return NoDataPage(title: app.intl.objectsNoMatchFilter);
+      return NoDataPage(title: app.intl.objects.noMatchFilter);
     }
     return NoDataPage(
-      title: app.intl.objectsEmpty,
-      description: app.intl.objectsDragHint,
+      title: app.intl.objects.empty,
+      description: app.intl.objects.dragHint,
     );
   }
 }

@@ -14,4 +14,7 @@ class S3BucketNameFilter extends Filter {
 
     return await chain.doFilter(request);
   }
+
+  @override
+  String toString() => 'S3BucketNameFilter()';
 }

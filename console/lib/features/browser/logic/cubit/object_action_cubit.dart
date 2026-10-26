@@ -78,7 +78,10 @@ class ObjectActionCubit extends Cubit<ObjectActionState> {
           type: exception.type,
           message: moved.isEmpty
               ? exception.message
-              : app.intl.objectsMovePartial(moved.length, keys.length),
+              : app.intl.objects.movePartial(
+                  moved: moved.length,
+                  total: keys.length,
+                ),
           data: exception.data,
         );
       }

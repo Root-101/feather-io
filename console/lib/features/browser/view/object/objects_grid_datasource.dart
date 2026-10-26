@@ -190,7 +190,7 @@ class _ObjectGridItemState extends State<_ObjectGridItem> {
                         app.dimensions.padding.m.gap(),
                         Text(
                           widget.wrapper.isFolder
-                              ? app.intl.fileTypeFolder
+                              ? app.intl.objects.fileTypeFolder
                               : '${app.storageFormatter.formatSize(widget.wrapper.size!)} • ${widget.fileInfo.name}',
                           style: app.textTheme.labelSmall?.copyWith(
                             color: app.colors.neutral.grey3,

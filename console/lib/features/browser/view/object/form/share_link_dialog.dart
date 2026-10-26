@@ -8,7 +8,7 @@ import 'package:material_ui/material_ui.dart';
 class ShareLinkDialog extends StatefulWidget {
   static void show({required String bucket, required String key}) {
     DialogTemplate.open(
-      title: app.intl.objectsShareLink,
+      title: app.intl.objects.shareLink,
       w: 560,
       h: 360,
       child: ShareLinkDialog._(bucket: bucket, objectKey: key),
@@ -51,9 +51,9 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
   }
 
   String _label(ShareLinkExpiration expiration) => switch (expiration) {
-    ShareLinkExpiration.hour => app.intl.shareLinkHour,
-    ShareLinkExpiration.day => app.intl.shareLinkDay,
-    ShareLinkExpiration.week => app.intl.shareLinkWeek,
+    ShareLinkExpiration.hour => app.intl.objects.shareLinkHour,
+    ShareLinkExpiration.day => app.intl.objects.shareLinkDay,
+    ShareLinkExpiration.week => app.intl.objects.shareLinkWeek,
   };
 
   @override
@@ -69,7 +69,9 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                app.intl.shareLinkDescription(widget.objectKey.split('/').last),
+                app.intl.objects.shareLinkDescription(
+                  name: widget.objectKey.split('/').last,
+                ),
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.grey2,
                 ),
@@ -78,7 +80,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
               Row(
                 children: [
                   Text(
-                    app.intl.shareLinkExpiresIn,
+                    app.intl.objects.shareLinkExpiresIn,
                     style: app.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -132,7 +134,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                         ),
                       ),
                       IconButton(
-                        tooltip: app.intl.shareLinkCopy,
+                        tooltip: app.intl.objects.shareLinkCopy,
                         onPressed: link == null
                             ? null
                             : () {
@@ -140,7 +142,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                                   ClipboardData(text: link.url),
                                 );
                                 app.snack.showSuccess(
-                                  message: app.intl.shareLinkCopied,
+                                  message: app.intl.objects.shareLinkCopied,
                                   context: context,
                                 );
                               },
@@ -159,8 +161,8 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
               Text(
                 link == null
                     ? ''
-                    : app.intl.shareLinkValidUntil(
-                        app.dateFormatter.l.format(link.expiresAt),
+                    : app.intl.objects.shareLinkValidUntil(
+                        date: app.dateFormatter.l.format(link.expiresAt),
                       ),
                 style: app.textTheme.bodySmall?.copyWith(
                   color: app.colors.neutral.grey3,
@@ -169,7 +171,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
               app.dimensions.padding.xl.gap(),
               PrimaryButton.primary(
                 onPressed: () => app.navigator.pop(),
-                title: app.intl.close,
+                title: app.intl.common.close,
                 color: app.colors.primary.background3,
               ),
             ],

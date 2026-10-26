@@ -32,7 +32,7 @@ class ErrorPage extends StatelessWidget {
                   horizontal: app.dimensions.padding.xxl,
                 ),
                 child: Text(
-                  message ?? app.intl.error,
+                  message ?? app.intl.common.error,
                   style: app.textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
@@ -44,7 +44,7 @@ class ErrorPage extends StatelessWidget {
                     horizontal: 2 * app.dimensions.padding.xxl,
                   ),
                   child: PrimaryButton.primary(
-                    title: buttonText ?? app.intl.tryAgain,
+                    title: buttonText ?? app.intl.common.tryAgain,
                     onPressed: onRetry ?? () {},
                     w: 260,
                   ),

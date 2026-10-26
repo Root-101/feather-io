@@ -3,7 +3,8 @@
     python docs/design/tool/export.py <folder>
 
 <folder> holds the canvas files as the artifact serves them: `project/canvas.json`,
-`project/*.dc.html` and the uploaded flag (`<asset id>.svg`). It renders the screens listed in
+`project/*.dc.html` and the uploaded assets (the flag, `<asset id>.svg`, and the app icon,
+`<asset id>.png`). It renders the screens listed in
 PICK with headless Chrome (support.js stands in for the canvas runtime), and rewrites
 `docs/design/screens/` and `docs/design/feather-io-console-design.pdf`. Needs Chrome and ffmpeg.
 """
@@ -21,6 +22,7 @@ DESIGN = Path(__file__).resolve().parent.parent
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe' if sys.platform == 'win32' \
     else 'google-chrome'
 FLAG = 'b78ce1432609f9c95c8462b3917deac7'
+ICON = '096c01f0ebbeeaff03dd4a491855d658'
 
 # Placeholder data left in the canvas, replaced so the screenshots read as real use
 SUBS = [
@@ -30,6 +32,7 @@ SUBS = [
     ('asdasd', 'store-photos'),
     ("'asd'", "'tests'"), ('>asd<', '>tests<'), ('"asd"', '"tests"'),
     (f'/_blob/{FLAG}', f'/_blob/{FLAG}.svg'),
+    (f'/_blob/{ICON}', f'/_blob/{ICON}.png'),
 ]
 
 # (section, file name, artboard, caption): the screens worth keeping, in reading order
@@ -83,6 +86,7 @@ def main(source: Path) -> None:
         (work / f.name).write_text(text, encoding='utf-8')
     (work / '_blob').mkdir()
     shutil.copy(source / f'{FLAG}.svg', work / '_blob')
+    shutil.copy(source / f'{ICON}.png', work / '_blob')
     shutil.copy(Path(__file__).parent / 'support.js', work)
 
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=work))

@@ -29,7 +29,7 @@ class DraggingZoneOverlay extends StatelessWidget {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.objectsDropHere,
+                app.intl.objects.dropHere,
                 style: app.textTheme.titleLarge?.copyWith(
                   color: app.colors.neutral.white,
                   fontWeight: FontWeight.bold,

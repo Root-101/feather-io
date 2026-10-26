@@ -12,7 +12,7 @@ class LanguageWidget extends CubitView<LanguageCubit> {
     return BlocBuilder<LanguageCubit, LanguageState>(
       builder: (context, state) {
         return RailButton(
-          tooltip: app.intl.navLanguage(state.current.name),
+          tooltip: app.intl.nav.language(name: state.current.name),
           onPressed: (anchor) => _showMenu(anchor, state),
           child: ClipRRect(
             borderRadius: app.dimensions.border.borderRadius.xs,

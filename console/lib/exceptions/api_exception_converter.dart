@@ -8,37 +8,37 @@ class ApiExceptionConverter {
       case DioExceptionType.cancel:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorRequestCancelled,
+          message: app.intl.errors.requestCancelled,
         );
       case DioExceptionType.connectionTimeout:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorConnectionTimeout,
+          message: app.intl.errors.connectionTimeout,
         );
       case DioExceptionType.transformTimeout:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorNoConnection,
+          message: app.intl.errors.noConnection,
         );
       case DioExceptionType.unknown:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorNoConnection,
+          message: app.intl.errors.noConnection,
         );
       case DioExceptionType.receiveTimeout:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorReceiveTimeout,
+          message: app.intl.errors.receiveTimeout,
         );
       case DioExceptionType.sendTimeout:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorSendTimeout,
+          message: app.intl.errors.sendTimeout,
         );
       case DioExceptionType.badCertificate:
         return GlobalException(
           type: GlobalExceptionType.general,
-          message: app.intl.errorBadCertificate,
+          message: app.intl.errors.badCertificate,
         );
       case DioExceptionType.connectionError:
         // TODO: look at the web error in more detail
@@ -47,12 +47,12 @@ class ApiExceptionConverter {
             // on web, Dio reports 403/401 as a connection error (the browser closes the connection)
             // every other status (200, 404, 422) works, so this connection error is handled as an auth exception
             type: GlobalExceptionType.auth,
-            message: app.intl.errorConnection,
+            message: app.intl.errors.connection,
           );
         } else {
           return GlobalException(
             type: GlobalExceptionType.general,
-            message: app.intl.errorConnection,
+            message: app.intl.errors.connection,
           );
         }
       case DioExceptionType.badResponse:
@@ -64,7 +64,7 @@ class ApiExceptionConverter {
     if (error.response!.statusCode == 422) {
       return GlobalException(
         type: GlobalExceptionType.validation,
-        message: app.intl.errorValidation,
+        message: app.intl.errors.validation,
         // A Problem Details with the list in `violations`
         data: ((error.response!.data as Map)['violations'] as List<dynamic>)
             .map(
@@ -81,7 +81,7 @@ class ApiExceptionConverter {
     } else if (error.response!.statusCode! >= 500) {
       return GlobalException(
         type: GlobalExceptionType.general,
-        message: app.intl.errorServer,
+        message: app.intl.errors.server,
         data: error.response!.data,
       );
     } else {

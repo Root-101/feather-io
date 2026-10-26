@@ -12,7 +12,7 @@ class MoveObjectsDialog extends StatefulWidget {
     required List<String> buckets,
   }) {
     DialogTemplate.open(
-      title: app.intl.objectsMoveTitle(keys.length),
+      title: app.intl.objects.moveTitle(count: keys.length),
       w: 560,
       h: 620,
       child: MoveObjectsDialog._(
@@ -81,7 +81,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
         if (state is ObjectActionProcessingOKState) {
           app.navigator.pop();
           app.snack.showSuccess(
-            message: app.intl.objectsMoved(widget.keys.length),
+            message: app.intl.objects.moved(count: widget.keys.length),
             context: app.context,
           );
         }
@@ -115,16 +115,16 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                     if (actionState is ObjectActionProcessingErrorState) ...[
                       app.dimensions.padding.m.gap(),
                       AppFormAlert(
-                        title: app.intl.objectsActionErrorTitle,
+                        title: app.intl.objects.actionErrorTitle,
                         message: actionState.exception.message,
                       ),
                     ],
                     app.dimensions.padding.l.gap(),
-                    _label(app.intl.objectsMoveBucket),
+                    _label(app.intl.objects.moveBucket),
                     app.dimensions.padding.s.gap(),
                     _buildBucketSelector(targetBucket),
                     app.dimensions.padding.l.gap(),
-                    _label(app.intl.objectsMoveFolder),
+                    _label(app.intl.objects.moveFolder),
                     app.dimensions.padding.s.gap(),
                     _buildBreadcrumbs(targetBucket, target.prefix),
                     app.dimensions.padding.s.gap(),
@@ -132,9 +132,9 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                     app.dimensions.padding.m.gap(),
                     Text(
                       isSource
-                          ? app.intl.objectsMoveSameFolder
-                          : app.intl.objectsMoveHelper(
-                              '/$targetBucket/${target.prefix}',
+                          ? app.intl.objects.moveSameFolder
+                          : app.intl.objects.moveHelper(
+                              path: '/$targetBucket/${target.prefix}',
                             ),
                       style: app.textTheme.bodySmall?.copyWith(
                         color: isSource
@@ -148,7 +148,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                         Expanded(
                           child: PrimaryButton.primary(
                             onPressed: () => app.navigator.pop(),
-                            title: app.intl.cancel,
+                            title: app.intl.common.cancel,
                             color: app.colors.primary.background3,
                           ),
                         ),
@@ -165,7 +165,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                                     targetBucket: targetBucket,
                                     targetPrefix: target.prefix,
                                   ),
-                            title: app.intl.objectsMoveHere,
+                            title: app.intl.objects.moveHere,
                           ),
                         ),
                       ],
@@ -284,7 +284,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
         target is MoveTargetLoadingSuccessState) {
       body = Center(
         child: Text(
-          app.intl.objectsMoveNoFolders,
+          app.intl.objects.moveNoFolders,
           style: app.textTheme.bodyMedium?.copyWith(
             color: app.colors.neutral.grey3,
           ),

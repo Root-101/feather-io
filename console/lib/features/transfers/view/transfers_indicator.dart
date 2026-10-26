@@ -19,7 +19,7 @@ class TransfersIndicator extends StatelessWidget {
             ? state.activeCount
             : (failed ? state.failedCount : 0);
         return RailButton(
-          tooltip: TransfersPanel.summary(state) ?? app.intl.transfersTitle,
+          tooltip: TransfersPanel.summary(state) ?? app.intl.transfers.title,
           onPressed: TransfersPanel.show,
           badge: badge > 0 ? _Badge(count: badge, error: !active) : null,
           child: Stack(

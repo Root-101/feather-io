@@ -14,10 +14,10 @@ class BucketForm extends StatefulWidget {
     final isEdit = bucket != null;
 
     await FormDrawerTemplate.showAsDialog(
-      title: isEdit ? app.intl.bucketsEdit : app.intl.bucketsCreate,
+      title: isEdit ? app.intl.buckets.edit : app.intl.buckets.create,
       description: isEdit
-          ? app.intl.bucketEditDescription(bucket.name)
-          : app.intl.bucketCreateDescription,
+          ? app.intl.buckets.editDescription(name: bucket.name)
+          : app.intl.buckets.createDescription,
       icon: app.assets.icons.storage.bucket,
       loadingId: loadingId,
       footerActions: [
@@ -103,16 +103,16 @@ class _BucketFormState extends State<BucketForm> {
   String? _validateName(String? value) {
     if (_isEdit) return null;
     if (value == null || value.isEmpty) {
-      return app.intl.bucketNameRequired;
+      return app.intl.buckets.nameRequired;
     }
     if (value.length < 3 || value.length > _nameMaxLength) {
-      return app.intl.bucketNameLength;
+      return app.intl.buckets.nameLength;
     }
     if (!_nameChars.hasMatch(value)) {
-      return app.intl.bucketNameChars;
+      return app.intl.buckets.nameChars;
     }
     if (value.startsWith('-') || value.endsWith('-')) {
-      return app.intl.bucketNameHyphenEdges;
+      return app.intl.buckets.nameHyphenEdges;
     }
     return null;
   }
@@ -130,17 +130,17 @@ class _BucketFormState extends State<BucketForm> {
 
     return [
       AppValidationRule(
-        label: app.intl.bucketNameLength,
+        label: app.intl.buckets.nameLength,
         state: state(ok: lengthOk, failNow: false),
       ),
       AppValidationRule(
-        label: app.intl.bucketRuleChars,
+        label: app.intl.buckets.ruleChars,
         state: name.isEmpty
             ? AppRuleState.pending
             : state(ok: _nameChars.hasMatch(name), failNow: true),
       ),
       AppValidationRule(
-        label: app.intl.bucketRuleHyphenEdges,
+        label: app.intl.buckets.ruleHyphenEdges,
         state: name.isEmpty
             ? AppRuleState.pending
             : state(
@@ -203,8 +203,8 @@ class _BucketFormState extends State<BucketForm> {
           );
           app.snack.showSuccess(
             message: _isEdit
-                ? app.intl.bucketUpdatedSuccess(state.name)
-                : app.intl.bucketCreatedSuccess(state.name),
+                ? app.intl.buckets.updatedSuccess(name: state.name)
+                : app.intl.buckets.createdSuccess(name: state.name),
             context: app.context,
           );
         } else if (state is BucketFormProcessingErrorState) {
@@ -241,19 +241,19 @@ class _BucketFormState extends State<BucketForm> {
             if (_formError != null) ...[
               AppFormAlert(
                 title: _isEdit
-                    ? app.intl.bucketEditErrorTitle
-                    : app.intl.bucketCreateErrorTitle,
+                    ? app.intl.buckets.editErrorTitle
+                    : app.intl.buckets.createErrorTitle,
                 message: _formError!,
               ),
               app.dimensions.padding.xl.gap(),
             ],
             _buildSection(
-              title: app.intl.bucketCreateSectionGeneral,
+              title: app.intl.buckets.createSectionGeneral,
               child: _buildGeneral(),
             ),
             app.dimensions.padding.xl.gap(),
             _buildSection(
-              title: app.intl.bucketCreateSectionAdditional,
+              title: app.intl.buckets.createSectionAdditional,
               child: _buildAdditional(),
             ),
           ],
@@ -272,10 +272,10 @@ class _BucketFormState extends State<BucketForm> {
           focusNode: _nameFocus,
           autofocus: !_isEdit,
           enabled: !_isEdit,
-          label: app.intl.bucketCreateNameLabel,
-          hint: app.intl.bucketCreateNameHint,
-          helperText: app.intl.bucketNamePathHint(
-            name.isEmpty ? app.intl.bucketCreateNameHint : name,
+          label: app.intl.buckets.createNameLabel,
+          hint: app.intl.buckets.createNameHint,
+          helperText: app.intl.buckets.namePathHint(
+            name: name.isEmpty ? app.intl.buckets.createNameHint : name,
           ),
           errorText: _serverErrors[BucketFormField.name],
           showCounter: !_isEdit,
@@ -301,8 +301,8 @@ class _BucketFormState extends State<BucketForm> {
           controller: _descriptionController,
           focusNode: _descriptionFocus,
           autofocus: _isEdit,
-          label: app.intl.bucketCreateDescriptionLabel,
-          hint: app.intl.bucketCreateDescriptionHint,
+          label: app.intl.buckets.createDescriptionLabel,
+          hint: app.intl.buckets.createDescriptionHint,
           errorText: _serverErrors[BucketFormField.description],
           maxLines: 3,
           showCounter: true,
@@ -312,7 +312,7 @@ class _BucketFormState extends State<BucketForm> {
         ),
         app.dimensions.padding.l.gap(),
         Text(
-          app.intl.bucketCreateColorLabel,
+          app.intl.buckets.createColorLabel,
           style: app.textTheme.bodyMedium!.copyWith(
             color: app.colors.neutral.white,
             fontWeight: FontWeight.bold,
@@ -373,14 +373,14 @@ class _BucketFormFooter extends StatelessWidget {
       children: [
         PrimaryButton.secondary(
           onPressed: () => Navigator.of(context).maybePop(),
-          title: app.intl.cancel,
+          title: app.intl.common.cancel,
           h: 40,
           w: 100,
         ),
         app.dimensions.padding.m.gap(),
         PrimaryButton.primary(
           onPressed: onSubmit,
-          title: isEdit ? app.intl.bucketEditSave : app.intl.bucketsCreate,
+          title: isEdit ? app.intl.buckets.editSave : app.intl.buckets.create,
           h: 40,
           w: 160,
           icon: isEdit ? null : app.assets.icons.actions.add,

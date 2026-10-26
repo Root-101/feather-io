@@ -18,7 +18,7 @@ class FormDrawerTemplate extends StatelessWidget {
     return showGeneralDialog(
       context: context ?? app.context,
       barrierDismissible: true,
-      barrierLabel: app.intl.close,
+      barrierLabel: app.intl.common.close,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
@@ -158,7 +158,7 @@ class FormDrawerTemplate extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: app.intl.close,
+                      tooltip: app.intl.common.close,
                       onPressed: () => Navigator.of(context).maybePop(),
                       icon: app.assets.icons.actions.close.build(
                         size: 20,

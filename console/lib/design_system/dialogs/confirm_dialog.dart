@@ -70,7 +70,7 @@ class ConfirmDialog extends StatelessWidget {
                       () {
                         app.navigator.pop();
                       },
-                  title: cancelTitle ?? app.intl.cancel,
+                  title: cancelTitle ?? app.intl.common.cancel,
                   color: app.colors.primary.background3,
                 ),
               ),

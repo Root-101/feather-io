@@ -122,9 +122,9 @@ class _BucketsViewState extends State<_BucketsView> {
 
   void _onDeleteSelected(BucketModel selected) {
     ConfirmDialog.show(
-      title: app.intl.bucketsDeleteTitle,
-      description: app.intl.bucketsDeleteConfirm(selected.name),
-      confirmTitle: app.intl.delete,
+      title: app.intl.buckets.deleteTitle,
+      description: app.intl.buckets.deleteConfirm(name: selected.name),
+      confirmTitle: app.intl.common.delete,
       confirmColor: app.colors.primary.errorAction,
       confirmAction: () => widget.onDelete(selected),
     );
@@ -166,7 +166,7 @@ class _BucketsViewState extends State<_BucketsView> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.bucketSettings,
+                app.intl.buckets.settings,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.white,
                 ),
@@ -185,7 +185,7 @@ class _BucketsViewState extends State<_BucketsView> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.edit,
+                app.intl.common.edit,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.white,
                 ),
@@ -206,7 +206,7 @@ class _BucketsViewState extends State<_BucketsView> {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.delete,
+                app.intl.common.delete,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.primary.error,
                 ),
@@ -286,14 +286,14 @@ class _BucketsViewState extends State<_BucketsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              app.intl.bucketsTitle,
+              app.intl.buckets.title,
               style: app.textTheme.headlineMedium?.copyWith(
                 color: app.colors.neutral.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              app.intl.bucketsSubtitle,
+              app.intl.buckets.subtitle,
               style: app.textTheme.bodyMedium?.copyWith(
                 color: app.colors.neutral.grey3,
               ),
@@ -305,7 +305,7 @@ class _BucketsViewState extends State<_BucketsView> {
           children: [
             PrimaryButton.secondary(
               onPressed: widget.onRefresh,
-              title: app.intl.refresh,
+              title: app.intl.common.refresh,
               h: 42,
               w: 120,
               icon: app.assets.icons.actions.refresh,
@@ -315,7 +315,7 @@ class _BucketsViewState extends State<_BucketsView> {
               onPressed: () {
                 BucketForm.open(context);
               },
-              title: app.intl.bucketsCreate,
+              title: app.intl.buckets.create,
               h: 42,
               w: 160,
               icon: app.assets.icons.actions.add,
@@ -392,19 +392,19 @@ class _BucketsViewState extends State<_BucketsView> {
     return Row(
       children: [
         buildSummaryCard(
-          title: app.intl.bucketsTotalBuckets,
+          title: app.intl.buckets.totalBuckets,
           value: totalBuckets.toString(),
           icon: app.assets.icons.storage.bucket,
         ),
         app.dimensions.padding.l.gap(),
         buildSummaryCard(
-          title: app.intl.bucketsTotalObjects,
+          title: app.intl.buckets.totalObjects,
           value: totalObjects.toString(),
           icon: app.assets.icons.storage.object,
         ),
         app.dimensions.padding.l.gap(),
         buildSummaryCard(
-          title: app.intl.bucketsTotalStorage,
+          title: app.intl.buckets.totalStorage,
           value: app.storageFormatter.formatSize(totalSizeBytes),
           icon: app.assets.icons.storage.storage,
         ),
@@ -432,7 +432,7 @@ class _BucketsViewState extends State<_BucketsView> {
                 // filters the list already loaded: no wait
                 delay: 0,
                 onSearch: (_) => _onSearchChanged(),
-                hint: app.intl.bucketsSearchHint,
+                hint: app.intl.buckets.searchHint,
               ),
             ),
             app.dimensions.padding.l.gap(),

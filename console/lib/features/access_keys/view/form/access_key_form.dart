@@ -16,11 +16,11 @@ class AccessKeyForm extends StatefulWidget {
 
     await FormDrawerTemplate.showAsDialog(
       title: key == null
-          ? app.intl.accessKeyFormCreateTitle
-          : app.intl.accessKeyFormEditTitle,
+          ? app.intl.accessKeys.formCreateTitle
+          : app.intl.accessKeys.formEditTitle,
       description: key == null
-          ? app.intl.accessKeyFormCreateDescription
-          : app.intl.accessKeyFormEditDescription(key.id),
+          ? app.intl.accessKeys.formCreateDescription
+          : app.intl.accessKeys.formEditDescription(id: key.id),
       icon: app.assets.icons.actions.key,
       loadingId: loadingId,
       footerActions: [
@@ -123,7 +123,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
 
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return app.intl.accessKeyNameRequired;
+      return app.intl.accessKeys.nameRequired;
     }
     return null;
   }
@@ -178,7 +178,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
             );
           } else {
             app.snack.showSuccess(
-              message: app.intl.accessKeySavedSuccess(state.key.name),
+              message: app.intl.accessKeys.savedSuccess(name: state.key.name),
               context: app.context,
             );
           }
@@ -208,16 +208,16 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
           children: [
             if (_formError != null) ...[
               AppFormAlert(
-                title: app.intl.accessKeyFormErrorTitle,
+                title: app.intl.accessKeys.formErrorTitle,
                 message: _formError!,
               ),
               app.dimensions.padding.xl.gap(),
             ],
-            _sectionTitle(app.intl.accessKeyFormSectionIdentity),
+            _sectionTitle(app.intl.accessKeys.formSectionIdentity),
             app.dimensions.padding.l.gap(),
             _buildIdentity(),
             app.dimensions.padding.xl.gap(),
-            _sectionTitle(app.intl.accessKeyFormSectionScope),
+            _sectionTitle(app.intl.accessKeys.formSectionScope),
             app.dimensions.padding.l.gap(),
             _buildScope(),
             app.dimensions.padding.xl.gap(),
@@ -239,8 +239,8 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
             controller: _nameController,
             focusNode: _nameFocus,
             autofocus: _editing == null,
-            label: app.intl.accessKeyNameLabel,
-            hint: app.intl.accessKeyNameHint,
+            label: app.intl.accessKeys.nameLabel,
+            hint: app.intl.accessKeys.nameHint,
             errorText: _serverErrors[AccessKeyFormField.name],
             showCounter: true,
             maxLength: _nameMaxLength,
@@ -273,13 +273,13 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
   }
 
   String _expiryLabel(_Expiry option) => switch (option) {
-    _Expiry.keep => app.intl.accessKeyExpiryKeep(
-      app.dateFormatter.m.format(_editing!.expiresAt!),
+    _Expiry.keep => app.intl.accessKeys.expiryKeep(
+      date: app.dateFormatter.m.format(_editing!.expiresAt!),
     ),
-    _Expiry.never => app.intl.accessKeyExpiryNever,
-    _Expiry.days30 => app.intl.accessKeyExpiry30Days,
-    _Expiry.days90 => app.intl.accessKeyExpiry90Days,
-    _Expiry.year => app.intl.accessKeyExpiryYear,
+    _Expiry.never => app.intl.accessKeys.expiryNever,
+    _Expiry.days30 => app.intl.accessKeys.expiry30Days,
+    _Expiry.days90 => app.intl.accessKeys.expiry90Days,
+    _Expiry.year => app.intl.accessKeys.expiryYear,
   };
 
   Widget _buildScope() {
@@ -288,8 +288,8 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
       children: [
         Expanded(
           child: _OptionCard(
-            title: app.intl.accessKeyScopeAll,
-            description: app.intl.accessKeyScopeAllDescription,
+            title: app.intl.accessKeys.scopeAll,
+            description: app.intl.accessKeys.scopeAllDescription,
             selected: _allBuckets,
             onTap: () => setState(() => _allBuckets = true),
           ),
@@ -297,8 +297,8 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
         app.dimensions.padding.m.gap(),
         Expanded(
           child: _OptionCard(
-            title: app.intl.accessKeyScopeSome,
-            description: app.intl.accessKeyScopeSomeDescription,
+            title: app.intl.accessKeys.scopeSome,
+            description: app.intl.accessKeys.scopeSomeDescription,
             selected: !_allBuckets,
             onTap: () => setState(() => _allBuckets = false),
           ),
@@ -313,11 +313,14 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: _sectionTitle(app.intl.accessKeyFormSectionPermissions),
+          child: _sectionTitle(app.intl.accessKeys.formSectionPermissions),
         ),
         if (!_allBuckets && buckets.isNotEmpty)
           Text(
-            app.intl.accessKeyBucketsChecked(_checked.length, buckets.length),
+            app.intl.accessKeys.bucketsChecked(
+              count: _checked.length,
+              total: buckets.length,
+            ),
             style: app.textTheme.bodySmall?.copyWith(
               color: app.colors.neutral.grey3,
             ),
@@ -355,13 +358,13 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
             color: app.colors.primary.error,
             action: TextButton(
               onPressed: context.read<BucketCubit>().load,
-              child: Text(app.intl.tryAgain),
+              child: Text(app.intl.common.tryAgain),
             ),
           );
         }
         if (buckets.isEmpty) {
           return state is BucketLoadingSuccessState
-              ? _message(app.intl.accessKeyBucketsEmpty)
+              ? _message(app.intl.accessKeys.bucketsEmpty)
               : const Center(child: CircularProgressIndicator());
         }
         final divider = BorderSide(
@@ -414,7 +417,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
             if (_submitted && _missingBuckets) ...[
               app.dimensions.padding.s.gap(),
               Text(
-                app.intl.accessKeyBucketsRequired,
+                app.intl.accessKeys.bucketsRequired,
                 style: app.textTheme.bodySmall?.copyWith(
                   color: app.colors.primary.error,
                 ),
@@ -497,7 +500,7 @@ class _ExpiryFieldState extends State<_ExpiryField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          app.intl.accessKeyExpiryLabel,
+          app.intl.accessKeys.expiryLabel,
           style: app.textTheme.bodyMedium!.copyWith(
             color: app.colors.neutral.white,
             fontWeight: FontWeight.bold,
@@ -735,14 +738,16 @@ class _AccessKeyFormFooter extends StatelessWidget {
       children: [
         PrimaryButton.secondary(
           onPressed: () => Navigator.of(context).maybePop(),
-          title: app.intl.cancel,
+          title: app.intl.common.cancel,
           h: 40,
           w: 100,
         ),
         app.dimensions.padding.m.gap(),
         PrimaryButton.primary(
           onPressed: onSubmit,
-          title: editing ? app.intl.bucketEditSave : app.intl.accessKeyCreate,
+          title: editing
+              ? app.intl.buckets.editSave
+              : app.intl.accessKeys.create,
           h: 40,
           w: 170,
           icon: editing ? null : app.assets.icons.actions.add,

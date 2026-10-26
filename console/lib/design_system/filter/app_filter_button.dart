@@ -84,7 +84,7 @@ class _AppFilterButtonState extends State<AppFilterButton> {
           backgroundColor: app.colors.primary.secondary,
           textColor: app.colors.primary.background1,
           child: PrimaryButton.primary(
-            title: app.intl.filter,
+            title: app.intl.common.filter,
             color: app.colors.primary.background3.withValues(alpha: 0.75),
             icon: app.assets.icons.actions.filter,
             onPressed: _toggle,
@@ -214,7 +214,7 @@ class _AppFilterPanel extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            app.intl.filtersTitle,
+            app.intl.objects.filtersTitle,
             style: app.textTheme.titleMedium?.copyWith(
               color: app.colors.neutral.white,
               fontWeight: FontWeight.bold,
@@ -224,7 +224,7 @@ class _AppFilterPanel extends StatelessWidget {
         TextButton(
           onPressed: active ? onClear : null,
           child: Text(
-            app.intl.filtersClear,
+            app.intl.objects.filtersClear,
             style: app.textTheme.bodyMedium?.copyWith(
               color: active
                   ? app.colors.primary.secondary

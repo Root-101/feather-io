@@ -57,9 +57,9 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
 
   void _onRegenerate(AccessKeyModel key) {
     ConfirmDialog.show(
-      title: app.intl.accessKeyRegenerateTitle,
-      description: app.intl.accessKeyRegenerateConfirm(key.name),
-      confirmTitle: app.intl.accessKeyRegenerate,
+      title: app.intl.accessKeys.regenerateTitle,
+      description: app.intl.accessKeys.regenerateConfirm(name: key.name),
+      confirmTitle: app.intl.accessKeys.regenerate,
       confirmColor: app.colors.primary.purple.brighten(0.15),
       confirmAction: () => cubit.regenerateSecret(key),
       h: 270,
@@ -68,9 +68,9 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
 
   void _onDelete(AccessKeyModel key) {
     ConfirmDialog.show(
-      title: app.intl.accessKeyDeleteTitle,
-      description: app.intl.accessKeyDeleteConfirm(key.name),
-      confirmTitle: app.intl.delete,
+      title: app.intl.accessKeys.deleteTitle,
+      description: app.intl.accessKeys.deleteConfirm(name: key.name),
+      confirmTitle: app.intl.common.delete,
       confirmColor: app.colors.primary.errorAction,
       confirmAction: () => cubit.delete(key),
       h: 290,
@@ -80,7 +80,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.build(title: app.intl.navAccessKeys),
+      appBar: CustomAppBar.build(title: app.intl.nav.accessKeys),
       body: BlocConsumer<AccessKeyCubit, AccessKeyState>(
         listener: (context, state) {
           if (state is AccessKeyProcessInProgressState) {
@@ -102,17 +102,17 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
                 );
               case AccessKeyAction.enabled:
                 app.snack.showSuccess(
-                  message: app.intl.accessKeyEnabledSuccess(name),
+                  message: app.intl.accessKeys.enabledSuccess(name: name),
                   context: context,
                 );
               case AccessKeyAction.disabled:
                 app.snack.showSuccess(
-                  message: app.intl.accessKeyDisabledSuccess(name),
+                  message: app.intl.accessKeys.disabledSuccess(name: name),
                   context: context,
                 );
               case AccessKeyAction.deleted:
                 app.snack.showSuccess(
-                  message: app.intl.accessKeyDeletedSuccess(name),
+                  message: app.intl.accessKeys.deletedSuccess(name: name),
                   context: context,
                 );
             }
@@ -146,13 +146,13 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                app.intl.accessKeysDescription,
+                app.intl.accessKeys.description,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.grey2,
                 ),
               ),
               Text(
-                app.intl.accessKeysSecretOnce,
+                app.intl.accessKeys.secretOnce,
                 style: app.textTheme.bodySmall?.copyWith(
                   color: app.colors.neutral.grey3,
                 ),
@@ -162,7 +162,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
         ),
         app.dimensions.padding.l.gap(),
         PrimaryButton.primary(
-          title: app.intl.accessKeyCreate,
+          title: app.intl.accessKeys.create,
           icon: app.assets.icons.actions.add,
           onPressed: () => AccessKeyForm.open(context),
           h: 42,
@@ -207,7 +207,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
             // filters the keys already loaded: no wait
             delay: 0,
             onSearch: cubit.search,
-            hint: app.intl.accessKeysSearchHint,
+            hint: app.intl.accessKeys.searchHint,
           ),
         ),
         app.dimensions.padding.l.gap(),
@@ -252,11 +252,14 @@ class _AccessKeysTable extends StatelessWidget {
     return AppSimpleTable(
       toolbar: toolbar,
       columns: [
-        AppTableColumn(app.intl.accessKeyColumnName, width: _nameWidth),
-        AppTableColumn(app.intl.accessKeyColumnId, width: _idWidth),
-        AppTableColumn(app.intl.accessKeyColumnPermissions),
-        AppTableColumn(app.intl.accessKeyColumnLastUsed, width: _lastUsedWidth),
-        AppTableColumn(app.intl.accessKeyColumnStatus, width: _statusWidth),
+        AppTableColumn(app.intl.accessKeys.columnName, width: _nameWidth),
+        AppTableColumn(app.intl.accessKeys.columnId, width: _idWidth),
+        AppTableColumn(app.intl.accessKeys.columnPermissions),
+        AppTableColumn(
+          app.intl.accessKeys.columnLastUsed,
+          width: _lastUsedWidth,
+        ),
+        AppTableColumn(app.intl.accessKeys.columnStatus, width: _statusWidth),
         const AppTableColumn.actions(),
       ],
       rows: [
@@ -269,14 +272,14 @@ class _AccessKeysTable extends StatelessWidget {
           ? Padding(
               padding: EdgeInsets.all(app.dimensions.padding.xl),
               child: Text(
-                app.intl.accessKeysNoMatch,
+                app.intl.accessKeys.noMatch,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.grey3,
                 ),
               ),
             )
           : null,
-      hint: app.intl.accessKeysFooterHint,
+      hint: app.intl.accessKeys.footerHint,
     );
   }
 
@@ -285,14 +288,14 @@ class _AccessKeysTable extends StatelessWidget {
       name: Row(
         children: [
           Text(
-            app.intl.accessKeyRootName,
+            app.intl.accessKeys.rootName,
             style: app.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           app.dimensions.padding.s.gap(),
           AccessKeyPill(
-            text: app.intl.accessKeyRootBadge,
+            text: app.intl.accessKeys.rootBadge,
             background: app.colors.primary.purple,
             foreground: app.colors.neutral.white,
           ),
@@ -300,7 +303,7 @@ class _AccessKeysTable extends StatelessWidget {
       ),
       id: _KeyId(id: data.rootAccessKeyId ?? ''),
       permissions: Text(
-        app.intl.accessKeyRootPermissions,
+        app.intl.accessKeys.rootPermissions,
         style: app.textTheme.bodyMedium?.copyWith(
           color: app.colors.neutral.grey2,
         ),
@@ -313,7 +316,7 @@ class _AccessKeysTable extends StatelessWidget {
       ),
       status: const AccessKeyStatusBadge(status: AccessKeyStatus.active),
       actions: Tooltip(
-        message: app.intl.accessKeyRootLocked,
+        message: app.intl.accessKeys.rootLocked,
         child: app.assets.icons.actions.lock.build(
           size: 18,
           color: app.colors.neutral.grey4,
@@ -338,8 +341,8 @@ class _AccessKeysTable extends StatelessWidget {
             ),
           ),
           Text(
-            app.intl.accessKeyCreatedOn(
-              app.dateFormatter.m.format(key.createdAt),
+            app.intl.accessKeys.createdOn(
+              date: app.dateFormatter.m.format(key.createdAt),
             ),
             style: app.textTheme.bodySmall?.copyWith(
               color: app.colors.neutral.grey3,
@@ -363,11 +366,11 @@ class _AccessKeysTable extends StatelessWidget {
           if (key.expiresAt != null)
             Text(
               key.expired
-                  ? app.intl.accessKeyExpiredOn(
-                      app.dateFormatter.m.format(key.expiresAt!),
+                  ? app.intl.accessKeys.expiredOn(
+                      date: app.dateFormatter.m.format(key.expiresAt!),
                     )
-                  : app.intl.accessKeyExpiresOn(
-                      app.dateFormatter.m.format(key.expiresAt!),
+                  : app.intl.accessKeys.expiresOn(
+                      date: app.dateFormatter.m.format(key.expiresAt!),
                     ),
               style: app.textTheme.bodySmall?.copyWith(
                 color: app.colors.neutral.grey3,
@@ -436,12 +439,12 @@ class _KeyId extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: app.intl.accessKeyCopyId,
+          tooltip: app.intl.accessKeys.copyId,
           iconSize: 16,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: id));
             app.snack.showSuccess(
-              message: app.intl.accessKeyIdCopied,
+              message: app.intl.accessKeys.idCopied,
               context: context,
             );
           },
@@ -498,7 +501,7 @@ class _KeyMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final white = app.colors.neutral.white;
     return PopupMenuButton<void>(
-      tooltip: app.intl.accessKeyActions(keyModel.name),
+      tooltip: app.intl.accessKeys.actions(name: keyModel.name),
       color: app.colors.primary.background2,
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -512,12 +515,12 @@ class _KeyMenu extends StatelessWidget {
       itemBuilder: (context) => [
         _item(
           icon: app.assets.icons.actions.edit.build(size: 18, color: white),
-          title: app.intl.accessKeyEditPermissions,
+          title: app.intl.accessKeys.editPermissions,
           onTap: onEdit,
         ),
         _item(
           icon: app.assets.icons.actions.refresh.build(size: 18, color: white),
-          title: app.intl.accessKeyRegenerateSecret,
+          title: app.intl.accessKeys.regenerateSecret,
           onTap: onRegenerate,
         ),
         _item(
@@ -529,8 +532,8 @@ class _KeyMenu extends StatelessWidget {
             color: white,
           ),
           title: keyModel.enabled
-              ? app.intl.accessKeyDisable
-              : app.intl.accessKeyEnable,
+              ? app.intl.accessKeys.disable
+              : app.intl.accessKeys.enable,
           onTap: onToggle,
         ),
         const PopupMenuDivider(),
@@ -539,7 +542,7 @@ class _KeyMenu extends StatelessWidget {
             size: 18,
             color: app.colors.primary.error,
           ),
-          title: app.intl.delete,
+          title: app.intl.common.delete,
           color: app.colors.primary.error,
           onTap: onDelete,
         ),
@@ -579,14 +582,14 @@ class _EmptyKeys extends StatelessWidget {
               ),
               app.dimensions.padding.m.gap(),
               Text(
-                app.intl.accessKeysEmptyTitle,
+                app.intl.accessKeys.emptyTitle,
                 style: app.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               app.dimensions.padding.s.gap(),
               Text(
-                app.intl.accessKeysEmptyDescription,
+                app.intl.accessKeys.emptyDescription,
                 textAlign: TextAlign.center,
                 style: app.textTheme.bodyMedium?.copyWith(
                   color: app.colors.neutral.grey3,
@@ -594,7 +597,7 @@ class _EmptyKeys extends StatelessWidget {
               ),
               app.dimensions.padding.l.gap(),
               PrimaryButton.primary(
-                title: app.intl.accessKeysCreateFirst,
+                title: app.intl.accessKeys.createFirst,
                 icon: app.assets.icons.actions.add,
                 onPressed: onCreate,
                 h: 42,

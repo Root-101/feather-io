@@ -19,22 +19,25 @@ class BucketGeneralTab extends StatelessWidget {
         children: [
           Row(
             children: [
-              _stat(app.intl.bucketDetailObjects, '${bucket.objectCount}'),
+              _stat(
+                app.intl.bucketAdmin.detailObjects,
+                '${bucket.objectCount}',
+              ),
               app.dimensions.padding.l.gap(),
               _stat(
-                app.intl.bucketDetailSize,
+                app.intl.bucketAdmin.detailSize,
                 app.storageFormatter.formatSize(bucket.sizeBytes),
               ),
               app.dimensions.padding.l.gap(),
               _stat(
-                app.intl.bucketDetailCreated,
+                app.intl.bucketAdmin.detailCreated,
                 app.dateFormatter.m.format(bucket.creationDate),
               ),
               app.dimensions.padding.l.gap(),
               _stat(
-                app.intl.bucketDetailLastModified,
+                app.intl.bucketAdmin.detailLastModified,
                 lastModified == null
-                    ? app.intl.bucketDetailNeverModified
+                    ? app.intl.bucketAdmin.detailNeverModified
                     : app.dateFormatter.m.format(lastModified),
               ),
             ],
@@ -45,19 +48,19 @@ class BucketGeneralTab extends StatelessWidget {
             decoration: _cardDecoration,
             child: Column(
               children: [
-                _row(app.intl.bucketDetailName, Text(bucket.name)),
+                _row(app.intl.bucketAdmin.detailName, Text(bucket.name)),
                 _row(
-                  app.intl.bucketDetailS3Path,
+                  app.intl.bucketAdmin.detailS3Path,
                   Row(
                     children: [
                       Flexible(child: _CodeChip(text: _s3Path)),
                       app.dimensions.padding.s.gap(),
                       IconButton(
-                        tooltip: app.intl.bucketDetailCopyPath,
+                        tooltip: app.intl.bucketAdmin.detailCopyPath,
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _s3Path));
                           app.snack.showSuccess(
-                            message: app.intl.bucketDetailPathCopied,
+                            message: app.intl.bucketAdmin.detailPathCopied,
                             context: context,
                           );
                         },
@@ -70,21 +73,21 @@ class BucketGeneralTab extends StatelessWidget {
                   ),
                 ),
                 _row(
-                  app.intl.bucketDetailDescription,
+                  app.intl.bucketAdmin.detailDescription,
                   Text(
                     bucket.description?.isNotEmpty == true
                         ? bucket.description!
-                        : app.intl.bucketDetailNoDescription,
+                        : app.intl.bucketAdmin.detailNoDescription,
                     style: bucket.description?.isNotEmpty == true
                         ? null
                         : TextStyle(color: app.colors.neutral.grey4),
                   ),
                 ),
                 _row(
-                  app.intl.bucketDetailColor,
+                  app.intl.bucketAdmin.detailColor,
                   bucket.uiColor == null
                       ? Text(
-                          app.intl.colorNone,
+                          app.intl.colors.none,
                           style: TextStyle(color: app.colors.neutral.grey4),
                         )
                       : Row(

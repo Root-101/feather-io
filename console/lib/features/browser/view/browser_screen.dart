@@ -150,7 +150,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
       listener: (context, state) => _sync(),
       child: Scaffold(
         appBar: CustomAppBar.build(
-          title: app.intl.navBrowser,
+          title: app.intl.nav.browser,
           leading: widget.bucket == null
               ? null
               : IconButton(
@@ -195,9 +195,9 @@ class _BrowserScreenState extends State<BrowserScreen> {
         if (_urlBucket(bucketState) == null) {
           if (bucketState is BucketLoadingSuccessState) {
             return BrowserNotFoundPage(
-              title: app.intl.browserBucketNotFound(widget.bucket!),
-              description: app.intl.browserBucketNotFoundDescription,
-              action: app.intl.browserBackToBuckets,
+              title: app.intl.browser.bucketNotFound(name: widget.bucket!),
+              description: app.intl.browser.bucketNotFoundDescription,
+              action: app.intl.browser.backToBuckets,
               onAction: () => _navigate(),
             );
           }
@@ -244,7 +244,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   files: files,
                 );
                 app.snack.showSuccess(
-                  message: app.intl.transfersUploadsAdded(files.length),
+                  message: app.intl.transfers.uploadsAdded(count: files.length),
                   context: context,
                 );
               },
@@ -258,7 +258,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   zipName: name,
                 );
                 app.snack.showSuccess(
-                  message: app.intl.transfersDownloadAdded(name),
+                  message: app.intl.transfers.downloadAdded(name: name),
                   context: context,
                 );
               },

@@ -66,8 +66,10 @@ class _AccessKeySecretDialogState extends State<AccessKeySecretDialog> {
                 Center(
                   child: Text(
                     widget.created
-                        ? app.intl.accessKeySecretCreatedTitle(key.name)
-                        : app.intl.accessKeySecretRegeneratedTitle(key.name),
+                        ? app.intl.accessKeys.secretCreatedTitle(name: key.name)
+                        : app.intl.accessKeys.secretRegeneratedTitle(
+                            name: key.name,
+                          ),
                     style: app.textTheme.titleMedium,
                   ),
                 ),
@@ -75,17 +77,17 @@ class _AccessKeySecretDialogState extends State<AccessKeySecretDialog> {
                 _buildWarning(),
                 app.dimensions.padding.l.gap(),
                 _CopyField(
-                  label: app.intl.accessKeyColumnId,
+                  label: app.intl.accessKeys.columnId,
                   value: key.id,
-                  copyTooltip: app.intl.accessKeyCopyId,
-                  copiedMessage: app.intl.accessKeyIdCopied,
+                  copyTooltip: app.intl.accessKeys.copyId,
+                  copiedMessage: app.intl.accessKeys.idCopied,
                 ),
                 app.dimensions.padding.l.gap(),
                 _CopyField(
-                  label: app.intl.accessKeySecretLabel,
+                  label: app.intl.accessKeys.secretLabel,
                   value: key.secret ?? '',
-                  copyTooltip: app.intl.accessKeyCopySecret,
-                  copiedMessage: app.intl.accessKeySecretCopied,
+                  copyTooltip: app.intl.accessKeys.copySecret,
+                  copiedMessage: app.intl.accessKeys.secretCopied,
                   highlighted: true,
                 ),
                 app.dimensions.padding.l.gap(),
@@ -97,7 +99,7 @@ class _AccessKeySecretDialogState extends State<AccessKeySecretDialog> {
                       size: 16,
                       color: app.colors.neutral.grey2,
                     ),
-                    label: Text(app.intl.accessKeyDownloadCsv),
+                    label: Text(app.intl.accessKeys.downloadCsv),
                   ),
                 ),
                 app.dimensions.padding.m.gap(),
@@ -107,14 +109,14 @@ class _AccessKeySecretDialogState extends State<AccessKeySecretDialog> {
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    app.intl.accessKeySecretSaved,
+                    app.intl.accessKeys.secretSaved,
                     style: app.textTheme.bodyMedium,
                   ),
                 ),
                 app.dimensions.padding.m.gap(),
                 PrimaryButton.primary(
                   onPressed: _saved ? () => Navigator.of(context).pop() : null,
-                  title: app.intl.close,
+                  title: app.intl.common.close,
                   color: app.colors.primary.background3,
                 ),
               ],
@@ -141,7 +143,7 @@ class _AccessKeySecretDialogState extends State<AccessKeySecretDialog> {
           app.dimensions.padding.s.gap(),
           Expanded(
             child: Text(
-              app.intl.accessKeySecretWarning,
+              app.intl.accessKeys.secretWarning,
               style: app.textTheme.bodyMedium?.copyWith(
                 color: Color.lerp(amber, app.colors.neutral.white, 0.6),
               ),
