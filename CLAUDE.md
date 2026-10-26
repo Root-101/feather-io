@@ -7,7 +7,7 @@ repository. It is the single source of truth for project rules.
 
 Monorepo for a lightweight S3-compatible storage system:
 
-- `service/` — Dart backend built on **Winter** `1.0.0-rc.5` (from pub.dev; its source is also at
+- `service/` — Dart backend built on **Winter** `1.0.0-rc.6` (from pub.dev; its source is also at
   `../winter`, a sibling of this repo). Its guides (`doc/`), examples (`example/`, the apps
   `auth_jwt` and `production` are the closest to this service) and `DECISIONS.md` are the
   reference; read its source when an API is unclear.

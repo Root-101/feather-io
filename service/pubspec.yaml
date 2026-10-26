@@ -7,7 +7,7 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
-  winter: 1.0.0-rc.5            #framework
+  winter: 1.0.0-rc.6            #framework
 
   path: 1.9.1                   #storage
 
