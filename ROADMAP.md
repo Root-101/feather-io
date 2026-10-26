@@ -15,7 +15,7 @@ Where `service/` and `console/` stand and the work that remains, in order. Mark 
 
 ## Assessment
 
-From 1 to 10, as a lightweight self-hosted S3 storage (2026-10-25, `1.0.0-rc.6`):
+From 1 to 10, as a lightweight self-hosted S3 storage (2026-10-25, `1.0.0-rc.7`):
 
 | Area                  |  Score  | Why                                                                                                         |
 |-----------------------|:-------:|-------------------------------------------------------------------------------------------------------------|
@@ -28,26 +28,21 @@ From 1 to 10, as a lightweight self-hosted S3 storage (2026-10-25, `1.0.0-rc.6`)
 
 Overall **8**; within its scope it can reach **8.5–9**.
 
-## Done (up to 1.0.0-rc.6)
+## Done (up to 1.0.0-rc.7)
 
 - **S3 API** complete for its scope (objects, folders, ListObjects V1/V2, multipart, presigned
   URLs, `aws-chunked`, `501` for the rest), verified with the AWS CLI, rclone and MinIO Mint.
 - **Access**: SigV4 and JWT, access keys per bucket, anonymous rules, rate limits.
 - **Admin API** with Problem Details in English and Spanish and OpenAPI; **console** with browser,
-  transfer queue, *Buckets* and *Access keys* sections.
+  transfer queue, *Buckets* and *Access keys* sections, texts in slang YAML like the service, and
+  a login with the brand over the dot grid.
 - **Operations**: metadata in SQLite (WAL), benchmarks, health check, structured logs, Docker
-  images, `docker-compose.yml`, CI, a Railway template, Winter `1.0.0-rc.5`.
-- **Release**: open source docs and license, visual identity and icon, the security and code audit
-  of 2026-10-21 fixed.
+  images, `docker-compose.yml`, CI, a Railway template, Winter `1.0.0-rc.6`.
+- **Release**: open source docs and license, visual identity and icon, the social preview on
+  GitHub, the security and code audit of 2026-10-21 fixed.
 
 ## Next
 
-- [x] Migrate the console's localization from `gen-l10n` (ARB) to slang with YAML files, like the
-  service (`lib/i18n/*.i18n.yaml`).
-- [x] Redesign the login screen to feature the dot grid in the background and incorporate the visual
-  identity (Logo, phrases, tags...).
-- [x] Upload the social preview of `docs/design/brand/images/` to the GitHub repository (GitHub
-  only offers it once the repository is public).
 - [ ] Rename and move folders (all their content has to be copied and deleted, and it must be
   decided what happens if it fails halfway).
 - [ ] Move object search and filters to the service, to search the whole folder and not only the

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-rc.7 (2026-10-25)
+
+- Winter `1.0.0-rc.6`. The route table logged at start-up was a single line full of `\n` and
+  `\x1b` escapes; now it is one line per route (method, path, key and filters) between the
+  `Routes log start` and `Routes log end` lines. `S3BucketNameFilter` shows its name there.
+
 ## 1.0.0-rc.6 (2026-10-22)
 
 Fixes from a security audit and a code audit.
