@@ -26,14 +26,15 @@ class AccessKeysFilterButton extends StatelessWidget {
       onClear: () => onChanged(AccessKeyFilter.none),
       groups: [
         AppFilterGroup(
-          title: app.intl.accessKeysFilterStatus,
+          title: app.intl.accessKeys.filterStatus,
           options: [
             for (final status in AccessKeyStatus.values)
               AppFilterOption(
                 label: switch (status) {
-                  AccessKeyStatus.active => app.intl.accessKeyStatusActive,
-                  AccessKeyStatus.disabled => app.intl.accessKeyStatusDisabled,
-                  AccessKeyStatus.expired => app.intl.accessKeyStatusExpired,
+                  AccessKeyStatus.active => app.intl.accessKeys.statusActive,
+                  AccessKeyStatus.disabled =>
+                    app.intl.accessKeys.statusDisabled,
+                  AccessKeyStatus.expired => app.intl.accessKeys.statusExpired,
                 },
                 selected: filter.statuses.contains(status),
                 onTap: () => onChanged(
@@ -43,7 +44,7 @@ class AccessKeysFilterButton extends StatelessWidget {
           ],
         ),
         AppFilterGroup(
-          title: app.intl.accessKeysFilterLevel,
+          title: app.intl.accessKeys.filterLevel,
           options: [
             for (final level in AccessKeyLevel.values)
               AppFilterOption(
@@ -57,7 +58,7 @@ class AccessKeysFilterButton extends StatelessWidget {
         ),
         if (buckets.isNotEmpty)
           AppFilterGroup(
-            title: app.intl.accessKeysFilterBucket,
+            title: app.intl.accessKeys.filterBucket,
             options: [
               for (final bucket in buckets)
                 AppFilterOption(

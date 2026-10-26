@@ -30,7 +30,7 @@ class NoDataPage extends StatelessWidget {
                   horizontal: app.dimensions.padding.xxl,
                 ),
                 child: Text(
-                  title ?? app.intl.noData,
+                  title ?? app.intl.common.noData,
                   style: app.textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),

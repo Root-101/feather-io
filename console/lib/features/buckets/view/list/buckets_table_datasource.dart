@@ -62,8 +62,8 @@ class _BucketsTableDatasourceState extends State<BucketsTableDatasource> {
             widget.state is BucketLoadingSuccessState) {
           return NoDataPage(
             title: widget.searchController.text.isEmpty
-                ? app.intl.bucketsEmpty
-                : app.intl.bucketsNoMatch(widget.searchController.text),
+                ? app.intl.buckets.empty
+                : app.intl.buckets.noMatch(query: widget.searchController.text),
           );
         }
 
@@ -118,25 +118,25 @@ class _BucketsTableDatasourceState extends State<BucketsTableDatasource> {
                 columnName: 'name',
                 width: columnWidths['name'] ?? nameWidth,
                 minimumWidth: 150,
-                label: header(app.intl.name),
+                label: header(app.intl.common.name),
               ),
               GridColumn(
                 columnName: 'objects',
                 width: columnWidths['objects'] ?? objectsWidth,
                 minimumWidth: 100,
-                label: header(app.intl.objects),
+                label: header(app.intl.common.objects),
               ),
               GridColumn(
                 columnName: 'size',
                 width: columnWidths['size'] ?? sizeWidth,
                 minimumWidth: 100,
-                label: header(app.intl.size),
+                label: header(app.intl.common.size),
               ),
               GridColumn(
                 columnName: 'created_at',
                 width: columnWidths['created_at'] ?? createdAtWidth,
                 minimumWidth: 150,
-                label: header(app.intl.createdAt),
+                label: header(app.intl.common.createdAt),
               ),
               GridColumn(
                 columnName: 'actions',
@@ -192,7 +192,10 @@ class _BucketsDataSource extends DataGridSource {
                   child: Builder(
                     builder: (context) {
                       return IconButton(
-                        icon: app.assets.icons.actions.more.build(size: 18, color: app.colors.neutral.grey2),
+                        icon: app.assets.icons.actions.more.build(
+                          size: 18,
+                          color: app.colors.neutral.grey2,
+                        ),
                         onPressed: isHovered
                             ? () {
                                 final RenderBox box =

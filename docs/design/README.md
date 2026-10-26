@@ -31,7 +31,8 @@ before every release regenerate this export and review [`../console.md`](../cons
 screen, URL or action gets its section there).
 
 1. Download the canvas files into a folder, as the artifact serves them: `project/canvas.json`,
-   `project/*.dc.html` and the uploaded flag (`b78ce1432609f9c95c8462b3917deac7.svg`).
+   `project/*.dc.html` and the uploaded assets: the flag (`b78ce1432609f9c95c8462b3917deac7.svg`)
+   and the app icon (`096c01f0ebbeeaff03dd4a491855d658.png`).
 2. From the root of the repo, with Chrome and ffmpeg installed:
 
    ```bash

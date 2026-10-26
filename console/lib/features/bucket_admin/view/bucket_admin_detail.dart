@@ -18,9 +18,9 @@ class BucketAdminDetail extends StatelessWidget {
   void _onDelete(BuildContext context) {
     final cubit = context.read<BucketCubit>();
     ConfirmDialog.show(
-      title: app.intl.bucketsDeleteTitle,
-      description: app.intl.bucketsDeleteConfirm(bucket.name),
-      confirmTitle: app.intl.delete,
+      title: app.intl.buckets.deleteTitle,
+      description: app.intl.buckets.deleteConfirm(name: bucket.name),
+      confirmTitle: app.intl.common.delete,
       confirmColor: app.colors.primary.errorAction,
       confirmAction: () => cubit.deleteBucket(bucket: bucket),
     );
@@ -113,7 +113,7 @@ class BucketAdminDetail extends StatelessWidget {
         ),
         app.dimensions.padding.l.gap(),
         PrimaryButton.primary(
-          title: app.intl.bucketAdminOpenInBrowser,
+          title: app.intl.bucketAdmin.openInBrowser,
           icon: app.assets.icons.storage.folder,
           color: app.colors.primary.background3,
           onPressed: () => BrowserScreen.navigator.openBucket(bucket),
@@ -122,7 +122,7 @@ class BucketAdminDetail extends StatelessWidget {
         ),
         app.dimensions.padding.m.gap(),
         PrimaryButton.primary(
-          title: app.intl.edit,
+          title: app.intl.common.edit,
           icon: app.assets.icons.actions.edit,
           onPressed: () => BucketForm.open(context, bucket: bucket),
           h: 42,
@@ -140,9 +140,9 @@ class _BucketAdminTabs extends StatelessWidget {
   const _BucketAdminTabs({required this.tab, required this.onChanged});
 
   String _label(BucketAdminTab tab) => switch (tab) {
-    BucketAdminTab.general => app.intl.bucketAdminTabGeneral,
-    BucketAdminTab.access => app.intl.bucketAdminTabAccess,
-    BucketAdminTab.danger => app.intl.bucketAdminTabDanger,
+    BucketAdminTab.general => app.intl.bucketAdmin.tabGeneral,
+    BucketAdminTab.access => app.intl.bucketAdmin.tabAccess,
+    BucketAdminTab.danger => app.intl.bucketAdmin.tabDanger,
   };
 
   @override

@@ -164,7 +164,7 @@ void main() {
       isA<ObjectActionProcessingErrorState>().having(
         (s) => s.exception.message,
         'message',
-        app.intl.objectsMovePartial(1, 2),
+        app.intl.objects.movePartial(moved: 1, total: 2),
       ),
     ],
     verify: (_) {

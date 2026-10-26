@@ -79,7 +79,7 @@ class BucketFormCubit extends Cubit<BucketFormState> {
         _ => const {},
       },
       GlobalExceptionType.conflict => {
-        BucketFormField.name: app.intl.bucketNameExists,
+        BucketFormField.name: app.intl.buckets.nameExists,
       },
       _ => const {},
     };

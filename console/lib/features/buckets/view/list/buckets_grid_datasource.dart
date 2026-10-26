@@ -24,8 +24,8 @@ class BucketsGridDatasource extends StatelessWidget {
     if (filteredBuckets.isEmpty && state is BucketLoadingSuccessState) {
       return NoDataPage(
         title: searchController.text.isEmpty
-            ? app.intl.bucketsEmpty
-            : app.intl.bucketsNoMatch(searchController.text),
+            ? app.intl.buckets.empty
+            : app.intl.buckets.noMatch(query: searchController.text),
       );
     }
 
@@ -130,7 +130,7 @@ class _BucketGridItemState extends State<_BucketGridItem> {
                                 ),
                                 app.dimensions.padding.m.gap(),
                                 Tooltip(
-                                  message: app.intl.bucketsReadWriteTooltip,
+                                  message: app.intl.buckets.readWriteTooltip,
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: app.dimensions.padding.xs,
@@ -141,7 +141,7 @@ class _BucketGridItemState extends State<_BucketGridItem> {
                                           app.dimensions.border.borderRadius.xs,
                                     ),
                                     child: Text(
-                                      app.intl.bucketsReadWriteBadge,
+                                      app.intl.buckets.readWriteBadge,
                                       style: app.textTheme.bodyMedium?.copyWith(
                                         color: app.colors.neutral.grey2,
                                       ),
@@ -153,8 +153,8 @@ class _BucketGridItemState extends State<_BucketGridItem> {
                               ],
                             ),
                             Text(
-                              app.intl.bucketsCreatedAt(
-                                app.dateFormatter.l.format(
+                              app.intl.buckets.createdAt(
+                                date: app.dateFormatter.l.format(
                                   widget.bucket.creationDate,
                                 ),
                               ),
@@ -183,11 +183,11 @@ class _BucketGridItemState extends State<_BucketGridItem> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildInfoItem(
-                        label: app.intl.objects,
+                        label: app.intl.common.objects,
                         value: widget.bucket.objectCount.toString(),
                       ),
                       _buildInfoItem(
-                        label: app.intl.size,
+                        label: app.intl.common.size,
                         value: app.storageFormatter.formatSize(
                           widget.bucket.sizeBytes,
                         ),
@@ -205,7 +205,10 @@ class _BucketGridItemState extends State<_BucketGridItem> {
               child: Builder(
                 builder: (context) {
                   return IconButton(
-                    icon: app.assets.icons.actions.more.build(size: 18, color: app.colors.neutral.grey2),
+                    icon: app.assets.icons.actions.more.build(
+                      size: 18,
+                      color: app.colors.neutral.grey2,
+                    ),
                     onPressed: () {
                       final RenderBox box =
                           context.findRenderObject() as RenderBox;

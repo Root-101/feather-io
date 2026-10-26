@@ -7,7 +7,7 @@ class ObjectInfoHelper {
     BrowserObjectWrapper wrapper,
   ) {
     if (wrapper.isFolder) {
-      return (name: app.intl.fileTypeFolder, icon: Icons.folder);
+      return (name: app.intl.objects.fileTypeFolder, icon: Icons.folder);
     }
 
     final fileName = wrapper.name;
@@ -16,22 +16,22 @@ class ObjectInfoHelper {
     if (mimeType == null) {
       final ext = fileName.contains('.')
           ? fileName.split('.').last.toUpperCase()
-          : app.intl.fileTypeFile;
+          : app.intl.objects.fileTypeFile;
       return (name: ext, icon: Icons.insert_drive_file);
     }
 
     // 1. Main categories by MIME type
     if (mimeType.startsWith('image/')) {
-      return (name: app.intl.fileTypeImage, icon: Icons.image);
+      return (name: app.intl.objects.fileTypeImage, icon: Icons.image);
     }
     if (mimeType.startsWith('video/')) {
-      return (name: app.intl.fileTypeVideo, icon: Icons.movie);
+      return (name: app.intl.objects.fileTypeVideo, icon: Icons.movie);
     }
     if (mimeType.startsWith('audio/')) {
-      return (name: app.intl.fileTypeAudio, icon: Icons.audiotrack);
+      return (name: app.intl.objects.fileTypeAudio, icon: Icons.audiotrack);
     }
     if (mimeType.startsWith('text/')) {
-      return (name: app.intl.fileTypeText, icon: Icons.description);
+      return (name: app.intl.objects.fileTypeText, icon: Icons.description);
     }
 
     // 2. Application-specific formats
@@ -41,11 +41,14 @@ class ObjectInfoHelper {
 
       case 'application/msword':
       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-        return (name: app.intl.fileTypeDocument, icon: Icons.article);
+        return (name: app.intl.objects.fileTypeDocument, icon: Icons.article);
 
       case 'application/vnd.ms-excel':
       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-        return (name: app.intl.fileTypeSpreadsheet, icon: Icons.table_chart);
+        return (
+          name: app.intl.objects.fileTypeSpreadsheet,
+          icon: Icons.table_chart,
+        );
 
       case 'application/json':
         return (name: 'JSON', icon: Icons.data_object);
@@ -55,15 +58,18 @@ class ObjectInfoHelper {
       case 'application/x-7z-compressed':
       case 'application/x-tar':
       case 'application/gzip':
-        return (name: app.intl.fileTypeArchive, icon: Icons.folder_zip);
+        return (name: app.intl.objects.fileTypeArchive, icon: Icons.folder_zip);
 
       default:
         if (mimeType.contains('zip') || mimeType.contains('compressed')) {
-          return (name: app.intl.fileTypeArchive, icon: Icons.folder_zip);
+          return (
+            name: app.intl.objects.fileTypeArchive,
+            icon: Icons.folder_zip,
+          );
         }
         final ext = fileName.contains('.')
             ? fileName.split('.').last.toUpperCase()
-            : app.intl.fileTypeFile;
+            : app.intl.objects.fileTypeFile;
         return (name: ext, icon: Icons.insert_drive_file);
     }
   }

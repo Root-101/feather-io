@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-rc.7 (2026-10-25)
+
+- New login: the brand next to the form over the dot grid (stacked in narrow windows), a hint with
+  the variables that hold the keys, the language selector and a credit to Root101.
+- The splash is the same as the one of `index.html`.
+- The texts are slang YAML files grouped by feature (`lib/l10n/*.i18n.yaml`), like the service's,
+  instead of `gen-l10n` ARB files; a text missing in Spanish no longer compiles.
+
 ## 1.0.0-rc.6 (2026-10-22)
 
 - The preview opens images, video, audio and PDF as they are, and text, HTML, SVG and other markup

@@ -20,15 +20,24 @@ class AppColorPicker extends StatefulWidget {
   static List<AppColorOption> get defaultPalette => [
     AppColorOption(
       color: app.colors.palette.violet,
-      label: app.intl.colorViolet,
+      label: app.intl.colors.violet,
     ),
-    AppColorOption(color: app.colors.palette.blue, label: app.intl.colorBlue),
-    AppColorOption(color: app.colors.palette.teal, label: app.intl.colorTeal),
-    AppColorOption(color: app.colors.palette.green, label: app.intl.colorGreen),
-    AppColorOption(color: app.colors.palette.amber, label: app.intl.colorAmber),
-    AppColorOption(color: app.colors.palette.red, label: app.intl.colorRed),
-    AppColorOption(color: app.colors.palette.pink, label: app.intl.colorPink),
-    AppColorOption(color: app.colors.palette.slate, label: app.intl.colorSlate),
+    AppColorOption(color: app.colors.palette.blue, label: app.intl.colors.blue),
+    AppColorOption(color: app.colors.palette.teal, label: app.intl.colors.teal),
+    AppColorOption(
+      color: app.colors.palette.green,
+      label: app.intl.colors.green,
+    ),
+    AppColorOption(
+      color: app.colors.palette.amber,
+      label: app.intl.colors.amber,
+    ),
+    AppColorOption(color: app.colors.palette.red, label: app.intl.colors.red),
+    AppColorOption(color: app.colors.palette.pink, label: app.intl.colors.pink),
+    AppColorOption(
+      color: app.colors.palette.slate,
+      label: app.intl.colors.slate,
+    ),
   ];
 
   final Color? value;
@@ -112,7 +121,7 @@ class _AppColorPickerState extends State<AppColorPicker> {
           children: [
             if (widget.allowNone)
               _Swatch(
-                label: app.intl.colorNone,
+                label: app.intl.colors.none,
                 selected: widget.value == null,
                 onTap: () => _select(null),
                 background: Color.lerp(
@@ -153,8 +162,8 @@ class _AppColorPickerState extends State<AppColorPicker> {
         child: _Swatch(
           key: _customKey,
           label: custom != null
-              ? '${app.intl.colorCustom} ${custom.toHex()}'
-              : app.intl.colorCustom,
+              ? '${app.intl.colors.custom} ${custom.toHex()}'
+              : app.intl.colors.custom,
           selected: custom != null,
           highlighted: open,
           onTap: _toggle,

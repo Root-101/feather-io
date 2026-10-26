@@ -58,12 +58,12 @@ class _BucketAdminListState extends State<BucketAdminList> {
                   delay: 0,
                   onSearch: (value) =>
                       setState(() => _query = value.toLowerCase()),
-                  hint: app.intl.bucketsSearchHint,
+                  hint: app.intl.buckets.searchHint,
                 ),
               ),
               app.dimensions.padding.s.gap(),
               Tooltip(
-                message: app.intl.bucketsCreate,
+                message: app.intl.buckets.create,
                 child: PrimaryButton.svgIcon(
                   onPressed: () => BucketForm.open(context),
                   icon: app.assets.icons.actions.add,
@@ -77,7 +77,9 @@ class _BucketAdminListState extends State<BucketAdminList> {
           ),
           app.dimensions.padding.l.gap(),
           Text(
-            app.intl.bucketAdminCount(widget.state.buckets.length).toUpperCase(),
+            app.intl.bucketAdmin
+                .count(count: widget.state.buckets.length)
+                .toUpperCase(),
             style: app.textTheme.labelMedium?.copyWith(
               color: app.colors.primary.primaryFaded,
               fontWeight: FontWeight.bold,
@@ -93,7 +95,7 @@ class _BucketAdminListState extends State<BucketAdminList> {
               child: buckets.isEmpty && _query.isNotEmpty
                   ? Center(
                       child: Text(
-                        app.intl.bucketsNoMatch(_searchController.text),
+                        app.intl.buckets.noMatch(query: _searchController.text),
                         textAlign: TextAlign.center,
                         style: app.textTheme.bodyMedium?.copyWith(
                           color: app.colors.neutral.grey3,
@@ -186,9 +188,9 @@ class _BucketTile extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      app.intl.bucketAdminStats(
-                        bucket.objectCount,
-                        app.storageFormatter.formatSize(bucket.sizeBytes),
+                      app.intl.bucketAdmin.stats(
+                        count: bucket.objectCount,
+                        size: app.storageFormatter.formatSize(bucket.sizeBytes),
                       ),
                       style: app.textTheme.bodySmall?.copyWith(
                         color: selected

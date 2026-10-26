@@ -14,6 +14,9 @@ class BrowserWindow {
     web.window.open(web.URL.createObjectURL(blob), '_blank');
   }
 
+  /// Opens [url] in a new tab
+  static void openUrl(String url) => web.window.open(url, '_blank');
+
   static final JSFunction _beforeUnload = ((web.Event event) {
     event.preventDefault();
   }).toJS;

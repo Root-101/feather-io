@@ -13,19 +13,20 @@ class ObjectNameDialog extends StatefulWidget {
     required Set<String> existingNames,
   }) {
     DialogTemplate.open(
-      title: app.intl.objectsNewFolder,
+      title: app.intl.objects.newFolder,
       w: 460,
       h: 330,
       child: ObjectNameDialog._(
-        label: app.intl.objectsFolderNameLabel,
-        hint: app.intl.objectsFolderNameHint,
-        action: app.intl.objectsNewFolderCreate,
+        label: app.intl.objects.folderNameLabel,
+        hint: app.intl.objects.folderNameHint,
+        action: app.intl.objects.newFolderCreate,
         existingNames: existingNames,
-        existsMessage: app.intl.objectsFolderExists,
-        helper: (name) => app.intl.objectsFolderPathHelper(
-          '/$bucket/$prefix${name.isEmpty ? app.intl.objectsFolderNameHint : name}/',
+        existsMessage: app.intl.objects.folderExists,
+        helper: (name) => app.intl.objects.folderPathHelper(
+          path:
+              '/$bucket/$prefix${name.isEmpty ? app.intl.objects.folderNameHint : name}/',
         ),
-        success: (name) => app.intl.objectsFolderCreated(name),
+        success: (name) => app.intl.objects.folderCreated(name: name),
         onSubmit: (cubit, name) =>
             cubit.createFolder(bucket: bucket, prefix: prefix, name: name),
       ),
@@ -41,18 +42,18 @@ class ObjectNameDialog extends StatefulWidget {
     final folder = key.substring(0, key.lastIndexOf('/') + 1);
     final name = key.substring(folder.length);
     DialogTemplate.open(
-      title: app.intl.objectsRename,
+      title: app.intl.objects.rename,
       w: 520,
       h: 330,
       child: ObjectNameDialog._(
-        label: app.intl.objectsRenameLabel,
+        label: app.intl.objects.renameLabel,
         initialValue: name,
-        action: app.intl.objectsRename,
+        action: app.intl.objects.rename,
         existingNames: existingNames,
-        existsMessage: app.intl.objectsNameExists,
+        existsMessage: app.intl.objects.nameExists,
         helper: (value) =>
-            app.intl.objectsRenamePathHelper('/$bucket/$folder$value'),
-        success: (value) => app.intl.objectsRenamed(value),
+            app.intl.objects.renamePathHelper(path: '/$bucket/$folder$value'),
+        success: (value) => app.intl.objects.renamed(name: value),
         onSubmit: (cubit, value) =>
             cubit.rename(bucket: bucket, key: key, newName: value),
       ),
@@ -131,10 +132,10 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
     );
     return switch (error) {
       null => null,
-      ObjectNameError.empty => app.intl.objectsNameRequired,
-      ObjectNameError.invalid => app.intl.objectsNameInvalid,
+      ObjectNameError.empty => app.intl.objects.nameRequired,
+      ObjectNameError.invalid => app.intl.objects.nameInvalid,
       ObjectNameError.exists => widget.existsMessage,
-      ObjectNameError.unchanged => app.intl.objectsNameUnchanged,
+      ObjectNameError.unchanged => app.intl.objects.nameUnchanged,
     };
   }
 
@@ -176,7 +177,7 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
               children: [
                 if (state is ObjectActionProcessingErrorState) ...[
                   AppFormAlert(
-                    title: app.intl.objectsActionErrorTitle,
+                    title: app.intl.objects.actionErrorTitle,
                     message: state.exception.message,
                   ),
                   app.dimensions.padding.l.gap(),
@@ -198,7 +199,7 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
                     Expanded(
                       child: PrimaryButton.primary(
                         onPressed: () => app.navigator.pop(),
-                        title: app.intl.cancel,
+                        title: app.intl.common.cancel,
                         color: app.colors.primary.background3,
                       ),
                     ),

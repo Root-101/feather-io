@@ -50,7 +50,7 @@ class _BaseScreenState extends State<BaseScreen> {
                   selectedIcon: app.assets.icons.storage.folder.build(
                     color: app.colors.neutral.white,
                   ),
-                  label: Text(app.intl.navBrowser),
+                  label: Text(app.intl.nav.browser),
                 ),
                 NavigationRailDestination(
                   icon: app.assets.icons.storage.bucket.build(
@@ -59,7 +59,7 @@ class _BaseScreenState extends State<BaseScreen> {
                   selectedIcon: app.assets.icons.storage.bucket.build(
                     color: app.colors.neutral.white,
                   ),
-                  label: Text(app.intl.navBuckets),
+                  label: Text(app.intl.nav.buckets),
                 ),
                 NavigationRailDestination(
                   icon: app.assets.icons.actions.key.build(
@@ -68,7 +68,7 @@ class _BaseScreenState extends State<BaseScreen> {
                   selectedIcon: app.assets.icons.actions.key.build(
                     color: app.colors.neutral.white,
                   ),
-                  label: Text(app.intl.navAccessKeys),
+                  label: Text(app.intl.nav.accessKeys),
                 ),
               ],
               trailing: Expanded(
@@ -120,7 +120,7 @@ class _RailFooter extends StatelessWidget {
       const TransfersIndicator(),
       const LanguageWidget(),
       RailButton(
-        tooltip: app.intl.navLogout,
+        tooltip: app.intl.nav.logout,
         onPressed: (_) => app.di.find<AuthCubit>().logout(),
         child: app.assets.icons.actions.logout.build(
           size: 18,

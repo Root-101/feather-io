@@ -26,15 +26,15 @@ class ObjectDetailsDrawer extends StatefulWidget {
 
     return FormDrawerTemplate.showAsDialog(
       title: object.name,
-      description: app.intl.objectDetailsSubtitle(
-        info.name,
-        app.storageFormatter.formatSize(object.size ?? 0),
+      description: app.intl.objects.detailsSubtitle(
+        type: info.name,
+        size: app.storageFormatter.formatSize(object.size ?? 0),
       ),
       icon: app.assets.icons.storage.object,
       width: 600,
       footerLeading: PrimaryButton.secondary(
         onPressed: () => closeThen(onDelete),
-        title: app.intl.delete,
+        title: app.intl.common.delete,
         icon: app.assets.icons.actions.delete,
         iconColor: app.colors.primary.error,
         h: 40,
@@ -43,21 +43,21 @@ class ObjectDetailsDrawer extends StatefulWidget {
       footerActions: [
         PrimaryButton.secondary(
           onPressed: () => closeThen(onRename),
-          title: app.intl.objectsRename,
+          title: app.intl.objects.rename,
           icon: app.assets.icons.actions.edit,
           h: 40,
           horizontalPadding: app.dimensions.padding.l,
         ),
         PrimaryButton.secondary(
           onPressed: () => closeThen(onMove),
-          title: app.intl.objectsMove,
+          title: app.intl.objects.move,
           icon: app.assets.icons.storage.folder,
           h: 40,
           horizontalPadding: app.dimensions.padding.l,
         ),
         PrimaryButton.primary(
           onPressed: () => closeThen(onDownload),
-          title: app.intl.download,
+          title: app.intl.common.download,
           icon: app.assets.icons.actions.download,
           h: 40,
           w: 140,
@@ -144,22 +144,22 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
                 child: Column(
                   children: [
                     _row(
-                      app.intl.objectDetailsKey,
+                      app.intl.objects.detailsKey,
                       _code(widget.object.fullPath),
                     ),
                     _row(
-                      app.intl.objectDetailsType,
+                      app.intl.objects.detailsType,
                       Text(loaded?.info.contentType ?? '-'),
                     ),
                     _row(
-                      app.intl.objectDetailsSize,
+                      app.intl.objects.detailsSize,
                       Text(
                         '${app.storageFormatter.formatSize(size)} '
-                        '${app.intl.objectDetailsSizeBytes(size)}',
+                        '${app.intl.objects.detailsSizeBytes(bytes: size)}',
                       ),
                     ),
                     _row(
-                      app.intl.objectDetailsModified,
+                      app.intl.objects.detailsModified,
                       Text(
                         modified == null
                             ? '-'
@@ -167,16 +167,16 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
                       ),
                     ),
                     _row(
-                      app.intl.objectDetailsUrl,
+                      app.intl.objects.detailsUrl,
                       Row(
                         children: [
                           Flexible(child: _code(_url)),
                           IconButton(
-                            tooltip: app.intl.objectDetailsCopyUrl,
+                            tooltip: app.intl.objects.detailsCopyUrl,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: _url));
                               app.snack.showSuccess(
-                                message: app.intl.objectDetailsUrlCopied,
+                                message: app.intl.objects.detailsUrlCopied,
                                 context: context,
                               );
                             },
@@ -211,11 +211,7 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
           ),
         );
     return loaded.thumbnailIsSvg
-        ? SvgPicture.memory(
-            bytes,
-            fit: BoxFit.contain,
-            errorBuilder: fallback,
-          )
+        ? SvgPicture.memory(bytes, fit: BoxFit.contain, errorBuilder: fallback)
         : Image.memory(bytes, fit: BoxFit.contain, errorBuilder: fallback);
   }
 

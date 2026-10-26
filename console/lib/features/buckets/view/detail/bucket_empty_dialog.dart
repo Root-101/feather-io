@@ -8,7 +8,7 @@ class BucketEmptyDialog extends StatefulWidget {
     required VoidCallback onConfirm,
   }) {
     DialogTemplate.open(
-      title: app.intl.bucketEmptyTitle,
+      title: app.intl.bucketAdmin.emptyTitle,
       w: 480,
       h: 380,
       child: BucketEmptyDialog(bucket: bucket, onConfirm: onConfirm),
@@ -61,10 +61,10 @@ class _BucketEmptyDialogState extends State<BucketEmptyDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            app.intl.bucketEmptyConfirm(
-              bucket.objectCount,
-              app.storageFormatter.formatSize(bucket.sizeBytes),
-              bucket.name,
+            app.intl.bucketAdmin.emptyConfirm(
+              count: bucket.objectCount,
+              size: app.storageFormatter.formatSize(bucket.sizeBytes),
+              name: bucket.name,
             ),
             textAlign: TextAlign.center,
             style: app.textTheme.titleMedium,
@@ -73,9 +73,9 @@ class _BucketEmptyDialogState extends State<BucketEmptyDialog> {
           AppFormInput(
             controller: _controller,
             autofocus: true,
-            label: app.intl.bucketEmptyTypeName(bucket.name),
+            label: app.intl.bucketAdmin.emptyTypeName(name: bucket.name),
             hint: bucket.name,
-            helperText: app.intl.bucketEmptyTypeNameHelper,
+            helperText: app.intl.bucketAdmin.emptyTypeNameHelper,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _confirm(),
           ),
@@ -85,7 +85,7 @@ class _BucketEmptyDialogState extends State<BucketEmptyDialog> {
               Expanded(
                 child: PrimaryButton.primary(
                   onPressed: () => app.navigator.pop(),
-                  title: app.intl.cancel,
+                  title: app.intl.common.cancel,
                   color: app.colors.primary.background3,
                 ),
               ),
@@ -93,7 +93,7 @@ class _BucketEmptyDialogState extends State<BucketEmptyDialog> {
               Expanded(
                 child: PrimaryButton.primary(
                   onPressed: _matches ? _confirm : null,
-                  title: app.intl.bucketEmptyTitle,
+                  title: app.intl.bucketAdmin.emptyTitle,
                   color: app.colors.primary.errorAction,
                 ),
               ),
