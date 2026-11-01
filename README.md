@@ -16,8 +16,8 @@ and create access keys per bucket.
   It serves the S3 API and an admin API for the console (JSON, documented with OpenAPI).
 - **`console/`**: the web console, in Flutter Web. It only talks to the service over HTTP.
 
-> **Status: release candidate (`1.0.0-rc.7`).** Everything below works and is tested against real
-> S3 clients, but it hasn't had long-running production use yet.
+> **Status: stable (`1.0.0`).** Everything below works and is tested against real S3 clients; from
+> here on, a breaking change of the S3 or admin API needs a new major version.
 
 ## What it supports
 

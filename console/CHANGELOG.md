@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.0.0-rc.8 (unreleased)
+## 1.0.0 (2026-10-31)
+
+The first stable version: object browser (list and grid, previews, drag & drop, a background
+transfer queue), *Buckets* and *Access keys* sections, anonymous rules, share links, English and
+Spanish.
 
 - Text is no longer selectable with the mouse.
 - The rows of the bucket and object tables show the hand cursor and underline the name under the

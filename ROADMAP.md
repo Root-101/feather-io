@@ -15,20 +15,20 @@ Where `service/` and `console/` stand and the work that remains, in order. Mark 
 
 ## Assessment
 
-From 1 to 10, as a lightweight self-hosted S3 storage (2026-10-25, `1.0.0-rc.7`):
+From 1 to 10, as a lightweight self-hosted S3 storage (2026-10-31, `1.0.0`):
 
-| Area                  |  Score  | Why                                                                                                         |
-|-----------------------|:-------:|-------------------------------------------------------------------------------------------------------------|
-| S3 compatibility      |  **9**  | AWS CLI and rclone pass everything; Mint only fails on what is out of scope                                 |
-| Security              | **8.5** | SigV4 hardened, encrypted keys, rate limits, internal audit fixed. Missing: its own TLS and an external one |
-| Tests                 | **8.5** | ~500 service tests, ~130 console tests and real clients, all in CI except Mint                              |
-| Architecture and code |  **8**  | Clear layers and features; `ObjectService` is still big                                                     |
-| Performance           | **7.5** | Light on memory, fast uploads and listings; small reads, big uploads and ListBuckets lag behind MinIO       |
-| Production readiness  |  **6**  | Small image, logs, health check, backups. Missing: metrics, long-running use; Winter is still an RC         |
+| Area                  |  Score  | Why                                                                                                               |
+|-----------------------|:-------:|-------------------------------------------------------------------------------------------------------------------|
+| S3 compatibility      |  **9**  | AWS CLI and rclone pass everything; Mint only fails on what is out of scope                                       |
+| Security              | **8.5** | SigV4 hardened, encrypted keys, rate limits, internal audit fixed. Missing: its own TLS and an external one       |
+| Tests                 | **8.5** | ~550 service tests, ~150 console tests and real clients, all in CI except Mint                                    |
+| Architecture and code |  **8**  | Clear layers and features; `ObjectService` is still big                                                           |
+| Performance           | **7.5** | Light on memory, fast small uploads and listings; reads, big or parallel uploads and ListBuckets lag behind MinIO |
+| Production readiness  |  **6**  | Small image, logs, health check, backups. Missing: metrics, long-running use                                      |
 
 Overall **8**; within its scope it can reach **8.5–9**.
 
-## Done (up to 1.0.0-rc.7)
+## Done (up to 1.0.0)
 
 - **S3 API** complete for its scope (objects, folders, ListObjects V1/V2, multipart, presigned
   URLs, `aws-chunked`, `501` for the rest), verified with the AWS CLI, rclone and MinIO Mint.
@@ -37,7 +37,7 @@ Overall **8**; within its scope it can reach **8.5–9**.
   transfer queue, *Buckets* and *Access keys* sections, texts in slang YAML like the service, and
   a login with the brand over the dot grid.
 - **Operations**: metadata in SQLite (WAL), benchmarks, health check, structured logs, Docker
-  images, `docker-compose.yml`, CI, a Railway template, Winter `1.0.0-rc.6`.
+  images, `docker-compose.yml`, CI, a Railway template, Winter `1.0.0`.
 - **Release**: open source docs and license, visual identity and icon, the social preview on
   GitHub, the security and code audit of 2026-10-21 fixed.
 
