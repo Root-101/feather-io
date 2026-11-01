@@ -44,7 +44,7 @@ class S3Controller {
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rules: hasPermission('s3.list-buckets'),
+              rule: hasPermission('s3.list-buckets'),
             ),
           ]),
         ),
@@ -55,7 +55,7 @@ class S3Controller {
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rules: hasPermission('s3.create-bucket'),
+              rule: hasPermission('s3.create-bucket'),
             ),
             ReservedBucketFilter(),
           ]),
@@ -67,7 +67,7 @@ class S3Controller {
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rules: hasPermission('s3.delete-bucket'),
+              rule: hasPermission('s3.delete-bucket'),
             ),
             ReservedBucketFilter(),
           ]),
@@ -79,7 +79,7 @@ class S3Controller {
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rules:
+              rule:
                   hasPermission('s3.list-objects') |
                   hasPermission('s3.anonymous.list-objects'),
               shouldFilter: (request) {
@@ -98,7 +98,7 @@ class S3Controller {
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
-                  rules:
+                  rule:
                       hasPermission('s3.put-object') |
                       hasPermission('s3.anonymous.put-object'),
                 ),
@@ -112,7 +112,7 @@ class S3Controller {
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
-                  rules: hasPermission('s3.put-object'),
+                  rule: hasPermission('s3.put-object'),
                 ),
               ]),
             ),
@@ -123,7 +123,7 @@ class S3Controller {
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
-                  rules:
+                  rule:
                       hasPermission('s3.get-object') |
                       hasPermission('s3.anonymous.get-object'),
                 ),
@@ -136,7 +136,7 @@ class S3Controller {
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
-                  rules:
+                  rule:
                       hasPermission('s3.delete-object') |
                       hasPermission('s3.anonymous.delete-object'),
                 ),
@@ -151,7 +151,7 @@ class S3Controller {
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rules: hasPermission('s3.multi-delete-objects'),
+              rule: hasPermission('s3.multi-delete-objects'),
             ),
             ReservedBucketFilter(),
           ]),

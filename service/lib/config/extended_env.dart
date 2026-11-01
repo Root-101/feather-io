@@ -26,30 +26,31 @@ extension ExtendedEnv on Env {
   List<String> get shortSecrets => [
     for (final MapEntry(key: name, value: min)
         in recommendedSecretLengths.entries)
-      if ((find<String>(name) ?? '').length < min) name,
+      if ((tryFind<String>(name) ?? '').length < min) name,
   ];
 
-  String get secret => require<String>('FEATHER_SECRET');
+  String get secret => find<String>('FEATHER_SECRET');
 
-  String get access => require<String>('FEATHER_ACCESS');
+  String get access => find<String>('FEATHER_ACCESS');
 
-  String get jwtSecret => require<String>('JWT_SECRET');
+  String get jwtSecret => find<String>('JWT_SECRET');
 
   /// Encrypts the secrets of the access keys in the database (see
   /// [SecretCipher]). Changing it makes every stored secret unreadable.
-  String get keysEncryptionSecret => require<String>('KEYS_ENCRYPTION_SECRET');
+  String get keysEncryptionSecret => find<String>('KEYS_ENCRYPTION_SECRET');
 
-  String get storageVolumePath => require<String>('STORAGE_VOLUME_PATH');
+  String get storageVolumePath => find<String>('STORAGE_VOLUME_PATH');
 
   /// Maximum size (in bytes) of an object uploaded with `PUT`.
-  int get maxObjectSize => find<int>('MAX_OBJECT_SIZE') ?? defaultMaxObjectSize;
+  int get maxObjectSize =>
+      tryFind<int>('MAX_OBJECT_SIZE') ?? defaultMaxObjectSize;
 
   /// Public URL of the service (`https://s3.example.com`), for presigned URLs.
   /// Without it the request's scheme and `Host` are used, which behind an HTTPS
   /// proxy would give `http://`. Scheme, host and port only: the path is part of
   /// the signature.
   Uri? get publicUrl {
-    final raw = find<String>('PUBLIC_URL');
+    final raw = tryFind<String>('PUBLIC_URL');
     if (raw == null || raw.trim().isEmpty) return null;
     final uri = Uri.tryParse(raw.trim());
     final valid =
@@ -73,36 +74,36 @@ extension ExtendedEnv on Env {
   /// Proxies of your own in front of the service that add their entry to
   /// `X-Forwarded-For` (`ServerConfig.trustedProxies`); with 0 (the default)
   /// the connection's IP is used.
-  int get trustedProxies => find<int>('TRUSTED_PROXIES') ?? 0;
+  int get trustedProxies => tryFind<int>('TRUSTED_PROXIES') ?? 0;
 
   /// Requests per IP in each [rateLimitWindowSeconds] window (general limit);
   /// 0 disables it. High by default: S3 clients send bursts (parallel uploads,
   /// `sync` of many files).
-  int get rateLimitRequests => find<int>('RATE_LIMIT_REQUESTS') ?? 2000;
+  int get rateLimitRequests => tryFind<int>('RATE_LIMIT_REQUESTS') ?? 2000;
 
   /// Seconds of the general limit's window.
   int get rateLimitWindowSeconds =>
-      find<int>('RATE_LIMIT_WINDOW_SECONDS') ?? 60;
+      tryFind<int>('RATE_LIMIT_WINDOW_SECONDS') ?? 60;
 
   /// Failed logins in a row that lock an IP.
-  int get loginMaxFailures => find<int>('LOGIN_MAX_FAILURES') ?? 10;
+  int get loginMaxFailures => tryFind<int>('LOGIN_MAX_FAILURES') ?? 10;
 
   /// Seconds an IP stays locked after [loginMaxFailures] failures.
-  int get loginLockSeconds => find<int>('LOGIN_LOCK_SECONDS') ?? 15 * 60;
+  int get loginLockSeconds => tryFind<int>('LOGIN_LOCK_SECONDS') ?? 15 * 60;
 
   /// Milliseconds to wait before answering a failed login.
-  int get loginFailureDelayMs => find<int>('LOGIN_FAILURE_DELAY_MS') ?? 1000;
+  int get loginFailureDelayMs => tryFind<int>('LOGIN_FAILURE_DELAY_MS') ?? 1000;
 
   String get adminPrefix {
     final String key = 'ADMIN_PREFIX';
     final String defaultValue = '_admin';
-    final raw = find<String>(key) ?? defaultValue;
+    final raw = tryFind<String>(key) ?? defaultValue;
     return _normalize(key, raw);
   }
 
   List<String> get reservedBucketNames {
     final String key = 'RESERVED_BUCKET_NAMES';
-    final rawList = find<List<String>>(key) ?? [];
+    final rawList = tryFind<List<String>>(key) ?? [];
     return [...rawList.map((e) => _normalize(key, e)), adminPrefix];
   }
 
@@ -110,8 +111,8 @@ extension ExtendedEnv on Env {
   /// line (for a log collector), anything else readable lines; `LOG_LEVEL`
   /// (`debug`, `info`, `warning`, `error`) is `info` by default.
   WinterLogger get serviceLogger {
-    final level = findEnum('LOG_LEVEL', LogLevel.values) ?? LogLevel.info;
-    return find<String>('LOG_FORMAT') == 'json'
+    final level = tryFindEnum('LOG_LEVEL', LogLevel.values) ?? LogLevel.info;
+    return tryFind<String>('LOG_FORMAT') == 'json'
         ? JsonLogger(minLevel: level)
         : ConsoleLogger(minLevel: level);
   }

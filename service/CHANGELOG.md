@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-rc.8 (unreleased)
+
+- Winter `1.0.0`, its first stable version. Its API changed names before 1.0: an optional variable
+  is `env.tryFind` (`find` now fails when it is missing, like `di.find`) and `AuthFilter` takes
+  `rule:` instead of `rules:`.
+
 ## 1.0.0-rc.7 (2026-10-25)
 
 - Winter `1.0.0-rc.6`. The route table logged at start-up was a single line full of `\n` and
