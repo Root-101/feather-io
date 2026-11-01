@@ -19,6 +19,38 @@ and create access keys per bucket.
 > **Status: stable (`1.0.0`).** Everything below works and is tested against real S3 clients; from
 > here on, a breaking change of the S3 or admin API needs a new major version.
 
+## Why Feather IO
+
+### Where it comes from
+
+- **MinIO stopped being an open option.** It was the usual answer for self-hosted S3, until it
+  stopped publishing its open-source images and binaries. The alternatives didn't fit either:
+  [Garage](https://garagehq.deuxfleurs.fr/) and others are hard to set up, have no web console, or
+  take a lot of resources.
+- **Hosting is paid by the megabyte.** MinIO, SeaweedFS and the like are heavy services: in the
+  [benchmarks](service/tool/benchmark/RESULTS.md) MinIO starts at ~120 MiB and passes 300 MiB as
+  soon as it gets traffic. On a small VPS or a platform that bills memory, every megabyte counts.
+- **Most of them are built for a scale small projects never reach**, with a thousand options to
+  match. Feather IO goes the other way: it is made for small and medium projects. It doesn't break
+  under load, but huge volumes are not who it is for.
+
+### What it is today
+
+An S3-compatible storage that is easy to deploy and to use, with a web console and every basic
+feature (see below), in one process that starts with **~12 MiB of memory** and a 24 MB Docker
+image.
+
+### Where it's going
+
+More robust, with more features, and a project people can trust: it runs in the infrastructure of
+its author's own projects, so it will keep being maintained, and it will stay open source (Apache
+2.0): what happened to MinIO won't happen here. Always keeping its core: **easy to use and to
+deploy, and very lightweight.**
+
+Next, after 1.0: listings and ListBuckets backed by an index in SQLite (for buckets of hundreds of
+thousands of objects), faster reads of small objects, renaming folders, searching a whole folder
+from the console, and a higher rate limit for signed requests. See [`ROADMAP.md`](ROADMAP.md).
+
 ## What it supports
 
 |                |                                                                                                                                                                                                                                                             |
@@ -167,12 +199,6 @@ a PDF and images: [`docs/design/`](docs/design/README.md).
   keys, anonymous access…) and the data behind them.
 - [`ROADMAP.md`](ROADMAP.md): where it stands and what comes next.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`SECURITY.md`](SECURITY.md).
-
-## What comes next
-
-After 1.0: listings and ListBuckets backed by an index in SQLite (for buckets of hundreds of
-thousands of objects), faster reads of small objects, renaming folders, searching a whole folder
-from the console, and a higher rate limit for signed requests. See [`ROADMAP.md`](ROADMAP.md).
 
 ## License
 
