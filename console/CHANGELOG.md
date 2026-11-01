@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 (2026-10-31)
+
+- No changes; released with the new changelog at the root of the repository.
+
 ## 1.0.1 (2026-10-31)
 
 - No changes; released with the fix of the service.
