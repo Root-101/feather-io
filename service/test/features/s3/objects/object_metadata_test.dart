@@ -1,11 +1,13 @@
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
 import '../../../support/test_server.dart';
@@ -33,7 +35,12 @@ void main() {
 
   group('S3Controller - Object metadata', () {
     test('Should keep the headers and x-amz-meta-* of the upload', () async {
-      await server.putObject(bucket, 'photo.bin', 'jpg', headers: uploadHeaders);
+      await server.putObject(
+        bucket,
+        'photo.bin',
+        'jpg',
+        headers: uploadHeaders,
+      );
 
       final response = await head('photo.bin');
       expect(response.statusCode, 200);
@@ -54,7 +61,9 @@ void main() {
 
     test('Should keep the ETag and headers of the stored content with parallel PUTs of a key', () async {
       // Same size, so a row saved with the stat of another upload would never be recomputed
-      final bodies = [for (var i = 0; i < 12; i++) 'body-${'$i'.padLeft(2, '0')}'];
+      final bodies = [
+        for (var i = 0; i < 12; i++) 'body-${'$i'.padLeft(2, '0')}',
+      ];
       final responses = await Future.wait([
         for (final (i, body) in bodies.indexed)
           http.put(
@@ -72,7 +81,10 @@ void main() {
         headers: server.auth(),
       );
       expect(object.headers['etag'], '"${md5.convert(object.bodyBytes)}"');
-      expect(object.headers['x-amz-meta-index'], '${bodies.indexOf(object.body)}');
+      expect(
+        object.headers['x-amz-meta-index'],
+        '${bodies.indexOf(object.body)}',
+      );
     });
 
     test('Should not store the other request headers', () async {
@@ -92,23 +104,37 @@ void main() {
       expect((await head('no-type.png')).headers['content-type'], 'image/png');
     });
 
-    test('Should replace the metadata when the object is overwritten', () async {
-      await server.putObject(bucket, 'changes.bin', '1', headers: uploadHeaders);
-      await server.putObject(
-        bucket,
-        'changes.bin',
-        '2',
-        headers: {'content-type': 'text/csv'},
-      );
+    test(
+      'Should replace the metadata when the object is overwritten',
+      () async {
+        await server.putObject(
+          bucket,
+          'changes.bin',
+          '1',
+          headers: uploadHeaders,
+        );
+        await server.putObject(
+          bucket,
+          'changes.bin',
+          '2',
+          headers: {'content-type': 'text/csv'},
+        );
 
-      final response = await head('changes.bin');
-      expect(response.headers['content-type'], 'text/csv');
-      expect(response.headers['x-amz-meta-author'], isNull);
-    });
+        final response = await head('changes.bin');
+        expect(response.headers['content-type'], 'text/csv');
+        expect(response.headers['x-amz-meta-author'], isNull);
+      },
+    );
 
     test('Should keep the metadata when the file changes outside', () async {
-      await server.putObject(bucket, 'outside.bin', 'before', headers: uploadHeaders);
-      await File('${server.storagePath}/$bucket/outside.bin').writeAsString('after!');
+      await server.putObject(
+        bucket,
+        'outside.bin',
+        'before',
+        headers: uploadHeaders,
+      );
+      await File('${server.storagePath}/$bucket/outside.bin')
+          .writeAsString('after!');
 
       final response = await head('outside.bin');
       expect(response.headers['content-length'], '6');
@@ -127,7 +153,9 @@ void main() {
           },
         );
 
-    setUpAll(() => server.putObject(bucket, 'source.bin', 'o', headers: uploadHeaders));
+    setUpAll(
+      () => server.putObject(bucket, 'source.bin', 'o', headers: uploadHeaders),
+    );
 
     test('Should copy the metadata of the source by default', () async {
       final response = await copy('copy.bin', {'content-type': 'text/plain'});
@@ -168,7 +196,10 @@ void main() {
       );
       final completed = await http.post(
         server.url('/$bucket/parts.bin?uploadId=$uploadId'),
-        headers: {...server.auth(json: true), 'content-type': 'application/json'},
+        headers: {
+          ...server.auth(json: true),
+          'content-type': 'application/json',
+        },
         body: jsonEncode({
           'parts': [
             {'part_number': 1, 'etag': part.headers['etag']},
@@ -213,33 +244,87 @@ void main() {
       );
       expect(response.statusCode, 400);
       expect(response.body, contains('<Code>InvalidStorageClass</Code>'));
-      expect(await File('${server.storagePath}/$bucket/bad.bin').exists(), isFalse);
-    });
-
-    test('Should take the class of the copy request, not of the source', () async {
-      await server.putObject(
-        bucket,
-        'class-source.bin',
-        'x',
-        headers: {'x-amz-storage-class': 'GLACIER', 'x-amz-meta-author': 'alice'},
+      expect(
+        await File('${server.storagePath}/$bucket/bad.bin').exists(),
+        isFalse,
       );
-      Future<http.Response> copy(String target, [String? storageClass]) =>
-          http.put(
-            server.url('/$bucket/$target'),
-            headers: {
-              ...server.auth(),
-              'x-amz-copy-source': '/$bucket/class-source.bin',
-              'x-amz-storage-class': ?storageClass,
-            },
-          );
-
-      expect((await copy('class-ia.bin', 'STANDARD_IA')).statusCode, 200);
-      final ia = await head('class-ia.bin');
-      expect(ia.headers['x-amz-storage-class'], 'STANDARD_IA');
-      expect(ia.headers['x-amz-meta-author'], 'alice');
-
-      expect((await copy('class-normal.bin')).statusCode, 200);
-      expect((await head('class-normal.bin')).headers['x-amz-storage-class'], isNull);
     });
+
+    test(
+      'Should take the class of the copy request, not of the source',
+      () async {
+        await server.putObject(
+          bucket,
+          'class-source.bin',
+          'x',
+          headers: {
+            'x-amz-storage-class': 'GLACIER',
+            'x-amz-meta-author': 'alice',
+          },
+        );
+        Future<http.Response> copy(String target, [String? storageClass]) =>
+            http.put(
+              server.url('/$bucket/$target'),
+              headers: {
+                ...server.auth(),
+                'x-amz-copy-source': '/$bucket/class-source.bin',
+                'x-amz-storage-class': ?storageClass,
+              },
+            );
+
+        expect((await copy('class-ia.bin', 'STANDARD_IA')).statusCode, 200);
+        final ia = await head('class-ia.bin');
+        expect(ia.headers['x-amz-storage-class'], 'STANDARD_IA');
+        expect(ia.headers['x-amz-meta-author'], 'alice');
+
+        expect((await copy('class-normal.bin')).statusCode, 200);
+        expect(
+          (await head('class-normal.bin')).headers['x-amz-storage-class'],
+          isNull,
+        );
+      },
+    );
+  });
+
+  group('ObjectService.forKey', () {
+    test(
+      'Should run the bodies of one object one after another, in order',
+      () async {
+        final first = Completer<void>();
+        final order = <String>[];
+        final a = ObjectService.forKey('b', 'k', () async {
+          await first.future;
+          order.add('a');
+        });
+        final b = ObjectService.forKey('b', 'k', () async => order.add('b'));
+        await Future<void>.delayed(Duration.zero);
+        expect(order, isEmpty);
+        first.complete();
+        await Future.wait([a, b]);
+        expect(order, ['a', 'b']);
+      },
+    );
+
+    test('Should not make other objects wait', () async {
+      final blocked = Completer<void>();
+      final slow = ObjectService.forKey('b', 'slow', () => blocked.future);
+      expect(await ObjectService.forKey('b', 'other', () async => 1), 1);
+      blocked.complete();
+      await slow;
+    });
+
+    test(
+      'Should go on after a body fails, giving its error to its caller',
+      () async {
+        final failed = ObjectService.forKey<void>(
+          'b',
+          'k2',
+          () async => throw StateError('x'),
+        );
+        final next = ObjectService.forKey('b', 'k2', () async => 'ok');
+        await expectLater(failed, throwsStateError);
+        expect(await next, 'ok');
+      },
+    );
   });
 }
