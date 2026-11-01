@@ -50,9 +50,9 @@ Overall **8**; within its scope it can reach **8.5–9**.
 - Performance (`service/tool/benchmark/RESULTS.md`, *What would improve it*):
     - [ ] ListBuckets from the `object_meta` table (a `SUM`/`COUNT` by bucket) instead of walking
       every object of the storage: ~1 s with 16 000 objects, ~6 s with 100 000.
-    - [ ] Reads of small objects: 2047 GETs/s of 1 KiB against MinIO's 7629. A memory cache of the
+    - [ ] Reads of small objects: 1705 GETs/s of 1 KiB against MinIO's 6259. A memory cache of the
       metadata of the hot objects would cut the fixed cost of each GET.
-    - [ ] Profile big single uploads: a PUT of 16 MiB stays at ~147 MiB/s against MinIO's 477.
+    - [ ] Profile big single uploads: a PUT of 16 MiB stays at ~153 MiB/s against MinIO's 364.
     - [ ] An index of keys (from `object_meta`) for listings, constant per page whatever the size of
       the folder.
 - [ ] A higher general rate limit (or none) for signed requests: one machine with many parallel
