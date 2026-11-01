@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 (2026-10-31)
+
+- Two uploads of the same key at once (PutObject, CopyObject or CompleteMultipartUpload) could
+  leave the content of one with the headers (`Content-Type`, `x-amz-meta-*`…) of the other: moving
+  the file into place and saving its metadata now happen together, one upload of a key after the
+  other.
+
 ## 1.0.0 (2026-10-31)
 
 The first stable version, after seven release candidates: the S3 API within its scope (objects,
