@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-rc.8 (unreleased)
+
+- Text is no longer selectable with the mouse.
+- The rows of the bucket and object tables show the hand cursor and underline the name under the
+  mouse, like a link.
+- Clicking an object opens its details (before, only folders did something).
+- A right click on a bucket or an object opens its menu (the one of the three dots) at the cursor;
+  the browser's own context menu is disabled.
+
 ## 1.0.0-rc.7 (2026-10-25)
 
 - New login: the brand next to the form over the dot grid (stacked in narrow windows), a hint with

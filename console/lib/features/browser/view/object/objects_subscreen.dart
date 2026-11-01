@@ -16,7 +16,6 @@ class ObjectsSubscreen extends StatefulWidget {
   final VoidCallback onRefresh;
   final VoidCallback onBack;
   final VoidCallback onForward;
-  final Function(BrowserObjectModel) onSelected;
   final Function(ViewType) onViewTypeChanged;
   final Function(List<String> keys) onDelete;
   final Function(List<XFile> files) onUpload;
@@ -36,7 +35,6 @@ class ObjectsSubscreen extends StatefulWidget {
     required this.onRefresh,
     required this.onBack,
     required this.onForward,
-    required this.onSelected,
     required this.onViewTypeChanged,
     required this.onDelete,
     required this.onUpload,
@@ -279,18 +277,12 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
     );
   }
 
-  void _onShowObjectOptions(BrowserObjectWrapper wrapper, RenderBox buttonBox) {
+  void _onShowObjectOptions(BrowserObjectWrapper wrapper, Rect anchor) {
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
 
     final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        buttonBox.localToGlobal(Offset.zero, ancestor: overlay),
-        buttonBox.localToGlobal(
-          buttonBox.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
+      anchor.shift(overlay.globalToLocal(Offset.zero)),
       Offset.zero & overlay.size,
     );
 
@@ -690,7 +682,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                               searchController: _searchController,
                               hasActiveFilter: _filter.isActive,
                               onNavigate: widget.onNavigate,
-                              onSelected: widget.onSelected,
+                              onSelected: _onDetails,
                               onSelectionChanged: _onSelectionChanged,
                               onShowOptions: _onShowObjectOptions,
                             )
@@ -701,7 +693,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                               searchController: _searchController,
                               hasActiveFilter: _filter.isActive,
                               onNavigate: widget.onNavigate,
-                              onSelected: widget.onSelected,
+                              onSelected: _onDetails,
                               onSelectionChanged: _onSelectionChanged,
                               onShowOptions: _onShowObjectOptions,
                             ),

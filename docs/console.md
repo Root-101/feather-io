@@ -102,8 +102,8 @@ and the filters look at the pages already loaded.
 
 ![Objects, grid view](design/screens/09-objects-grid.png)
 
-The menu of an object opens its details, shares it, renames it, moves it, downloads it or deletes
-it:
+Clicking an object opens its details. Its menu (the three dots, or a right click) opens them too,
+shares it, renames it, moves it, downloads it or deletes it:
 
 ![Object menu](design/screens/10-objects-menu.png)
 

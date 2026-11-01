@@ -643,9 +643,8 @@ nothing happens.
   `AppFormInput`, `AppTextSearchField`, `ConfirmDialog`, `FormDrawerTemplate`, colors/dimensions
   from `app.*`. Spacing with `.gap()`.
 - Shared states: `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`, `NoDataPage(title: …)`.
-- All text is mouse-selectable through one `AppSelectionArea` in `MaterialApp.builder` (
-  `main.dart`), which covers screens, dialogs and drawers. Don't add `SelectionArea` or
-  `SelectableText` in widgets.
+- Text is not mouse-selectable: don't add `SelectionArea` or `SelectableText`. Table rows are
+  clickable as a whole (hand cursor, and the name of the hovered row underlined, like a link).
 - Access cubits with `context.read<T>()` or `app.di.find<T>()`. Keep widgets small.
 - Write `BlocListener`/`BlocConsumer` listeners inline in `build` (
   `listener: (context, state) { … }`), never extracted to a separate method such as `_onState`.
