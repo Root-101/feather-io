@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 (2026-10-31)
+
+- No changes; released with the fix of the service.
+
 ## 1.0.0 (2026-10-31)
 
 The first stable version: object browser (list and grid, previews, drag & drop, a background
