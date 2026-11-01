@@ -1,6 +1,6 @@
 # Test results (full run from scratch)
 
-Run on **2026-10-22** on commit `8304b48` (`feature/audit_fixes`) with uncommitted changes,
+Run on **2026-10-31** on commit `f81db89` (`feature/console_table_hover`),
 on Windows 11 with Docker version 29.4.1, build 055a478.
 Generated with `service/tool/s3_compat/report.py`; to repeat it, see *Full test run* in `CLAUDE.md`.
 
@@ -9,7 +9,7 @@ Generated with `service/tool/s3_compat/report.py`; to repeat it, see *Full test 
 | `dart analyze` (service)            | No issues                                                                                                                                          |
 | `flutter analyze` (console)         | 1 issue (see the output)                                                                                                                           |
 | `dart test` (service)               | **548/548** in 42 files                                                                                                                            |
-| `flutter test` (console)            | **142/142** in 20 files                                                                                                                            |
+| `flutter test` (console)            | **147/147** in 23 files                                                                                                                            |
 | AWS CLI v2 (`aws-cli/2.37.9`)       | **34/34**                                                                                                                                          |
 | rclone (`rclone v1.75.1`)           | **19/19**                                                                                                                                          |
 | MinIO Mint (15 suites)              | No failures: `aws-sdk-java`, `aws-sdk-java-v2`, `s3cmd`. Finish with out-of-scope failures: `minio-go`, `minio-java`. Unclassified failures: **0** |
@@ -80,10 +80,13 @@ Cubits, repos and models, on the VM.
 | `bucket_cubit_test.dart`           |   7/7 | Bucket list: load, delete and empty with bus notices, changes from other sections.                                                                       |
 | `bucket_form_cubit_test.dart`      |   5/5 | Bucket drawer: create, edit, 422 per field, 409 on the name.                                                                                             |
 | `bucket_repo_test.dart`            |   4/4 | Bucket mapping and create/update requests, API errors.                                                                                                   |
+| `login_screen_test.dart`           |   2/2 | Login layout: the brand with its pitch next to the form when wide, stacked without it when narrow.                                                       |
+| `messages_test.dart`               |   2/2 | Texts of the language, its region or English by default; plurals and named placeholders.                                                                 |
 | `object_action_cubit_test.dart`    |   5/5 | Create folder, rename, move (also failing halfway) and their bus notices.                                                                                |
 | `object_dialogs_cubit_test.dart`   | 11/11 | Move target folders, object details with thumbnail, shared link expiry and stale responses.                                                              |
 | `object_models_test.dart`          | 13/13 | Object name validation, the type/size/date filters and the type a preview opens with.                                                                    |
 | `route_config_test.dart`           |   4/4 | Where to go after login: only internal paths (open redirect).                                                                                            |
+| `splash_screen_test.dart`          |   1/1 | The splash shows the same texts as the one of index.html.                                                                                                |
 | `transfer_client_test.dart`        |   4/4 | Uploads send the Content-Type of the key, not the JSON default of Dio, and the key encoded in the URL.                                                   |
 | `transfer_cubit_test.dart`         | 13/13 | Transfer queue: 2 at a time, bucket notices, retry, cancel, progress, multipart parts and abort, zip downloads.                                          |
 | `transfer_repo_test.dart`          |   4/4 | Cancelling a transfer, multipart parts sent to complete, API errors.                                                                                     |
