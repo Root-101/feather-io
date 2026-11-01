@@ -79,17 +79,41 @@ class ObjectService {
     final temp = await _tempFile();
     final etag = await Md5Tap.write(monitoredStream, temp);
     final file = _getFile(bucketName, key);
-    final stat = await replaceFile(temp, file, key: key);
-
-    await objectMeta.save(
-      bucketName: bucketName,
-      key: key,
-      file: file,
-      stat: stat,
-      etag: etag,
-      headers: headers,
-    );
+    await forKey(bucketName, key, () async {
+      final stat = await replaceFile(temp, file, key: key);
+      await objectMeta.save(
+        bucketName: bucketName,
+        key: key,
+        file: file,
+        stat: stat,
+        etag: etag,
+        headers: headers,
+      );
+    });
     return etag;
+  }
+
+  static final Map<String, Future<void>> _keyQueues = {};
+
+  /// Runs [body] once every other [forKey] of the same object has finished.
+  /// Moving a file into place and saving its metadata go together in it:
+  /// otherwise two uploads of a key at once could leave the file of one and
+  /// the headers of the other (rename A, rename B, save B, save A). Only within
+  /// this process, which is the only one writing the volume.
+  static Future<T> forKey<T>(
+    String bucketName,
+    String key,
+    Future<T> Function() body,
+  ) {
+    final id = '$bucketName/$key';
+    final result = (_keyQueues[id] ?? Future<void>.value()).then((_) => body());
+    // The queue goes on after a failure, and forgets the key once it is idle
+    final done = result.then<void>((_) {}, onError: (_) {});
+    _keyQueues[id] = done;
+    done.then((_) {
+      if (identical(_keyQueues[id], done)) _keyQueues.remove(id);
+    });
+    return result;
   }
 
   /// Folder of the files being written. It starts with a dot, so it isn't a
@@ -460,25 +484,25 @@ class ObjectService {
     final etag = sourceMeta.etag;
     final target = _getFile(bucketName, key);
     FileStat? copied;
-    if (!sameObject) {
-      // Like uploads: copied aside and moved at the end
-      final temp = await _tempFile();
-      await source.copy(temp.path);
-      copied = await replaceFile(temp, target, key: key);
-    }
-    await objectMeta.save(
-      bucketName: bucketName,
-      key: key,
-      file: target,
-      stat: copied,
-      etag: etag,
-      headers: {
-        for (final MapEntry(key: name, :value)
-            in (headers ?? sourceMeta.headers).entries)
-          if (name != 'x-amz-storage-class') name: value,
-        'x-amz-storage-class': ?storageClass,
-      },
-    );
+    // Like uploads: copied aside and moved at the end
+    final temp = sameObject ? null : await _tempFile();
+    if (temp != null) await source.copy(temp.path);
+    await forKey(bucketName, key, () async {
+      if (temp != null) copied = await replaceFile(temp, target, key: key);
+      await objectMeta.save(
+        bucketName: bucketName,
+        key: key,
+        file: target,
+        stat: copied,
+        etag: etag,
+        headers: {
+          for (final MapEntry(key: name, :value)
+              in (headers ?? sourceMeta.headers).entries)
+            if (name != 'x-amz-storage-class') name: value,
+          'x-amz-storage-class': ?storageClass,
+        },
+      );
+    });
 
     final stat = copied ?? await target.stat();
     return FileModel(
