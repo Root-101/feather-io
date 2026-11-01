@@ -6,7 +6,7 @@ class BucketsGridDatasource extends StatelessWidget {
   final TextEditingController searchController;
   final List<BucketModel> filteredBuckets;
   final Function(BucketModel) onSelected;
-  final Function(BucketModel bucket, RenderBox box) onShowOptions;
+  final Function(BucketModel bucket, Rect anchor) onShowOptions;
   final int crossAxisCount;
 
   const BucketsGridDatasource({
@@ -62,7 +62,7 @@ class BucketsGridDatasource extends StatelessWidget {
 class _BucketGridItem extends StatefulWidget {
   final BucketModel bucket;
   final VoidCallback onTap;
-  final Function(BucketModel bucket, RenderBox box) onShowOptions;
+  final Function(BucketModel bucket, Rect anchor) onShowOptions;
 
   const _BucketGridItem({
     required this.bucket,
@@ -86,6 +86,10 @@ class _BucketGridItemState extends State<_BucketGridItem> {
         children: [
           InkWell(
             onTap: widget.onTap,
+            onSecondaryTapDown: (d) => widget.onShowOptions(
+              widget.bucket,
+              d.globalPosition & Size.zero,
+            ),
             child: Container(
               padding: EdgeInsets.all(app.dimensions.padding.xl),
               decoration: BoxDecoration(
@@ -210,9 +214,11 @@ class _BucketGridItemState extends State<_BucketGridItem> {
                       color: app.colors.neutral.grey2,
                     ),
                     onPressed: () {
-                      final RenderBox box =
-                          context.findRenderObject() as RenderBox;
-                      widget.onShowOptions(widget.bucket, box);
+                      final box = context.findRenderObject() as RenderBox;
+                      widget.onShowOptions(
+                        widget.bucket,
+                        box.localToGlobal(Offset.zero) & box.size,
+                      );
                     },
                   );
                 },

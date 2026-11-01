@@ -1,6 +1,8 @@
 import 'package:console/app_exporter.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart' as old;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -50,6 +52,9 @@ void main() {
   GoRouter.optionURLReflectsImperativeAPIs = true;
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // a right click opens the app's menus, not the browser's
+  if (kIsWeb) BrowserContextMenu.disableContextMenu();
 
   // error handling
   /*FlutterError.onError = (errorDetails) {
@@ -112,7 +117,7 @@ class App extends StatelessWidget {
                 child: MaterialUiCompatibilityBridge(
                   child: old.Material(
                     type: old.MaterialType.transparency,
-                    child: AppSelectionArea(child: child!),
+                    child: child!,
                   ),
                 ),
               );

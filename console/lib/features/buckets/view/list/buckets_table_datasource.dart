@@ -7,7 +7,7 @@ class BucketsTableDatasource extends StatefulWidget {
   final TextEditingController searchController;
   final List<BucketModel> filteredBuckets;
   final Function(BucketModel) onSelected;
-  final Function(BucketModel bucket, RenderBox box) onShowOptions;
+  final Function(BucketModel bucket, Rect anchor) onShowOptions;
 
   const BucketsTableDatasource({
     required this.state,
@@ -154,7 +154,7 @@ class _BucketsTableDatasourceState extends State<BucketsTableDatasource> {
 class _BucketsDataSource extends DataGridSource {
   final List<BucketModel> buckets;
   final void Function(BucketModel bucket) onRowTap;
-  final void Function(BucketModel bucket, RenderBox box) onShowOptions;
+  final void Function(BucketModel bucket, Rect anchor) onShowOptions;
 
   final ValueNotifier<BucketModel?> hoveredBucket = ValueNotifier(null);
 
@@ -198,9 +198,12 @@ class _BucketsDataSource extends DataGridSource {
                         ),
                         onPressed: isHovered
                             ? () {
-                                final RenderBox box =
+                                final box =
                                     context.findRenderObject() as RenderBox;
-                                onShowOptions(bucket, box);
+                                onShowOptions(
+                                  bucket,
+                                  box.localToGlobal(Offset.zero) & box.size,
+                                );
                               }
                             : null,
                         padding: const EdgeInsets.all(4.0),
@@ -213,14 +216,22 @@ class _BucketsDataSource extends DataGridSource {
             },
           );
         } else {
+          final bool isName = cell.columnName == 'name';
           content = Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                cell.value.toString(),
-                style: app.textTheme.bodyMedium?.copyWith(
-                  color: app.colors.neutral.white,
+              child: ValueListenableBuilder<BucketModel?>(
+                valueListenable: hoveredBucket,
+                builder: (context, hovered, _) => Text(
+                  cell.value.toString(),
+                  style: app.textTheme.bodyMedium?.copyWith(
+                    color: app.colors.neutral.white,
+                    // the name of the row under the mouse, like a link
+                    decoration: isName && hovered == bucket
+                        ? TextDecoration.underline
+                        : null,
+                  ),
                 ),
               ),
             ),
@@ -234,6 +245,8 @@ class _BucketsDataSource extends DataGridSource {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onRowTap(bucket),
+            onSecondaryTapDown: (d) =>
+                onShowOptions(bucket, d.globalPosition & Size.zero),
             child: content,
           ),
         );

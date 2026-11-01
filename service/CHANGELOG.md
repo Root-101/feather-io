@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 (2026-10-31)
+
+The first stable version, after seven release candidates: the S3 API within its scope (objects,
+folders, ListObjects V1/V2, multipart, presigned URLs, `aws-chunked`), SigV4 and JWT, access keys
+per bucket, anonymous rules, rate limits, the admin API with OpenAPI, metadata in SQLite, health
+check, structured logs and a 24 MB Docker image. AWS CLI 34/34, rclone 19/19 and MinIO Mint without
+failures in scope (`service/tool/s3_compat/RESULTS.md`); benchmarks in
+`service/tool/benchmark/RESULTS.md`.
+
+- Winter `1.0.0`, its first stable version. Its API changed names before 1.0: an optional variable
+  is `env.tryFind` (`find` now fails when it is missing, like `di.find`) and `AuthFilter` takes
+  `rule:` instead of `rules:`.
+
 ## 1.0.0-rc.7 (2026-10-25)
 
 - Winter `1.0.0-rc.6`. The route table logged at start-up was a single line full of `\n` and

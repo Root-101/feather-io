@@ -74,7 +74,8 @@ be searched and seen as a list or as cards. Opening a bucket enters it.
 
 ![Buckets, grid view](design/screens/04-buckets-grid.png)
 
-The menu of each bucket opens its settings (in *Buckets*), edits it or deletes it.
+The menu of each bucket (the three dots, or a right click) opens its settings (in *Buckets*),
+edits it or deletes it.
 
 **Create bucket** opens a drawer: the name is checked as you type against the S3 rules (3 to 63
 characters, lowercase letters, numbers and hyphens, no hyphen at the ends), with an optional
@@ -102,8 +103,8 @@ and the filters look at the pages already loaded.
 
 ![Objects, grid view](design/screens/09-objects-grid.png)
 
-The menu of an object opens its details, shares it, renames it, moves it, downloads it or deletes
-it:
+Clicking an object opens its details. Its menu (the three dots, or a right click) opens them too,
+shares it, renames it, moves it, downloads it or deletes it:
 
 ![Object menu](design/screens/10-objects-menu.png)
 

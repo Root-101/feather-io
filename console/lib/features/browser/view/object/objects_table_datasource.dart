@@ -14,9 +14,9 @@ class ObjectsTableDatasource extends StatefulWidget {
   /// A type/size/date filter is active (it changes the empty list message)
   final bool hasActiveFilter;
   final Function(String prefix) onNavigate;
-  final Function(BrowserObjectModel) onSelected;
+  final Function(BrowserObjectWrapper) onSelected;
   final Function(List<BrowserObjectWrapper> selected) onSelectionChanged;
-  final Function(BrowserObjectWrapper wrapper, RenderBox box) onShowOptions;
+  final Function(BrowserObjectWrapper wrapper, Rect anchor) onShowOptions;
 
   const ObjectsTableDatasource({
     required this.state,
@@ -73,10 +73,7 @@ class _ObjectsTableDatasourceState extends State<ObjectsTableDatasource> {
         if (wrapper.isFolder) {
           widget.onNavigate(wrapper.fullPath);
         } else {
-          final obj = widget.state.objects!.objects.firstWhere(
-            (o) => o.key == wrapper.fullPath,
-          );
-          widget.onSelected(obj);
+          widget.onSelected(wrapper);
         }
       },
     );
@@ -260,8 +257,7 @@ class _ObjectsTableDatasourceState extends State<ObjectsTableDatasource> {
 class _ObjectsDataSource extends DataGridSource {
   final List<BrowserObjectWrapper> wrappers;
   final void Function(BrowserObjectWrapper wrapper) onRowTap;
-  final void Function(BrowserObjectWrapper wrapper, RenderBox box)
-  onShowOptions;
+  final void Function(BrowserObjectWrapper wrapper, Rect anchor) onShowOptions;
   final ValueNotifier<BrowserObjectWrapper?> hoveredWrapper = ValueNotifier(
     null,
   );
@@ -306,9 +302,12 @@ class _ObjectsDataSource extends DataGridSource {
                         ),
                         onPressed: isHovered
                             ? () {
-                                final RenderBox box =
+                                final box =
                                     context.findRenderObject() as RenderBox;
-                                onShowOptions(wrapper, box);
+                                onShowOptions(
+                                  wrapper,
+                                  box.localToGlobal(Offset.zero) & box.size,
+                                );
                               }
                             : null,
                         padding: const EdgeInsets.all(4.0),
@@ -329,12 +328,19 @@ class _ObjectsDataSource extends DataGridSource {
                 Icon(fileInfo.icon, size: 18, color: app.colors.neutral.grey2),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    wrapper.name,
-                    style: app.textTheme.bodyMedium?.copyWith(
-                      color: app.colors.neutral.white,
+                  child: ValueListenableBuilder<BrowserObjectWrapper?>(
+                    valueListenable: hoveredWrapper,
+                    builder: (context, hovered, _) => Text(
+                      wrapper.name,
+                      style: app.textTheme.bodyMedium?.copyWith(
+                        color: app.colors.neutral.white,
+                        // the name of the row under the mouse, like a link
+                        decoration: hovered == wrapper
+                            ? TextDecoration.underline
+                            : null,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -358,12 +364,12 @@ class _ObjectsDataSource extends DataGridSource {
         return MouseRegion(
           onEnter: (_) => hoveredWrapper.value = wrapper,
           onExit: (_) => hoveredWrapper.value = null,
-          cursor: wrapper.isFolder
-              ? SystemMouseCursors.click
-              : SystemMouseCursors.basic,
+          cursor: SystemMouseCursors.click,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onRowTap(wrapper),
+            onSecondaryTapDown: (d) =>
+                onShowOptions(wrapper, d.globalPosition & Size.zero),
             child: content,
           ),
         );

@@ -12,9 +12,9 @@ class ObjectsGridDatasource extends StatelessWidget {
   /// A type/size/date filter is active (it changes the empty list message)
   final bool hasActiveFilter;
   final Function(String prefix) onNavigate;
-  final Function(BrowserObjectModel) onSelected;
+  final Function(BrowserObjectWrapper) onSelected;
   final Function(List<BrowserObjectWrapper> selected) onSelectionChanged;
-  final Function(BrowserObjectWrapper wrapper, RenderBox box) onShowOptions;
+  final Function(BrowserObjectWrapper wrapper, Rect anchor) onShowOptions;
 
   const ObjectsGridDatasource({
     required this.state,
@@ -94,8 +94,8 @@ class _ObjectGridItem extends StatefulWidget {
   final bool isSelected;
   final bool anySelected;
   final Function(String prefix) onNavigate;
-  final Function(BrowserObjectModel) onSelected;
-  final Function(BrowserObjectWrapper wrapper, RenderBox box) onShowOptions;
+  final Function(BrowserObjectWrapper) onSelected;
+  final Function(BrowserObjectWrapper wrapper, Rect anchor) onShowOptions;
   final VoidCallback onToggleSelection;
 
   const _ObjectGridItem({
@@ -129,12 +129,13 @@ class _ObjectGridItemState extends State<_ObjectGridItem> {
               if (widget.wrapper.isFolder) {
                 widget.onNavigate(widget.wrapper.fullPath);
               } else {
-                final obj = widget.state.objects!.objects.firstWhere(
-                  (o) => o.key == widget.wrapper.fullPath,
-                );
-                widget.onSelected(obj);
+                widget.onSelected(widget.wrapper);
               }
             },
+            onSecondaryTapDown: (d) => widget.onShowOptions(
+              widget.wrapper,
+              d.globalPosition & Size.zero,
+            ),
             borderRadius: app.dimensions.border.borderRadius.s,
             child: Container(
               width: double.infinity,
@@ -248,9 +249,11 @@ class _ObjectGridItemState extends State<_ObjectGridItem> {
                       color: app.colors.neutral.grey2,
                     ),
                     onPressed: () {
-                      final RenderBox box =
-                          context.findRenderObject() as RenderBox;
-                      widget.onShowOptions(widget.wrapper, box);
+                      final box = context.findRenderObject() as RenderBox;
+                      widget.onShowOptions(
+                        widget.wrapper,
+                        box.localToGlobal(Offset.zero) & box.size,
+                      );
                     },
                   );
                 },

@@ -46,21 +46,24 @@ LIST_DESC = 'ListObjectsV2 by pages of 100 keys, 8 clients, in a bucket of {n} o
 FINDINGS = [
     '**Within its size, it is fast and light.** With buckets of up to a few thousand objects every '
     'operation answers in milliseconds: a listing page in ~25 ms, a HEAD in ~2 ms, a GET of 1 MiB in '
-    '~10 ms. The process starts with **12 MiB** of memory and its peak in the whole run was '
-    '**414 MiB**, against MinIO\'s 126 MiB and 1.5 GiB.',
-    '**Uploads are as fast as MinIO or faster**, since SQLite runs in WAL mode: 2037 PUTs/s of 1 KiB '
-    '(MinIO 1040), and 159 vs 132 MiB/s with 1 MiB objects; with 32 clients 136 vs 86 MiB/s. The '
-    'exception is a big single upload: a PUT of 16 MiB reaches 147 MiB/s against 477.',
-    '**Reads carry a fixed cost per request**: 2047 GETs/s of 1 KiB against 7629 (3.7x), and about '
-    'half the throughput with 1 MiB objects (691 vs 1303 MiB/s). Each GET looks up the metadata in '
-    'SQLite and checks the file\'s size and date.',
+    '~11 ms. The process starts with **12 MiB** of memory and its peak in the whole run was '
+    '**434 MiB**, against MinIO\'s 122 MiB and 1.5 GiB.',
+    '**Small uploads and a single client beat MinIO; many clients with 1 MiB objects don\'t.** Since '
+    'SQLite runs in WAL mode: 1319 PUTs/s of 1 KiB (MinIO 840) and 114 vs 64 MiB/s with one client; '
+    'with 8 and 32 clients of 1 MiB objects 146 and 140 MiB/s against 224 and 306. A big single '
+    'upload is the weakest case: a PUT of 16 MiB reaches 153 MiB/s against 364. MinIO\'s numbers '
+    'move a lot between runs on this machine (132 and 86 MiB/s with 8 and 32 clients on '
+    '2026-10-09), feather-io\'s much less.',
+    '**Reads carry a fixed cost per request**: 1705 GETs/s of 1 KiB against 6259 (3.7x), and about '
+    'two thirds of the throughput with 1 MiB objects (746 vs 1115 MiB/s). Each GET looks up the '
+    'metadata in SQLite and checks the file\'s size and date.',
     '**A listing page costs what its folder holds, no longer what the bucket holds.** A page walks '
     'only the folder of the prefix (one level with the delimiter `/`, the console\'s) and reads the '
-    'metadata of its own 100 keys only: 25 ms with 1000 objects, 67 ms with 10 000 (MinIO 10 and '
-    '28 ms), and ~50 ms in a flat bucket of 10 000 objects listed from its root. ListBuckets still '
+    'metadata of its own 100 keys only: 24 ms with 1000 objects, 65 ms with 10 000 (MinIO 14 and '
+    '33 ms), and ~50 ms in a flat bucket of 10 000 objects listed from its root. ListBuckets still '
     'walks every object of every bucket: ~1 s with 16 000 objects in total.',
     '**The default rate limit (2000 requests/min per IP) caps one machine at ~33 requests/s.** With 8 '
-    'clients sharing an IP, 98 requests failed in a minute even after the SDK retries. It is the '
+    'clients sharing an IP, 105 requests failed in a minute even after the SDK retries. It is the '
     'emergency brake it was designed to be (`DECISIONS.md` §2), not a throttle: a bulk load from one '
     'machine needs it raised.',
 ]
@@ -78,16 +81,17 @@ HISTORY = [
 LIMITS = [
     '**Objects per folder.** A page costs what its folder holds: ~5 ms per thousand objects in it '
     '(~50 ms with 10 000 at one level). A bucket organized in folders scales with the size of each '
-    'folder, not of the bucket; listing a whole flat bucket of 10 000 objects takes ~5 s (100 '
+    'folder, not of the bucket; listing a whole flat bucket of 10 000 objects takes ~6 s (100 '
     'pages), and of 100 000 objects about 9 minutes by extrapolation, since every page walks the '
     'folder again.',
     '**Objects in the whole storage.** ListBuckets (the console\'s bucket list, and every S3 client '
     'that starts with `ls`) costs ~0.06 ms per stored object: 1 s with 16 000, ~6 s with 100 000.',
-    '**Reads of small objects.** ~2000 GETs/s of 1 KiB with 8 clients, a third of MinIO.',
+    '**Reads of small objects.** ~1700 GETs/s of 1 KiB with 8 clients, about a quarter of MinIO.',
     '**One machine at a time.** With the default rate limit a client of many parallel workers on one '
     'IP gets `SlowDown` above 2000 requests/min.',
     '**Memory grows with concurrency and big objects and is not given back:** ~70 MiB with small '
-    'objects, ~150 MiB with 1 MiB objects, ~400 MiB at the peak (multipart and 32 clients). It is '
+    'objects, ~150 MiB with 1 MiB objects, ~430 MiB at the peak (multipart and 32 clients, carried to '
+    'the listings that follow). It is '
     'the Dart heap keeping what it reached; plan ~512 MiB for a container.',
 ]
 IMPROVEMENTS = [
@@ -99,7 +103,7 @@ IMPROVEMENTS = [
     'listing page a query `WHERE key > ? ORDER BY key LIMIT 100`: constant per page, whatever the '
     'size of the folder. It is the change that takes it to hundreds of thousands of objects, at the '
     'price of keeping the table as the source of truth of what exists.',
-    '**Big single uploads.** A PUT of 16 MiB with 8 clients stays at ~150 MiB/s (MinIO: 477), while '
+    '**Big single uploads.** A PUT of 16 MiB with 8 clients stays at ~150 MiB/s (MinIO: 364), while '
     'multipart (the same bytes in 8 MiB parts) gets about as much with 2 uploads: worth profiling '
     'the write path (the md5 computed in Dart over every chunk, the size of the chunks written) '
     'before changing it.',

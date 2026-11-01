@@ -130,18 +130,12 @@ class _BucketsViewState extends State<_BucketsView> {
     );
   }
 
-  void _onShowBucketOptions(BucketModel bucket, RenderBox buttonBox) {
+  void _onShowBucketOptions(BucketModel bucket, Rect anchor) {
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
 
     final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        buttonBox.localToGlobal(Offset.zero, ancestor: overlay),
-        buttonBox.localToGlobal(
-          buttonBox.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
+      anchor.shift(overlay.globalToLocal(Offset.zero)),
       Offset.zero & overlay.size,
     );
 
