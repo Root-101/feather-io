@@ -233,7 +233,6 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 final next = cubit.goForward();
                 if (next != null) _navigate(bucket: bucket.name, folder: next);
               },
-              onSelected: (obj) {},
               onExit: () => _navigate(),
               onDelete: (keys) =>
                   cubit.deleteObjects(bucket: bucket, keys: keys),

@@ -7,7 +7,7 @@ repository. It is the single source of truth for project rules.
 
 Monorepo for a lightweight S3-compatible storage system:
 
-- `service/` — Dart backend built on **Winter** `1.0.0-rc.6` (from pub.dev; its source is also at
+- `service/` — Dart backend built on **Winter** `1.0.0` (from pub.dev; its source is also at
   `../winter`, a sibling of this repo). Its guides (`doc/`), examples (`example/`, the apps
   `auth_jwt` and `production` are the closest to this service) and `DECISIONS.md` are the
   reference; read its source when an API is unclear.
@@ -200,7 +200,7 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   is written at most once a minute per key (`AccessKeyService.touch`). Deleting a bucket deletes
   its grants. See `DECISIONS.md`.
 - Each route declares its own permission with
-  `AuthFilter(rules: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
+  `AuthFilter(rule: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
   The S3 routes pass `cacheControl: null`, so, like S3, a response only has the `Cache-Control`
   stored with its object (Winter adds `private` by default, which the admin API keeps).
   Route keys and permission names match (`s3.*`, `admin.*`).
@@ -643,9 +643,8 @@ nothing happens.
   `AppFormInput`, `AppTextSearchField`, `ConfirmDialog`, `FormDrawerTemplate`, colors/dimensions
   from `app.*`. Spacing with `.gap()`.
 - Shared states: `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`, `NoDataPage(title: …)`.
-- All text is mouse-selectable through one `AppSelectionArea` in `MaterialApp.builder` (
-  `main.dart`), which covers screens, dialogs and drawers. Don't add `SelectionArea` or
-  `SelectableText` in widgets.
+- Text is not mouse-selectable: don't add `SelectionArea` or `SelectableText`. Table rows are
+  clickable as a whole (hand cursor, and the name of the hovered row underlined, like a link).
 - Access cubits with `context.read<T>()` or `app.di.find<T>()`. Keep widgets small.
 - Write `BlocListener`/`BlocConsumer` listeners inline in `build` (
   `listener: (context, state) { … }`), never extracted to a separate method such as `_onState`.
