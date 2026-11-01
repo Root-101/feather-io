@@ -24,6 +24,9 @@ anonymous access…) with the data behind them; update it when one of them chang
 `ROADMAP.md` lists the pending work in order, as checkboxes. When a change completes a roadmap task,
 mark it `[x]` in the same change; add new pending work to the right section.
 
+Each release adds its version to three changelogs: `CHANGELOG.md` at the root (the general changes,
+one or two lines per package) and `service/CHANGELOG.md` / `console/CHANGELOG.md` (the details).
+
 Tables in Markdown files are aligned the way the IDE formats them: every column padded to its widest
 cell, and the separator row with dashes across the whole width (`|------|`), never `|---|---|`.
 `python service/tool/md_tables.py FILE…` aligns them, and both `report.py` write `RESULTS.md` so.
