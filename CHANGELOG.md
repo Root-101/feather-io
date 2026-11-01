@@ -4,6 +4,11 @@ What changed in each version of Feather IO, in broad strokes. The service and th
 released together with the same version; the details of each are in their own changelogs:
 [`service/CHANGELOG.md`](service/CHANGELOG.md) and [`console/CHANGELOG.md`](console/CHANGELOG.md).
 
+## 1.0.2 (2026-10-31)
+
+- This changelog: the general changes of each version, with the details in the changelogs of
+  the service and the console.
+
 ## 1.0.1 (2026-10-31)
 
 - Service: two uploads of the same key at once could leave the content of one with the headers of
