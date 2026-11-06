@@ -41,6 +41,22 @@ Overall **8**; within its scope it can reach **8.5–9**.
 - **Release**: open source docs and license, visual identity and icon, the social preview on
   GitHub, the security and code audit of 2026-10-21 fixed.
 
+## Up next
+
+- [ ] Default language from the browser: with nothing chosen yet, the console shows Spanish when
+  the browser's language is Spanish and English in any other case, everywhere (the Flutter splash,
+  login, the rest of the app) and the language selector shows it selected. The HTML splash
+  (`web/splash.js`) already does it; `LanguageCubit` falls back to English when no language was
+  saved, instead of the browser's (`PlatformDispatcher.locale`). A language chosen by hand still
+  wins.
+- [ ] Find out why the service can't be reached from another machine of the local network (e.g.
+  from `dumpling`). Suspects: `SERVICE_URL` left at its default `http://localhost:8080`, which the
+  browser of the other machine resolves to itself; the firewall of the host; the presigned URLs
+  and the `Host` they sign (`PUBLIC_URL`); CORS. Fix it or document how to set it up.
+- [ ] Publish the service and console images to GitHub Container Registry (`ghcr.io`), tagged with
+  the version, so they can be run without building them; `docker-compose.yml` and the docs would
+  use them.
+
 ## Next
 
 - [ ] Rename and move folders (all their content has to be copied and deleted, and it must be
