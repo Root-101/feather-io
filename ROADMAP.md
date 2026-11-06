@@ -43,7 +43,7 @@ Overall **8**; within its scope it can reach **8.5–9**.
 
 ## Up next
 
-- [ ] Default language from the browser: with nothing chosen yet, the console shows Spanish when
+- [x] Default language from the browser: with nothing chosen yet, the console shows Spanish when
   the browser's language is Spanish and English in any other case, everywhere (the Flutter splash,
   login, the rest of the app) and the language selector shows it selected. The HTML splash
   (`web/splash.js`) already does it; `LanguageCubit` falls back to English when no language was

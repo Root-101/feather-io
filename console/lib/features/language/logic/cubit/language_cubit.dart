@@ -22,10 +22,14 @@ class LanguageCubit extends Cubit<LanguageState>
     ),
   ];
 
-  LanguageModel currentSelectedLanguage = defaultLanguage;
+  late LanguageModel currentSelectedLanguage = _resolve(key: null);
 
   LanguageCubit({required this.repo})
     : super(LanguageInitialState(current: defaultLanguage, allLanguages: [])) {
+    // Starts in the browser's language, not English, until the saved one loads
+    emit(
+      LanguageInitialState(current: currentSelectedLanguage, allLanguages: []),
+    );
     init();
   }
 
@@ -67,9 +71,8 @@ class LanguageCubit extends Cubit<LanguageState>
   }
 
   LanguageModel _resolve({required String? key}) {
-    if (key == null) {
-      return defaultLanguage;
-    }
+    // Nothing chosen yet: the browser's language
+    key ??= browserLocale.languageCode;
     return languages.firstWhere(
       (element) => element.key == key,
       orElse: () => defaultLanguage,
