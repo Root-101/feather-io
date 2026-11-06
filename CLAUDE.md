@@ -63,7 +63,8 @@ fvm dart run lib/main.dart
 Required env (`requiredEnvVariables`, checked at once with `env.requireAll` before anything
 starts): `FEATHER_ACCESS`, `FEATHER_SECRET`, `JWT_SECRET`, `KEYS_ENCRYPTION_SECRET`,
 `STORAGE_VOLUME_PATH`. Optional: `ADMIN_PREFIX` (default `_admin`), `RESERVED_BUCKET_NAMES`,
-`MAX_OBJECT_SIZE` (bytes, default 5 GiB), `LOG_FORMAT` (`json` for one JSON object per line,
+`MAX_OBJECT_SIZE` (bytes, default 5 GiB), `HOST` (default `::`, IPv4 and IPv6: Railway's private
+network only reaches it over IPv6), `LOG_FORMAT` (`json` for one JSON object per line,
 otherwise readable lines) and `LOG_LEVEL` (`debug`, `info` (default), `warning`, `error`).
 `main()` reads `.env`/`.env.<WINTER_PROFILE>` under the process variables (`Env.load()`), so a
 local `.env` works too. See `service/README.md` (its endpoint table lists only some routes, so treat the
@@ -540,7 +541,7 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
   in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8116.
+- Use one distinct port per file so files run in parallel. Ports in use: 8082–8117.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error

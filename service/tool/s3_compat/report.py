@@ -64,6 +64,7 @@ TEST_DESC = {
     'login_rate_limit_test.dart': 'Login attempt limit against the server: 429 with `Retry-After`, fake `X-Forwarded-For`, end of the lock, requests that hold back their bodies.',
     'rate_limit_test.dart': 'General limit per IP: `RateLimit` headers, `503 SlowDown` on S3 and 429 on admin with `Retry-After`, fake `X-Forwarded-For`, next window.',
     'login_test.dart': 'Console login (JWT) and tampered tokens: no `exp`, expired, another secret, `alg: none`; a malformed body names its field; errors without internal details.',
+    'host_test.dart': 'The server listens on `::` by default and answers over IPv4 and IPv6 (Railway's private network).',
     'health_test.dart': 'Health check of the admin API: public, `application/health+json` `pass` with the database and storage checks, `HEAD`, no probe file left, `503` when the database is down.',
     'openapi_test.dart': 'OpenAPI document of the admin API (every route, no S3 routes, Bearer security, constraints from `validate()`) and Swagger UI.',
     'multipart_test.dart': 'Multipart: create, parts, complete, abort, ListMultipartUploads, ListParts, UploadPartCopy, a retried Complete and a part uploaded twice at once.',

@@ -49,10 +49,9 @@ Overall **8**; within its scope it can reach **8.5–9**.
   (`web/splash.js`) already does it; `LanguageCubit` falls back to English when no language was
   saved, instead of the browser's (`PlatformDispatcher.locale`). A language chosen by hand still
   wins.
-- [ ] Find out why the service can't be reached from another machine of the local network (e.g.
-  from `dumpling`). Suspects: `SERVICE_URL` left at its default `http://localhost:8080`, which the
-  browser of the other machine resolves to itself; the firewall of the host; the presigned URLs
-  and the `Host` they sign (`PUBLIC_URL`); CORS. Fix it or document how to set it up.
+- [x] The service couldn't be reached over Railway's private network (e.g. from `dumpling` at
+  `feather-io-storage.railway.internal`): it listened on `0.0.0.0`, IPv4 only, and that network
+  is IPv6. It now listens on `::` (IPv4 and IPv6), and `HOST` changes it.
 - [ ] Publish the service and console images to GitHub Container Registry (`ghcr.io`), tagged with
   the version, so they can be run without building them; `docker-compose.yml` and the docs would
   use them.

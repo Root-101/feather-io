@@ -106,6 +106,7 @@ class FeatherIO {
       // The global limit is an object's, which goes to disk as a stream;
       // BodySizeFilter narrows it for every other request
       config: ServerConfig(
+        host: env.host,
         port: port,
         maxBodySize: env.maxObjectSize,
         // Behind your own proxies, clientIp and the scheme of requestedUri
