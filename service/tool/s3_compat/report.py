@@ -93,6 +93,7 @@ CONSOLE_TEST_DESC = {
     'bucket_cubit_test.dart': 'Bucket list: load, delete and empty with bus notices, changes from other sections.',
     'bucket_form_cubit_test.dart': 'Bucket drawer: create, edit, 422 per field, 409 on the name.',
     'bucket_repo_test.dart': 'Bucket mapping and create/update requests, API errors.',
+    'snackbar_adapter_test.dart': 'Notices show from the navigator context (the dialogs that close themselves) and from inside a screen.',
     'language_cubit_test.dart': 'The language is the browser one (Spanish or English) until the user picks one.',
     'login_screen_test.dart': 'Login layout: the brand with its pitch next to the form when wide, stacked without it when narrow.',
     'messages_test.dart': 'Texts of the language, its region or English by default; plurals and named placeholders.',
