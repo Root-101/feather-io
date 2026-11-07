@@ -21,12 +21,16 @@ written when the container starts, from the variables of the same name.
 ## Docker
 
 `Dockerfile` builds the web app with the Flutter of `.fvmrc` and serves it with nginx (gzip,
-`no-cache` for `index.html`, `env.js` and the Flutter bootstrap files). From `console/`:
+`no-cache` for `index.html`, `env.js` and the Flutter bootstrap files). Each release publishes
+it, for amd64 and arm64: `ghcr.io/root-101/feather-io-console:<version>` (`latest` is the last
+stable one).
 
 ```bash
-docker build -t feather-io-console .
-docker run -p 8081:80 -e SERVICE_URL=http://localhost:8080 -e ADMIN_PREFIX=_admin feather-io-console
+docker run -p 8081:80 -e SERVICE_URL=http://localhost:8080 -e ADMIN_PREFIX=_admin \
+  ghcr.io/root-101/feather-io-console:1.1.0
 ```
+
+To build it from `console/`: `docker build -t feather-io-console .`
 
 `SERVICE_URL` is the service as the **browser** sees it, not as the container does. To start the
 service and the console together, see `docker-compose.yml` at the root of the repo.

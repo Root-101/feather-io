@@ -149,6 +149,7 @@ Environment variables of the service.
 | `LOGIN_MAX_FAILURES`        |    No    |        `10`        | Failed logins in a row that lock an IP.                                                                                                                                                 |
 | `LOGIN_LOCK_SECONDS`        |    No    |       `900`        | Seconds an IP stays locked (answers `429` with `Retry-After`).                                                                                                                          |
 | `LOGIN_FAILURE_DELAY_MS`    |    No    |       `1000`       | Delay before answering each failed login.                                                                                                                                               |
+| `HOST`                      |    No    |        `::`        | Address to listen on. `::` is every interface over IPv4 and IPv6 (private networks such as Railway's reach it over IPv6); `0.0.0.0` for IPv4 only, on a host without IPv6.              |
 | `TRUSTED_PROXIES`           |    No    |        `0`         | Own proxies in front of the service; with 0 the connection IP is used and `X-Forwarded-*` are ignored.                                                                                  |
 | `LOG_FORMAT`                |    No    |         -          | `json` writes one JSON object per line (for a log collector); otherwise readable lines.                                                                                                 |
 | `LOG_LEVEL`                 |    No    |       `info`       | `debug`, `info`, `warning` or `error`.                                                                                                                                                  |
@@ -159,13 +160,16 @@ working directory, under the variables of the process.
 ## Docker
 
 `Dockerfile` compiles the service AOT and runs it on a `scratch` image (~25 MB) with the Dart
-runtime and the SQLite that the `sqlite3` package bundles. From `service/`:
+runtime and the SQLite that the `sqlite3` package bundles. Each release publishes it, for amd64
+and arm64: `ghcr.io/root-101/feather-io:<version>` (`latest` is the last stable one).
 
 ```bash
-docker build -t feather-io .
 docker run -p 8080:8080 -v feather-data:/data \
-  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… feather-io
+  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… \
+  ghcr.io/root-101/feather-io:1.1.0
 ```
+
+To build it from `service/`: `docker build -t feather-io .`
 
 The image sets `STORAGE_VOLUME_PATH=/data` (a volume): buckets, objects and the SQLite database
 live there, so they survive the container.

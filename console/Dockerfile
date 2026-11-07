@@ -1,3 +1,4 @@
+# Each release publishes it, for amd64 and arm64: ghcr.io/root-101/feather-io-console:<version>
 # Build from console/:
 #   docker build -t feather-io-console .
 # Run, pointing it at the service as the browser sees it:
@@ -7,7 +8,9 @@
 # starts, from SERVICE_URL and ADMIN_PREFIX: the envsubst of the nginx image fills
 # docker/env.js.template.
 
-FROM debian:trixie-slim AS build
+# The web files are the same for every arch: built once, on the platform of the builder (no
+# emulation when the release builds the arm64 image)
+FROM --platform=$BUILDPLATFORM debian:trixie-slim AS build
 
 # Bump it with .fvmrc
 ARG FLUTTER_VERSION=3.47.1

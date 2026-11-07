@@ -4,6 +4,16 @@ What changed in each version of Feather IO, in broad strokes. The service and th
 released together with the same version; the details of each are in their own changelogs:
 [`service/CHANGELOG.md`](service/CHANGELOG.md) and [`console/CHANGELOG.md`](console/CHANGELOG.md).
 
+## 1.1.0 (2026-11-06)
+
+- Service: listens on IPv4 and IPv6 (`::`) by default, so it can be reached over private networks
+  that are IPv6 only, such as Railway's; `HOST` changes it.
+- Console: shows the browser's language (Spanish or English) until the user picks one, the splash
+  included.
+- Both images are published on each release, for amd64 and arm64:
+  `ghcr.io/root-101/feather-io` and `ghcr.io/root-101/feather-io-console`. `docker-compose.yml`
+  uses them, so it no longer builds anything.
+
 ## 1.0.2 (2026-10-31)
 
 - This changelog: the general changes of each version, with the details in the changelogs of

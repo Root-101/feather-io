@@ -71,6 +71,11 @@ extension ExtendedEnv on Env {
     return uri;
   }
 
+  /// Address the server listens on: by default `::`, every interface over
+  /// IPv4 and IPv6. Private networks may reach it only over IPv6 (Railway's
+  /// `*.railway.internal`), so `0.0.0.0` would refuse their connections.
+  String get host => tryFind<String>('HOST')?.trim() ?? '::';
+
   /// Proxies of your own in front of the service that add their entry to
   /// `X-Forwarded-For` (`ServerConfig.trustedProxies`); with 0 (the default)
   /// the connection's IP is used.

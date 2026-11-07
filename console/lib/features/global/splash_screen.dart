@@ -12,6 +12,8 @@ class SplashScreen extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeConfig.theme,
+      // The browser's, like the app until the saved language loads
+      locale: browserLocale,
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: appSupportedLocales,
       builder: (context, child) => Scaffold(

@@ -27,6 +27,20 @@ mark it `[x]` in the same change; add new pending work to the right section.
 Each release adds its version to three changelogs: `CHANGELOG.md` at the root (the general changes,
 one or two lines per package) and `service/CHANGELOG.md` / `console/CHANGELOG.md` (the details).
 
+Releasing a version `X.Y.Z`:
+
+1. A `[release] X.Y.Z: …` commit: the version in both `pubspec.yaml`, the status line of
+   `README.md`, `SECURITY.md`, the image tags in `docker-compose.yml` and in the `docker run`
+   examples of the READMEs and `docs/console.md`, and the three changelogs.
+2. Merge the branch into `develop` (`Merge <branch> into develop`), then `develop` into `main`
+   (`Merge develop into main: X.Y.Z`), both `--no-ff`.
+3. Push `develop`, `main` and the tag `vX.Y.Z` (on the merge of `main`) one right after the other:
+   the README of `main` names images that only exist once the tag is built.
+4. `.github/workflows/release.yml` runs the CI and publishes `ghcr.io/root-101/feather-io:X.Y.Z`
+   and `ghcr.io/root-101/feather-io-console:X.Y.Z` (amd64 and arm64); `latest` only moves for
+   versions without `-rc`, so a `vX.Y.Z-rc.N` tag tries the workflow. Then pull the images logged
+   out and run the compose from an empty folder.
+
 Tables in Markdown files are aligned the way the IDE formats them: every column padded to its widest
 cell, and the separator row with dashes across the whole width (`|------|`), never `|---|---|`.
 `python service/tool/md_tables.py FILE…` aligns them, and both `report.py` write `RESULTS.md` so.
@@ -63,13 +77,15 @@ fvm dart run lib/main.dart
 Required env (`requiredEnvVariables`, checked at once with `env.requireAll` before anything
 starts): `FEATHER_ACCESS`, `FEATHER_SECRET`, `JWT_SECRET`, `KEYS_ENCRYPTION_SECRET`,
 `STORAGE_VOLUME_PATH`. Optional: `ADMIN_PREFIX` (default `_admin`), `RESERVED_BUCKET_NAMES`,
-`MAX_OBJECT_SIZE` (bytes, default 5 GiB), `LOG_FORMAT` (`json` for one JSON object per line,
+`MAX_OBJECT_SIZE` (bytes, default 5 GiB), `HOST` (default `::`, IPv4 and IPv6: Railway's private
+network only reaches it over IPv6), `LOG_FORMAT` (`json` for one JSON object per line,
 otherwise readable lines) and `LOG_LEVEL` (`debug`, `info` (default), `warning`, `error`).
 `main()` reads `.env`/`.env.<WINTER_PROFILE>` under the process variables (`Env.load()`), so a
 local `.env` works too. See `service/README.md` (its endpoint table lists only some routes, so treat the
 controllers as the source of truth).
 
-`service/Dockerfile` builds with `docker build -t feather-io .` from `service/`. It compiles AOT on `dart:3.13.1` with `dart build cli` (the build hook of the `sqlite3`
+`service/Dockerfile` builds with `docker build -t feather-io .` from `service/` (each release
+publishes it as `ghcr.io/root-101/feather-io`). It compiles AOT on `dart:3.13.1` with `dart build cli` (the build hook of the `sqlite3`
 package bundles SQLite next to the binary, so no system SQLite is needed anywhere) and runs on
 `scratch` with the Dart runtime, that bundle and a `/tmp` (zip downloads); `STORAGE_VOLUME_PATH=/data` is a volume. Bump the image tag with `.fvmrc`. The orchestrator
 probes the public `GET /{admin}/health` (Winter's `Route.health`: database and a write to the
@@ -87,14 +103,16 @@ fvm flutter test                                                # on the VM, no 
 
 - Runtime config comes from `web/env.js` (`window.env`: `SERVICE_URL`, `ADMIN_PREFIX`), which is
   gitignored. `ADMIN_PREFIX` must match the service. `console/Dockerfile` builds the web app with
-  the Flutter of `.fvmrc` (bump its `FLUTTER_VERSION` with it) and serves it with nginx; the
+  the Flutter of `.fvmrc` (bump its `FLUTTER_VERSION` with it), on the builder's platform (the web
+  files are the same for every arch), and serves it with nginx (published as
+  `ghcr.io/root-101/feather-io-console`); the
   image's envsubst fills `docker/env.js.template` into `env.js` from the container's env when it
   starts. nginx sends a CSP (`docker/security_headers.conf`, included in every `location` with
   its own `add_header`): only the build's scripts, so `web/index.html` has no inline scripts
   (`web/splash.js`) and the build skips the CDN (`--no-web-resources-cdn`, CanvasKit is served by
   nginx).
-  `docker-compose.yml` at the root starts the service (volume) and the console, with the secrets
-  in `.env` (`.env.example`).
+  `docker-compose.yml` at the root starts the published images of the service (volume) and the
+  console, with the secrets in `.env` (`.env.example`).
 - Tests (`test/`, `bloc_test` + `mocktail`) run on the VM. Code that needs the browser
   (`dart:js_interop`, `package:web`, Dio's browser adapter, `window.env`) lives only in the
   `*_web.dart` adapters (`adapter/`, `config/env_web.dart`), exported with
@@ -490,7 +508,8 @@ and almost every incompatibility so far was found by them, not by `dart test`:
 | Before a release or after big protocol changes                      | also `run.sh mint`, i.e. the *Full test run* below        | ~5 min   |
 
 CI (`.github/workflows/ci.yml`, on `main`, `develop` and pull requests into them) runs the first two rows, the batteries against the
-Docker image; Mint stays manual. Both `pubspec.lock` are committed and CI and the Dockerfiles
+Docker image; Mint stays manual. `release.yml` (on a `v*.*.*` tag) runs the CI and publishes the
+images. Both `pubspec.lock` are committed and CI and the Dockerfiles
 resolve with `--enforce-lockfile` (after changing a `pubspec.yaml`, run `pub get` and commit the
 lock); the actions are pinned by commit SHA, with the version in a comment.
 
@@ -540,7 +559,7 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
   in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8116.
+- Use one distinct port per file so files run in parallel. Ports in use: 8082–8117.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error

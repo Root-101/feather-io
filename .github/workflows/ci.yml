@@ -10,6 +10,8 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
+  # release.yml runs it before publishing the images
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.ref }}

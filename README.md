@@ -16,7 +16,7 @@ and create access keys per bucket.
   It serves the S3 API and an admin API for the console (JSON, documented with OpenAPI).
 - **`console/`**: the web console, in Flutter Web. It only talks to the service over HTTP.
 
-> **Status: stable (`1.0.2`).** Everything below works and is tested against real S3 clients; from
+> **Status: stable (`1.1.0`).** Everything below works and is tested against real S3 clients; from
 > here on, a breaking change of the S3 or admin API needs a new major version.
 
 ## Why Feather IO
@@ -81,7 +81,7 @@ file, see [`.env.example`](.env.example)):
 ```bash
 FEATHER_ACCESS=feather-access FEATHER_SECRET=feather-secret-key \
 JWT_SECRET=$(openssl rand -hex 32) KEYS_ENCRYPTION_SECRET=$(openssl rand -hex 32) \
-docker compose up -d --build
+docker compose up -d
 ```
 
 - Console: <http://localhost:8081>, log in with `FEATHER_ACCESS` / `FEATHER_SECRET`.
@@ -94,15 +94,24 @@ makes them unreadable.
 ### With Docker, one image at a time
 
 What a cloud platform does (Cloud Run, ECS, Kubernetes…): each image reads its configuration from
-the environment when it starts.
+the environment when it starts. Each release publishes both, for amd64 and arm64, on GitHub's
+registry: `ghcr.io/root-101/feather-io:<version>` and `ghcr.io/root-101/feather-io-console:<version>`
+(`latest` is the last stable one).
 
 ```bash
-docker build -t feather-io service
 docker run -p 8080:8080 -v feather-data:/data \
-  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… feather-io
+  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… \
+  ghcr.io/root-101/feather-io:1.1.0
 
-docker build -t feather-io-console console
-docker run -p 8081:80 -e SERVICE_URL=https://<the service as the browser sees it> feather-io-console
+docker run -p 8081:80 -e SERVICE_URL=https://<the service as the browser sees it> \
+  ghcr.io/root-101/feather-io-console:1.1.0
+```
+
+To build them from the repo instead, with the names `docker-compose.yml` uses:
+
+```bash
+docker build -t ghcr.io/root-101/feather-io:1.1.0 service
+docker build -t ghcr.io/root-101/feather-io-console:1.1.0 console
 ```
 
 ### Locally

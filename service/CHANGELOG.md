@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 (2026-11-06)
+
+- The server listens on `::` (every interface, IPv4 and IPv6) instead of `0.0.0.0` (IPv4 only).
+  Railway's private network reaches services over IPv6, so `http://<service>.railway.internal:8080`
+  was refused (`Connection refused`) while the public URL worked.
+- New optional variable `HOST`, the address to listen on (`0.0.0.0` on a host without IPv6).
+- The image is published on each release (`v*.*.*` tag, `.github/workflows/release.yml`, after the
+  CI) as `ghcr.io/root-101/feather-io:<version>`, for amd64 and arm64; `latest` is the last
+  stable one. `docker-compose.yml` runs the published images.
+
 ## 1.0.2 (2026-10-31)
 
 - No changes; released with the new changelog at the root of the repository.
