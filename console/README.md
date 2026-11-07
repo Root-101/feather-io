@@ -27,7 +27,7 @@ stable one).
 
 ```bash
 docker run -p 8081:80 -e SERVICE_URL=http://localhost:8080 -e ADMIN_PREFIX=_admin \
-  ghcr.io/root-101/feather-io-console:1.1.0
+  ghcr.io/root-101/feather-io-console:1.1.1
 ```
 
 To build it from `console/`: `docker build -t feather-io-console .`

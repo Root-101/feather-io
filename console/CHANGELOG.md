@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 (2026-11-06)
+
+- The success notices of the dialogs that close themselves (rename, move, create bucket, anonymous
+  rule or access key) failed in the release build and never showed: they pass `app.context`, the
+  root navigator itself, and `Overlay.of(context, rootOverlay: true)` found no overlay above it.
+  `SnackBarAdapter` now takes the overlay of the root navigator.
+
 ## 1.1.0 (2026-11-06)
 
 - Until the user picks a language, the console uses the browser's: Spanish when it is Spanish (any
