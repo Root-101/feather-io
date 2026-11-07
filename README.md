@@ -16,7 +16,7 @@ and create access keys per bucket.
   It serves the S3 API and an admin API for the console (JSON, documented with OpenAPI).
 - **`console/`**: the web console, in Flutter Web. It only talks to the service over HTTP.
 
-> **Status: stable (`1.1.0`).** Everything below works and is tested against real S3 clients; from
+> **Status: stable (`1.1.1`).** Everything below works and is tested against real S3 clients; from
 > here on, a breaking change of the S3 or admin API needs a new major version.
 
 ## Why Feather IO
@@ -101,17 +101,17 @@ registry: `ghcr.io/root-101/feather-io:<version>` and `ghcr.io/root-101/feather-
 ```bash
 docker run -p 8080:8080 -v feather-data:/data \
   -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… \
-  ghcr.io/root-101/feather-io:1.1.0
+  ghcr.io/root-101/feather-io:1.1.1
 
 docker run -p 8081:80 -e SERVICE_URL=https://<the service as the browser sees it> \
-  ghcr.io/root-101/feather-io-console:1.1.0
+  ghcr.io/root-101/feather-io-console:1.1.1
 ```
 
 To build them from the repo instead, with the names `docker-compose.yml` uses:
 
 ```bash
-docker build -t ghcr.io/root-101/feather-io:1.1.0 service
-docker build -t ghcr.io/root-101/feather-io-console:1.1.0 console
+docker build -t ghcr.io/root-101/feather-io:1.1.1 service
+docker build -t ghcr.io/root-101/feather-io-console:1.1.1 console
 ```
 
 ### Locally

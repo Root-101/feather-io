@@ -30,7 +30,7 @@ locally or from the environment of its Docker image:
 
 ```bash
 docker run -p 8081:80 -e SERVICE_URL=https://s3.example.com -e ADMIN_PREFIX=_admin \
-  ghcr.io/root-101/feather-io-console:1.1.0
+  ghcr.io/root-101/feather-io-console:1.1.1
 ```
 
 The screen shows the brand (icon, tagline, a line on how easy it is to start and its tags) next to

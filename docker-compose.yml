@@ -11,7 +11,7 @@
 # Console at http://localhost:8081, S3 API at http://localhost:8080.
 services:
   service:
-    image: ghcr.io/root-101/feather-io:1.1.0
+    image: ghcr.io/root-101/feather-io:1.1.1
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -26,7 +26,7 @@ services:
       - feather-data:/data
 
   console:
-    image: ghcr.io/root-101/feather-io-console:1.1.0
+    image: ghcr.io/root-101/feather-io-console:1.1.1
     restart: unless-stopped
     ports:
       - "8081:80"

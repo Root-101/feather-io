@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2026-11-06)
+
+- No changes; released with the fix of the console.
+
 ## 1.1.0 (2026-11-06)
 
 - The server listens on `::` (every interface, IPv4 and IPv6) instead of `0.0.0.0` (IPv4 only).
