@@ -1,16 +1,17 @@
 # The whole project: the service (objects and database in a volume) and the console.
+# The images are the ones published on each release (ghcr.io); to run images built from the repo,
+# build them with these names first (see the README).
 # The variables come from the environment of the shell, or from a .env file next to this one
 # (see .env.example); the shell wins. The four secrets have no default:
 #   FEATHER_ACCESS=… FEATHER_SECRET=… JWT_SECRET=… KEYS_ENCRYPTION_SECRET=… \
-#     docker compose up -d --build
+#     docker compose up -d
 # or, with a .env:
 #   cp .env.example .env    # and fill in the secrets
-#   docker compose up -d --build
+#   docker compose up -d
 # Console at http://localhost:8081, S3 API at http://localhost:8080.
 services:
   service:
-    build: ./service
-    image: feather-io:1.0.2
+    image: ghcr.io/root-101/feather-io:1.1.0
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -25,8 +26,7 @@ services:
       - feather-data:/data
 
   console:
-    build: ./console
-    image: feather-io-console:1.0.2
+    image: ghcr.io/root-101/feather-io-console:1.1.0
     restart: unless-stopped
     ports:
       - "8081:80"

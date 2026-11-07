@@ -13,4 +13,13 @@ void main() {
     expect(find.text(intl.app.credit), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Should show the texts in the browser language', (tester) async {
+    tester.platformDispatcher.localeTestValue = const Locale('es', 'ES');
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+    await tester.pumpWidget(const SplashScreen());
+    await tester.pump(const Duration(milliseconds: 600));
+    final intl = messagesOf(const Locale('es'));
+    expect(find.text(intl.app.splashText), findsOneWidget);
+  });
 }

@@ -11,6 +11,16 @@ final List<Locale> appSupportedLocales = [
   for (final locale in AppMessagesLocale.values) Locale(locale.languageCode),
 ];
 
+/// The browser's language if the console has it, English otherwise (like
+/// `web/splash.js`): the language until the user picks one
+Locale get browserLocale {
+  final code = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  return appSupportedLocales.firstWhere(
+    (locale) => locale.languageCode == code,
+    orElse: () => Locale(AppMessagesLocale.en.languageCode),
+  );
+}
+
 /// Texts of [locale]: a region uses its language (`es-MX` → `es`) and an
 /// unknown language the base one (`en`)
 AppMessages messagesOf(Locale locale) =>
