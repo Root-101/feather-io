@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-11-06)
+
+- Until the user picks a language, the console uses the browser's: Spanish when it is Spanish (any
+  region), English otherwise. Before, it always started in English. The language selector shows it
+  selected, and the Flutter splash follows the same rule as the one of `index.html`.
+
 ## 1.0.2 (2026-10-31)
 
 - No changes; released with the new changelog at the root of the repository.

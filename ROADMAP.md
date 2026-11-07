@@ -43,15 +43,6 @@ Overall **8**; within its scope it can reach **8.5–9**.
 
 ## Up next
 
-- [x] Default language from the browser: with nothing chosen yet, the console shows Spanish when
-  the browser's language is Spanish and English in any other case, everywhere (the Flutter splash,
-  login, the rest of the app) and the language selector shows it selected. The HTML splash
-  (`web/splash.js`) already does it; `LanguageCubit` falls back to English when no language was
-  saved, instead of the browser's (`PlatformDispatcher.locale`). A language chosen by hand still
-  wins.
-- [x] The service couldn't be reached over Railway's private network (e.g. from `dumpling` at
-  `feather-io-storage.railway.internal`): it listened on `0.0.0.0`, IPv4 only, and that network
-  is IPv6. It now listens on `::` (IPv4 and IPv6), and `HOST` changes it.
 - [ ] Publish the service and console images to GitHub Container Registry (`ghcr.io`), tagged with
   the version, so they can be run without building them; `docker-compose.yml` and the docs would
   use them.
