@@ -4,6 +4,11 @@ What changed in each version of Feather IO, in broad strokes. The service and th
 released together with the same version; the details of each are in their own changelogs:
 [`service/CHANGELOG.md`](service/CHANGELOG.md) and [`console/CHANGELOG.md`](console/CHANGELOG.md).
 
+## 1.1.1 (2026-11-06)
+
+- Console: the success notices of renaming, moving, creating a bucket, an anonymous rule or an
+  access key show again (they failed in the published build).
+
 ## 1.1.0 (2026-11-06)
 
 - Service: listens on IPv4 and IPv6 (`::`) by default, so it can be reached over private networks

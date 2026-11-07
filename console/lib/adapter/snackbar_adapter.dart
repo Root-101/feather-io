@@ -37,9 +37,11 @@ class SnackBarAdapter {
   static const double width = 420;
 
   void _show({required BuildContext context, required Widget child}) {
-    // the root overlay covers the whole screen; the one of each shell branch
-    // only the content, without the rail, and the notice would lose its width
-    final overlay = Overlay.of(context, rootOverlay: true);
+    // the root navigator's overlay covers the whole screen; the one of each
+    // shell branch only the content, without the rail, and the notice would
+    // lose its width. Through the navigator, because `app.context` is the
+    // navigator itself: its overlay is below it, so `Overlay.of` finds none
+    final overlay = Navigator.of(context, rootNavigator: true).overlay!;
     final screen = MediaQuery.sizeOf(overlay.context).width;
     final margin = app.dimensions.padding.l;
     showTopSnackBar(

@@ -166,7 +166,7 @@ and arm64: `ghcr.io/root-101/feather-io:<version>` (`latest` is the last stable 
 ```bash
 docker run -p 8080:8080 -v feather-data:/data \
   -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… \
-  ghcr.io/root-101/feather-io:1.1.0
+  ghcr.io/root-101/feather-io:1.1.1
 ```
 
 To build it from `service/`: `docker build -t feather-io .`
