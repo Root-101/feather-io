@@ -41,12 +41,6 @@ Overall **8**; within its scope it can reach **8.5–9**.
 - **Release**: open source docs and license, visual identity and icon, the social preview on
   GitHub, the security and code audit of 2026-10-21 fixed.
 
-## Up next
-
-- [ ] Publish the service and console images to GitHub Container Registry (`ghcr.io`), tagged with
-  the version, so they can be run without building them; `docker-compose.yml` and the docs would
-  use them.
-
 ## Next
 
 - [ ] Rename and move folders (all their content has to be copied and deleted, and it must be

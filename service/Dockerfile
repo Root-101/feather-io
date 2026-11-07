@@ -1,3 +1,4 @@
+# Each release publishes it, for amd64 and arm64: ghcr.io/root-101/feather-io:<version>
 # Build from service/:
 #   docker build -t feather-io .
 # Run with the objects and the SQLite database in a volume:

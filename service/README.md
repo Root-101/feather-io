@@ -160,13 +160,16 @@ working directory, under the variables of the process.
 ## Docker
 
 `Dockerfile` compiles the service AOT and runs it on a `scratch` image (~25 MB) with the Dart
-runtime and the SQLite that the `sqlite3` package bundles. From `service/`:
+runtime and the SQLite that the `sqlite3` package bundles. Each release publishes it, for amd64
+and arm64: `ghcr.io/root-101/feather-io:<version>` (`latest` is the last stable one).
 
 ```bash
-docker build -t feather-io .
 docker run -p 8080:8080 -v feather-data:/data \
-  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… feather-io
+  -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… \
+  ghcr.io/root-101/feather-io:1.1.0
 ```
+
+To build it from `service/`: `docker build -t feather-io .`
 
 The image sets `STORAGE_VOLUME_PATH=/data` (a volume): buckets, objects and the SQLite database
 live there, so they survive the container.

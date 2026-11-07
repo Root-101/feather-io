@@ -5,6 +5,9 @@
 - Until the user picks a language, the console uses the browser's: Spanish when it is Spanish (any
   region), English otherwise. Before, it always started in English. The language selector shows it
   selected, and the Flutter splash follows the same rule as the one of `index.html`.
+- The image is published on each release as `ghcr.io/root-101/feather-io-console:<version>`, for
+  amd64 and arm64. Its web files are built once, on the builder's platform
+  (`FROM --platform=$BUILDPLATFORM`), not emulated per arch.
 
 ## 1.0.2 (2026-10-31)
 

@@ -10,6 +10,9 @@ released together with the same version; the details of each are in their own ch
   that are IPv6 only, such as Railway's; `HOST` changes it.
 - Console: shows the browser's language (Spanish or English) until the user picks one, the splash
   included.
+- Both images are published on each release, for amd64 and arm64:
+  `ghcr.io/root-101/feather-io` and `ghcr.io/root-101/feather-io-console`. `docker-compose.yml`
+  uses them, so it no longer builds anything.
 
 ## 1.0.2 (2026-10-31)
 
