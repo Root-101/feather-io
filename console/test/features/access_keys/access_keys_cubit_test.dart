@@ -29,7 +29,7 @@ void main() {
   );
 
   setUpAll(() {
-    registerFallbackValue(AccessKeyDraft.of(reader));
+    registerFallbackValue(AccessKeyFormModel.of(reader));
   });
 
   setUp(() {
@@ -151,7 +151,7 @@ void main() {
                     token: 'jwt',
                   ),
                 ).captured.single
-                as AccessKeyDraft;
+                as AccessKeyFormModel;
         expect(draft.enabled, isFalse);
         expect(draft.name, 'Web CDN');
         expect(draft.grants.single.bucket, 'media');

@@ -13,7 +13,7 @@ class AccessKeyFormCubit extends Cubit<AccessKeyFormState>
 
   /// Creates the key, or updates [id]. After creating, the OK state carries
   /// the secret
-  Future<void> save({required AccessKeyDraft draft, String? id}) async {
+  Future<void> save({required AccessKeyFormModel draft, String? id}) async {
     emit(const AccessKeyFormProcessInProgressState());
     try {
       final key = id == null

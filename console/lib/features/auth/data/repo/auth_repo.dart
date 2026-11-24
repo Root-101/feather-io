@@ -64,7 +64,7 @@ class AuthRepo {
   }
 }
 
-extension LoginResponseMapping on LoginResponse {
+extension LoginResponseToModel on LoginResponse {
   AuthModel toModel() {
     return AuthModel(accessToken: accessToken, expireAt: expireAt);
   }

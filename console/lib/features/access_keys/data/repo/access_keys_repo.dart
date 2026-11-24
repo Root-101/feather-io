@@ -16,7 +16,7 @@ class AccessKeysRepo {
 
   /// The result carries the secret, which is never shown again
   Future<AccessKeyModel> createKey({
-    required AccessKeyDraft draft,
+    required AccessKeyFormModel draft,
     String? token,
   }) async {
     try {
@@ -32,7 +32,7 @@ class AccessKeysRepo {
 
   Future<AccessKeyModel> updateKey({
     required String id,
-    required AccessKeyDraft draft,
+    required AccessKeyFormModel draft,
     String? token,
   }) async {
     try {
@@ -69,7 +69,7 @@ class AccessKeysRepo {
   }
 }
 
-extension AccessKeyResponseMapping on AccessKeyResponse {
+extension AccessKeyResponseToModel on AccessKeyResponse {
   AccessKeyModel toModel() {
     return AccessKeyModel(
       id: accessKeyId,
@@ -95,7 +95,7 @@ extension AccessKeyResponseMapping on AccessKeyResponse {
   }
 }
 
-extension AccessKeyListResponseMapping on AccessKeyListResponse {
+extension AccessKeyListResponseToModel on AccessKeyListResponse {
   AccessKeyListModel toModel() {
     return AccessKeyListModel(
       rootAccessKeyId: rootAccessKeyId,
@@ -104,7 +104,7 @@ extension AccessKeyListResponseMapping on AccessKeyListResponse {
   }
 }
 
-extension AccessKeyDraftMapping on AccessKeyDraft {
+extension AccessKeyFormModelToRequest on AccessKeyFormModel {
   AccessKeyRequest toRequest() {
     return AccessKeyRequest(
       name: name,

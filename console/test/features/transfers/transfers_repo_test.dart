@@ -97,7 +97,7 @@ void main() {
                 cancelToken: any(named: 'cancelToken'),
               ),
             ).captured.single
-            as List<CompleteMultipartPart>;
+            as List<CompleteMultipartPartRequest>;
     expect(parts.map((p) => p.toJson()), [
       {'part_number': 1, 'etag': '"e1"'},
       {'part_number': 2, 'etag': '"e2"'},

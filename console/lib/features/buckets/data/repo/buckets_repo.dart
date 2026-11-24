@@ -66,7 +66,7 @@ class BucketsRepo {
   }
 }
 
-extension BucketResponseMapping on BucketResponse {
+extension BucketResponseToModel on BucketResponse {
   BucketModel toModel() {
     return BucketModel(
       name: name,

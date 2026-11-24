@@ -155,7 +155,7 @@ class TransfersRepo {
   }
 }
 
-extension UploadedPartMapping on UploadedPart {
-  CompleteMultipartPart toRequest() =>
-      CompleteMultipartPart(partNumber: number, etag: etag);
+extension UploadedPartToRequest on UploadedPart {
+  CompleteMultipartPartRequest toRequest() =>
+      CompleteMultipartPartRequest(partNumber: number, etag: etag);
 }

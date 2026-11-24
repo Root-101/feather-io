@@ -87,7 +87,7 @@ void main() {
       ).thenAnswer((_) async => _response(secret: 's3cr3t'));
 
       final key = await repo.createKey(
-        draft: const AccessKeyDraft(
+        draft: const AccessKeyFormModel(
           name: 'Backups NAS',
           enabled: true,
           allBuckets: AccessKeyLevel.readOnly,
@@ -110,7 +110,7 @@ void main() {
       ).thenAnswer((_) async => _response());
 
       await repo.createKey(
-        draft: const AccessKeyDraft(
+        draft: const AccessKeyFormModel(
           name: 'CI',
           enabled: true,
           allBuckets: AccessKeyLevel.readWrite,
@@ -147,7 +147,7 @@ void main() {
 
       await repo.updateKey(
         id: 'FIOKAAAA',
-        draft: AccessKeyDraft(
+        draft: AccessKeyFormModel(
           name: 'Web',
           enabled: false,
           allBuckets: null,

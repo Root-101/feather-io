@@ -94,7 +94,7 @@ class TransfersClient extends BaseClient {
     required String bucket,
     required String key,
     required String uploadId,
-    required List<CompleteMultipartPart> parts,
+    required List<CompleteMultipartPartRequest> parts,
     required CancelToken cancelToken,
     String? token,
   }) async {
@@ -155,17 +155,17 @@ class CreateMultipartResponse {
 }
 
 //---------- COMPLETE MULTIPART REQUEST ----------
-class CompleteMultipartPart {
+class CompleteMultipartPartRequest {
   final int partNumber;
   final String etag;
 
-  CompleteMultipartPart({required this.partNumber, required this.etag});
+  CompleteMultipartPartRequest({required this.partNumber, required this.etag});
 
   Map<String, dynamic> toJson() => {'part_number': partNumber, 'etag': etag};
 }
 
 class CompleteMultipartRequest {
-  final List<CompleteMultipartPart> parts;
+  final List<CompleteMultipartPartRequest> parts;
 
   CompleteMultipartRequest({required this.parts});
 

@@ -108,7 +108,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
     if (_missingBuckets) return;
     cubit.save(
       id: _editing?.id,
-      draft: AccessKeyDraft(
+      draft: AccessKeyFormModel(
         name: _nameController.text.trim(),
         enabled: _editing?.enabled ?? true,
         allBuckets: _allBuckets ? _allLevel : null,

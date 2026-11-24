@@ -1,0 +1,1 @@
+enum TransferDirection { upload, download }

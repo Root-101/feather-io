@@ -62,7 +62,7 @@ class AccessKeysCubit extends Cubit<AccessKeysState>
       enabled ? AccessKeyAction.enabled : AccessKeyAction.disabled,
       () => _repo.updateKey(
         id: key.id,
-        draft: AccessKeyDraft.of(key, enabled: enabled),
+        draft: AccessKeyFormModel.of(key, enabled: enabled),
         token: _auth.auth?.accessToken,
       ),
     );

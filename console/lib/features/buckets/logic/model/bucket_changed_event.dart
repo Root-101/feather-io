@@ -1,20 +1,5 @@
 import 'package:console/app_exporter.dart';
 
-/// What happened to a bucket
-enum BucketChange {
-  created,
-
-  /// Its description or color changed
-  updated,
-
-  /// All its objects were deleted
-  emptied,
-  deleted,
-
-  /// Objects were uploaded or deleted (its statistics change)
-  objectsChanged,
-}
-
 /// Notice on the global bus that a bucket changed. Each section (browser,
 /// *Buckets*) has its own cubits, and this keeps them up to date
 class BucketChangedEvent {
