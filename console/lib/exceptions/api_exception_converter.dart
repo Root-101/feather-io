@@ -2,95 +2,95 @@ import 'package:console/app_exporter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+/// A `DioException` as a [GlobalException]: a code for what happened (the view
+/// translates it with `intlMessage`) and, for an answer of the service, its
+/// status, its Problem Details `code` and its `detail`
 class ApiExceptionConverter {
   static GlobalException parse(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.cancel:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.requestCancelled,
-        );
-      case DioExceptionType.connectionTimeout:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.connectionTimeout,
-        );
-      case DioExceptionType.transformTimeout:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.noConnection,
-        );
-      case DioExceptionType.unknown:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.noConnection,
-        );
-      case DioExceptionType.receiveTimeout:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.receiveTimeout,
-        );
-      case DioExceptionType.sendTimeout:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.sendTimeout,
-        );
-      case DioExceptionType.badCertificate:
-        return GlobalException(
-          type: GlobalExceptionType.general,
-          message: app.intl.errors.badCertificate,
-        );
-      case DioExceptionType.connectionError:
-        // TODO: look at the web error in more detail
-        if (kIsWeb) {
-          return GlobalException(
-            // on web, Dio reports 403/401 as a connection error (the browser closes the connection)
-            // every other status (200, 404, 422) works, so this connection error is handled as an auth exception
-            type: GlobalExceptionType.auth,
-            message: app.intl.errors.connection,
-          );
-        } else {
-          return GlobalException(
-            type: GlobalExceptionType.general,
-            message: app.intl.errors.connection,
-          );
-        }
-      case DioExceptionType.badResponse:
-        return _parseBadResponse(error);
-    }
+    return switch (error.type) {
+      DioExceptionType.cancel => _general(
+        GlobalExceptionCode.cancelled,
+        'Request cancelled',
+      ),
+      DioExceptionType.connectionTimeout => _general(
+        GlobalExceptionCode.connectionTimeout,
+        'Connection timeout',
+      ),
+      DioExceptionType.transformTimeout || DioExceptionType.unknown => _general(
+        GlobalExceptionCode.noConnection,
+        'No connection',
+      ),
+      DioExceptionType.receiveTimeout => _general(
+        GlobalExceptionCode.receiveTimeout,
+        'Receive timeout',
+      ),
+      DioExceptionType.sendTimeout => _general(
+        GlobalExceptionCode.sendTimeout,
+        'Send timeout',
+      ),
+      DioExceptionType.badCertificate => _general(
+        GlobalExceptionCode.badCertificate,
+        'Bad certificate',
+      ),
+      DioExceptionType.connectionError => GlobalException(
+        // on web, Dio reports 403/401 as a connection error (the browser
+        // closes the connection); every other status (200, 404, 422) works,
+        // so this connection error is handled as an auth exception
+        type: kIsWeb ? GlobalExceptionType.auth : GlobalExceptionType.general,
+        code: GlobalExceptionCode.connectionError,
+        message: 'Connection error',
+      ),
+      DioExceptionType.badResponse => _parseBadResponse(error),
+    };
   }
 
+  static GlobalException _general(GlobalExceptionCode code, String message) =>
+      GlobalException(
+        type: GlobalExceptionType.general,
+        code: code,
+        message: message,
+      );
+
   static GlobalException _parseBadResponse(DioException error) {
-    if (error.response!.statusCode == 422) {
+    final status = error.response!.statusCode!;
+    final body = error.response!.data;
+    final errorCode = body is Map && body['code'] is String
+        ? body['code'] as String
+        : null;
+    if (status == 422) {
       return GlobalException(
         type: GlobalExceptionType.validation,
-        message: app.intl.errors.validation,
+        code: GlobalExceptionCode.validation,
+        statusCode: status,
+        errorCode: errorCode,
+        message: 'Validation error',
         // A Problem Details with the list in `violations`
-        data: ((error.response!.data as Map)['violations'] as List<dynamic>)
+        data: ((body as Map)['violations'] as List<dynamic>)
             .map(
               (json) => ValidationError.fromJson(json as Map<String, dynamic>),
             )
             .toList(),
       );
-    } else if (error.response!.statusCode == 409) {
-      return GlobalException(
-        type: GlobalExceptionType.conflict,
-        message: _message(error.response!.data),
-        data: error.response!.data,
-      );
-    } else if (error.response!.statusCode! >= 500) {
+    }
+    if (status >= 500) {
       return GlobalException(
         type: GlobalExceptionType.general,
-        message: app.intl.errors.server,
-        data: error.response!.data,
-      );
-    } else {
-      return GlobalException(
-        type: GlobalExceptionType.general,
-        message: _message(error.response!.data),
-        data: error.response!.data,
+        code: GlobalExceptionCode.serverError,
+        statusCode: status,
+        errorCode: errorCode,
+        message: 'Server error',
+        data: body,
       );
     }
+    return GlobalException(
+      type: status == 409
+          ? GlobalExceptionType.conflict
+          : GlobalExceptionType.general,
+      statusCode: status,
+      errorCode: errorCode,
+      message: _message(body),
+      data: body,
+    );
   }
 
   /// Every error of the service is a Problem Details (RFC 9457): the text for

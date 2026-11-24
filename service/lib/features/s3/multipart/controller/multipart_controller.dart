@@ -5,15 +5,11 @@ import 'package:service/feather.dart';
 /// and ListMultipartUploads. None of them is anonymous: those that go through
 /// a route accepting anonymous rules check the upload permission themselves.
 class MultipartController {
-  final MultipartService multipart;
-  final ObjectService objectService;
+  final MultipartService multipart = di.find();
+  final ObjectService objectService = di.find();
 
   /// Resolves the source of UploadPartCopy, with the same rules as CopyObject.
-  final ObjectController objects;
-
-  MultipartController(this.objects)
-    : multipart = MultipartService(),
-      objectService = di.find();
+  final ObjectController objects = di.find();
 
   /// CreateMultipartUpload: `POST /{bucket}/{key}?uploads`.
   Future<ResponseEntity> create(RequestEntity request) async {
@@ -140,7 +136,7 @@ class MultipartController {
     );
     return S3Response.ok(
       request,
-      CopiedPartModel(etag: etag, lastModified: DateTime.now().toUtc()),
+      CopiedPartModel(etag: etag, lastModified: utcNow()),
     );
   }
 

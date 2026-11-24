@@ -46,13 +46,13 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
   Widget build(BuildContext context) {
     return BlocConsumer<AnonymousAccessCubit, AnonymousAccessState>(
       listener: (context, state) {
-        if (state is AnonymousAccessProcessInProgressState) {
+        if (state is AnonymousAccessDeletingState) {
           app.loading.show(id: loadingOverlayGlobalId);
         } else {
           app.loading.hide(id: loadingOverlayGlobalId);
         }
-        if (state is AnonymousAccessProcessingErrorState) {
-          app.snack.showError(message: state.message, context: context);
+        if (state is AnonymousAccessDeletingErrorState) {
+          app.toast.error(state.message);
         }
       },
       builder: (context, state) {
@@ -73,8 +73,10 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
                 PrimaryButton.primary(
                   title: app.intl.anonymousAccess.ruleAdd,
                   icon: app.assets.icons.actions.add,
-                  onPressed: () =>
-                      AnonymousRuleForm.open(context, bucket: widget.bucket),
+                  onPressed: () => AnonymousRuleForm.navigator.create(
+                    context,
+                    bucket: widget.bucket,
+                  ),
                   h: 42,
                   w: 170,
                 ),
@@ -89,15 +91,15 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
   }
 
   Widget _buildContent(AnonymousAccessState state) {
-    if (state is AnonymousAccessLoadingErrorState) {
+    if (state is AnonymousAccessSearchErrorState) {
       return ErrorPage(
-        message: state.exception.message,
+        message: state.exception.intlMessage,
         onRetry: () => cubit.load(bucket: widget.bucket),
       );
     }
     final loading =
         state is AnonymousAccessInitialState ||
-        state is AnonymousAccessLoadingInProgressState;
+        state is AnonymousAccessSearchingState;
     return LoadingOverlay(
       visible: loading,
       overlayWidgetBuilder: LoadingOverlayStyles.table,

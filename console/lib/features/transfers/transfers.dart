@@ -1,7 +1,11 @@
-export 'data/repo/transfer_repo.dart';
-export 'data/rest/transfer_client.dart';
-export 'logic/cubit/transfer_cubit.dart';
+export 'data/repo/transfers_repo.dart';
+export 'data/rest/transfers_client.dart';
+export 'logic/cubit/transfers_cubit.dart';
+export 'logic/model/transfer_direction.dart';
+export 'logic/model/transfer_status.dart';
 export 'logic/model/transfer_task.dart';
+export 'logic/model/upload_file.dart';
+export 'logic/model/uploaded_part.dart';
 export 'transfers_init.dart';
 export 'view/transfers_indicator.dart';
 export 'view/transfers_panel.dart';

@@ -1,5 +1,4 @@
-/// Why a folder or object name is not valid
-enum ObjectNameError { empty, invalid, exists, unchanged }
+import 'package:console/app_exporter.dart';
 
 /// Validates the name of a folder or object inside its folder: no `/`, none of
 /// the characters the service rejects and not repeating one of [existing]

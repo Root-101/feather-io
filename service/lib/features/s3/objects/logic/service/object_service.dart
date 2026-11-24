@@ -9,10 +9,7 @@ import 'package:service/feather.dart';
 /// The objects of the buckets, on disk: upload, copy, read, list, delete
 /// (one, many or a folder) and download several in a zip.
 class ObjectService {
-  final ObjectMetaService objectMeta;
-
-  ObjectService({ObjectMetaService? objectMeta})
-    : objectMeta = objectMeta ?? ObjectMetaService();
+  final ObjectMetaService objectMeta = di.find();
 
   /// Deletes every object and folder of [bucketName] (its folder stays) and
   /// their metadata. The bucket must exist.
@@ -159,13 +156,13 @@ class ObjectService {
         );
       }
       await target.parent.create(recursive: true);
-      final deadline = DateTime.now().add(replaceTimeout);
+      final waited = Stopwatch()..start();
       for (var attempt = 1; ; attempt++) {
         try {
           await source.rename(target.path);
           return stat;
         } on PathAccessException {
-          if (Platform.isWindows && DateTime.now().isBefore(deadline)) {
+          if (Platform.isWindows && waited.elapsed < replaceTimeout) {
             await Future<void>.delayed(
               Duration(milliseconds: min(50 * attempt, 500)),
             );
@@ -228,7 +225,7 @@ class ObjectService {
   Future<int> deleteStaleTemps({Duration olderThan = staleTempAge}) async {
     final dir = Directory(p.join(env.storageVolumePath, tempFolderName));
     if (!await dir.exists()) return 0;
-    final limit = DateTime.now().subtract(olderThan);
+    final limit = utcNow().subtract(olderThan);
     var deleted = 0;
     await for (final entity in dir.list()) {
       if (entity is! File) continue;

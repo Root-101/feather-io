@@ -4,10 +4,10 @@ library;
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8091, name: 'cors');
+  final server = TestApp(name: 'cors');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
@@ -19,7 +19,9 @@ void main() {
       request.headers['Access-Control-Request-Method'] = 'GET';
       request.headers['Access-Control-Request-Headers'] = 'Authorization';
 
-      final response = await http.Response.fromStream(await request.send());
+      final response = await http.Response.fromStream(
+        await server.client.send(request),
+      );
 
       expect(response.statusCode, anyOf(200, 204));
       expect(
@@ -34,22 +36,28 @@ void main() {
       );
     });
 
-    test('GET with Origin header should include CORS headers, even on 401', () async {
-      final response = await http.get(
-        server.url('/'),
-        headers: {'Origin': 'http://example.com'},
-      );
+    test(
+      'GET with Origin header should include CORS headers, even on 401',
+      () async {
+        final response = await server.client.get(
+          server.url('/'),
+          headers: {'Origin': 'http://example.com'},
+        );
 
-      expect(response.statusCode, 401);
-      expect(
-        response.headers['access-control-allow-origin'],
-        isNotNull,
-        reason: 'Missing Access-Control-Allow-Origin on GET',
-      );
-    });
+        expect(response.statusCode, 401);
+        expect(
+          response.headers['access-control-allow-origin'],
+          isNotNull,
+          reason: 'Missing Access-Control-Allow-Origin on GET',
+        );
+      },
+    );
 
     test('GET without Origin header should not include CORS headers', () async {
-      final response = await http.get(server.url('/'), headers: server.auth());
+      final response = await server.client.get(
+        server.url('/'),
+        headers: server.auth(),
+      );
 
       expect(
         response.headers.containsKey('access-control-allow-origin'),

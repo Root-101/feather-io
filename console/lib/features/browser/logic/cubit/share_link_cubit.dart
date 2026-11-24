@@ -2,7 +2,8 @@ import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Link to share an object: the service generates it with the chosen expiry
-class ShareLinkCubit extends Cubit<ShareLinkState> {
+class ShareLinkCubit extends Cubit<ShareLinkState>
+    with GlobalEventBusCommunication<ShareLinkState> {
   final BrowserRepo _repo;
   final AuthCubit _auth;
 
@@ -13,7 +14,7 @@ class ShareLinkCubit extends Cubit<ShareLinkState> {
     required String key,
     required ShareLinkExpiration expiration,
   }) async {
-    emit(ShareLinkLoadingInProgressState(expiration: expiration));
+    emit(ShareLinkSigningState(expiration: expiration));
     try {
       final link = await _repo.presign(
         bucket: bucket,
@@ -23,11 +24,11 @@ class ShareLinkCubit extends Cubit<ShareLinkState> {
       );
       // if another expiry was chosen meanwhile, this link is stale
       if (state.expiration != expiration) return;
-      emit(ShareLinkLoadingSuccessState(expiration: expiration, link: link));
+      emit(ShareLinkSignedOkState(expiration: expiration, link: link));
     } catch (e) {
       if (state.expiration != expiration) return;
       emit(
-        ShareLinkLoadingErrorState(
+        ShareLinkSigningErrorState(
           ExceptionConverter.parse(e),
           expiration: expiration,
         ),
@@ -42,23 +43,23 @@ abstract class ShareLinkState {
   const ShareLinkState({this.expiration = ShareLinkExpiration.day});
 }
 
-class ShareLinkInitialState extends ShareLinkState {
+final class ShareLinkInitialState extends ShareLinkState {
   const ShareLinkInitialState();
 }
 
 //------------------------- LOADING -------------------------\\
-class ShareLinkLoadingInProgressState extends ShareLinkState {
-  const ShareLinkLoadingInProgressState({super.expiration});
+final class ShareLinkSigningState extends ShareLinkState {
+  const ShareLinkSigningState({super.expiration});
 }
 
-class ShareLinkLoadingSuccessState extends ShareLinkState {
+final class ShareLinkSignedOkState extends ShareLinkState {
   final SharedLinkModel link;
 
-  const ShareLinkLoadingSuccessState({required this.link, super.expiration});
+  const ShareLinkSignedOkState({required this.link, super.expiration});
 }
 
-class ShareLinkLoadingErrorState extends ShareLinkState {
+final class ShareLinkSigningErrorState extends ShareLinkState {
   final GlobalException exception;
 
-  const ShareLinkLoadingErrorState(this.exception, {super.expiration});
+  const ShareLinkSigningErrorState(this.exception, {super.expiration});
 }

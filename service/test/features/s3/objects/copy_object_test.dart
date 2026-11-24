@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8098, name: 'copy_object');
+  final server = TestApp(name: 'copy_object');
   const bucket = 'copy-bucket';
 
   String rulesPath(String name) =>
@@ -24,7 +24,7 @@ void main() {
     String targetBucket = bucket,
     Map<String, String>? headers,
   }) {
-    return http.put(
+    return server.client.put(
       server.url('/$targetBucket/$targetKey'),
       headers: {...(headers ?? server.auth()), 'x-amz-copy-source': source},
     );
@@ -39,17 +39,23 @@ void main() {
 
   group('S3Controller - CopyObject (x-amz-copy-source)', () {
     test('Should copy an object and keep the source', () async {
-      final response = await copy('target/report.pdf', '/$bucket/source/report.pdf');
+      final response = await copy(
+        'target/report.pdf',
+        '/$bucket/source/report.pdf',
+      );
       expect(response.statusCode, 200);
       expect(response.body, contains('<CopyObjectResult'));
       expect(response.body, contains('<LastModified>'));
       expect(
         response.body,
-        contains('<ETag>&quot;${md5.convert(utf8.encode('content'))}&quot;</ETag>'),
+        contains(
+          '<ETag>&quot;${md5.convert(utf8.encode('content'))}&quot;</ETag>',
+        ),
       );
 
       expect(
-        await File('${server.storagePath}/$bucket/target/report.pdf').readAsString(),
+        await File('${server.storagePath}/$bucket/target/report.pdf')
+            .readAsString(),
         'content',
       );
       expect(
@@ -70,23 +76,41 @@ void main() {
       expect(body['size_bytes'], 'content'.length);
     });
 
-    test('Should copy between buckets and accept a URL-encoded source', () async {
-      final response = await copy('copied%20from%20other.txt', 'other-bucket/base.txt');
-      expect(response.statusCode, 200);
+    test(
+      'Should copy between buckets and accept a URL-encoded source',
+      () async {
+        final response = await copy(
+          'copied%20from%20other.txt',
+          'other-bucket/base.txt',
+        );
+        expect(response.statusCode, 200);
+        expect(
+          await File('${server.storagePath}/$bucket/copied from other.txt')
+              .readAsString(),
+          'base',
+        );
+      },
+    );
+
+    test('Should overwrite an existing target', () async {
+      await server.putObject(bucket, 'overwrite.txt', 'old');
       expect(
-        await File('${server.storagePath}/$bucket/copied from other.txt').readAsString(),
+        (await copy('overwrite.txt', '/other-bucket/base.txt')).statusCode,
+        200,
+      );
+      expect(
+        await File('${server.storagePath}/$bucket/overwrite.txt')
+            .readAsString(),
         'base',
       );
     });
 
-    test('Should overwrite an existing target', () async {
-      await server.putObject(bucket, 'overwrite.txt', 'old');
-      expect((await copy('overwrite.txt', '/other-bucket/base.txt')).statusCode, 200);
-      expect(await File('${server.storagePath}/$bucket/overwrite.txt').readAsString(), 'base');
-    });
-
     test('Should return 404 for a missing source object', () async {
-      final response = await copy('x.txt', '/$bucket/missing.txt', headers: server.auth(json: true));
+      final response = await copy(
+        'x.txt',
+        '/$bucket/missing.txt',
+        headers: server.auth(json: true),
+      );
       expect(response.statusCode, 404);
       expect(jsonDecode(response.body)['code'], 'NoSuchKey');
     });
@@ -102,16 +126,26 @@ void main() {
     });
 
     test('Should return 404 for a missing source bucket', () async {
-      final response = await copy('x.txt', '/ghost-bucket/a.txt', headers: server.auth(json: true));
+      final response = await copy(
+        'x.txt',
+        '/ghost-bucket/a.txt',
+        headers: server.auth(json: true),
+      );
       expect(response.statusCode, 404);
       expect(jsonDecode(response.body)['code'], 'NoSuchBucket');
     });
 
-    test('Should reject copying an object onto itself without changes (400)', () async {
-      final response = await copy('source/report.pdf', '/$bucket/source/report.pdf');
-      expect(response.statusCode, 400);
-      expect(response.body, contains('<Code>InvalidRequest</Code>'));
-    });
+    test(
+      'Should reject copying an object onto itself without changes (400)',
+      () async {
+        final response = await copy(
+          'source/report.pdf',
+          '/$bucket/source/report.pdf',
+        );
+        expect(response.statusCode, 400);
+        expect(response.body, contains('<Code>InvalidRequest</Code>'));
+      },
+    );
 
     test('Should copy an object onto itself to change its metadata', () async {
       await server.putObject(bucket, 'same.txt', 'same');
@@ -126,7 +160,7 @@ void main() {
       );
       expect(response.statusCode, 200, reason: response.body);
 
-      final head = await http.head(
+      final head = await server.client.head(
         server.url('/$bucket/same.txt'),
         headers: server.auth(),
       );
@@ -137,20 +171,23 @@ void main() {
       );
     });
 
-    test('Should copy an object onto itself to change its storage class', () async {
-      await server.putObject(bucket, 'same-class.txt', 'same');
-      final response = await copy(
-        'same-class.txt',
-        '/$bucket/same-class.txt',
-        headers: {...server.auth(), 'x-amz-storage-class': 'STANDARD_IA'},
-      );
-      expect(response.statusCode, 200, reason: response.body);
-      final head = await http.head(
-        server.url('/$bucket/same-class.txt'),
-        headers: server.auth(),
-      );
-      expect(head.headers['x-amz-storage-class'], 'STANDARD_IA');
-    });
+    test(
+      'Should copy an object onto itself to change its storage class',
+      () async {
+        await server.putObject(bucket, 'same-class.txt', 'same');
+        final response = await copy(
+          'same-class.txt',
+          '/$bucket/same-class.txt',
+          headers: {...server.auth(), 'x-amz-storage-class': 'STANDARD_IA'},
+        );
+        expect(response.statusCode, 200, reason: response.body);
+        final head = await server.client.head(
+          server.url('/$bucket/same-class.txt'),
+          headers: server.auth(),
+        );
+        expect(head.headers['x-amz-storage-class'], 'STANDARD_IA');
+      },
+    );
 
     test('Should reject a malformed source (400)', () async {
       for (final source in ['/', 'only-bucket', '/$bucket/']) {
@@ -160,9 +197,15 @@ void main() {
     });
 
     test('Should reject a folder as the target, not copy to the key without its slash (400)', () async {
-      final response = await copy('target-folder/', '/$bucket/source/report.pdf');
+      final response = await copy(
+        'target-folder/',
+        '/$bucket/source/report.pdf',
+      );
       expect(response.statusCode, 400);
-      expect(File('${server.storagePath}/$bucket/target-folder').existsSync(), isFalse);
+      expect(
+        File('${server.storagePath}/$bucket/target-folder').existsSync(),
+        isFalse,
+      );
     });
 
     test('Should reject a path traversal in the source (400)', () async {
@@ -171,23 +214,37 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await copy('x.txt', '/$bucket/source/report.pdf', headers: {});
+      final response = await copy(
+        'x.txt',
+        '/$bucket/source/report.pdf',
+        headers: {},
+      );
       expect(response.statusCode, 401);
     });
 
-    test('Should not let an anonymous writer copy a private object (403)', () async {
-      final rule = await http.post(
-        server.url(rulesPath(bucket)),
-        headers: {...server.auth(), 'content-type': 'application/json'},
-        body: jsonEncode({'prefix': 'inbox/', 'access': 'writeOnly'}),
-      );
-      expect(rule.statusCode, 200);
+    test(
+      'Should not let an anonymous writer copy a private object (403)',
+      () async {
+        final rule = await server.client.post(
+          server.url(rulesPath(bucket)),
+          headers: {...server.auth(), 'content-type': 'application/json'},
+          body: jsonEncode({'prefix': 'inbox/', 'access': 'writeOnly'}),
+        );
+        expect(rule.statusCode, 200);
 
-      final response = await copy('inbox/stolen.pdf', '/$bucket/source/report.pdf', headers: {});
-      expect(response.statusCode, 403);
-      expect(response.body, contains('<Code>AccessDenied</Code>'));
-      expect(await File('${server.storagePath}/$bucket/inbox/stolen.pdf').exists(), isFalse);
-    });
+        final response = await copy(
+          'inbox/stolen.pdf',
+          '/$bucket/source/report.pdf',
+          headers: {},
+        );
+        expect(response.statusCode, 403);
+        expect(response.body, contains('<Code>AccessDenied</Code>'));
+        expect(
+          await File('${server.storagePath}/$bucket/inbox/stolen.pdf').exists(),
+          isFalse,
+        );
+      },
+    );
   });
 
   group('S3Controller - CopyObject conditions', () {
@@ -198,17 +255,20 @@ void main() {
       etag = md5.convert(utf8.encode('condition')).toString();
     });
 
-    Future<http.Response> copyIf(Map<String, String> conditions) => http.put(
-      server.url('/$bucket/conditions/copy.txt'),
-      headers: {
-        ...server.auth(),
-        'x-amz-copy-source': '/$bucket/conditions/source.txt',
-        ...conditions,
-      },
-    );
+    Future<http.Response> copyIf(Map<String, String> conditions) =>
+        server.client.put(
+          server.url('/$bucket/conditions/copy.txt'),
+          headers: {
+            ...server.auth(),
+            'x-amz-copy-source': '/$bucket/conditions/source.txt',
+            ...conditions,
+          },
+        );
 
     final past = HttpDate.format(DateTime.utc(2010, 3, 26));
-    final future = HttpDate.format(DateTime.now().toUtc().add(const Duration(days: 1)));
+    final future = HttpDate.format(
+      DateTime.now().toUtc().add(const Duration(days: 1)),
+    );
 
     test('Should copy when the conditions hold', () async {
       for (final conditions in [
@@ -224,7 +284,11 @@ void main() {
         },
       ]) {
         final response = await copyIf(conditions);
-        expect(response.statusCode, 200, reason: '$conditions: ${response.body}');
+        expect(
+          response.statusCode,
+          200,
+          reason: '$conditions: ${response.body}',
+        );
       }
     });
 
@@ -242,7 +306,9 @@ void main() {
     });
 
     test('Should ignore a date it does not understand', () async {
-      final response = await copyIf({'x-amz-copy-source-if-modified-since': 'yesterday'});
+      final response = await copyIf({
+        'x-amz-copy-source-if-modified-since': 'yesterday',
+      });
       expect(response.statusCode, 200);
     });
   });

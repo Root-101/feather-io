@@ -1,18 +1,4 @@
 import 'package:console/app_exporter.dart';
-import 'package:cross_file/cross_file.dart';
-
-enum TransferDirection { upload, download }
-
-enum TransferStatus {
-  queued,
-  running,
-  done,
-  failed,
-  cancelled;
-
-  /// Queued or running
-  bool get isActive => this == queued || this == running;
-}
 
 /// An upload or a download of the transfer queue
 class TransferTask {
@@ -29,7 +15,7 @@ class TransferTask {
 
   /// Upload: the target key and the file, kept to retry
   final String? key;
-  final XFile? file;
+  final UploadFile? file;
 
   /// Download: the keys that go in the zip
   final List<String> keys;
@@ -94,12 +80,4 @@ class TransferTask {
     final path = key.endsWith('/') ? key.substring(0, key.length - 1) : key;
     return path.substring(0, path.lastIndexOf('/') + 1);
   }
-}
-
-/// Part of a multipart upload already uploaded
-class UploadedPart {
-  final int number;
-  final String etag;
-
-  const UploadedPart({required this.number, required this.etag});
 }

@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8101, name: 'multipart');
+  final server = TestApp(name: 'multipart');
   const bucket = 'mp-bucket';
   const mb = 1024 * 1024;
 
@@ -28,10 +28,11 @@ void main() {
   String? xmlTag(String xml, String name) =>
       RegExp('<$name>(.*?)</$name>', dotAll: true).firstMatch(xml)?.group(1);
 
-  Future<http.Response> create(String key, {bool json = false}) => http.post(
-    server.url('/$bucket/$key?uploads'),
-    headers: server.auth(json: json),
-  );
+  Future<http.Response> create(String key, {bool json = false}) =>
+      server.client.post(
+        server.url('/$bucket/$key?uploads'),
+        headers: server.auth(json: json),
+      );
 
   Future<String> createId(String key) async {
     final response = await create(key, json: true);
@@ -45,7 +46,7 @@ void main() {
     int number,
     List<int> body, {
     Map<String, String> extra = const {},
-  }) => http.put(
+  }) => server.client.put(
     server.url('/$bucket/$key?partNumber=$number&uploadId=$uploadId'),
     headers: {...server.auth(), ...extra},
     body: body,
@@ -63,7 +64,7 @@ void main() {
       );
     }
     xml.write('</CompleteMultipartUpload>');
-    return http.post(
+    return server.client.post(
       server.url('/$bucket/$key?uploadId=$uploadId'),
       headers: {...server.auth(), 'content-type': 'application/xml'},
       body: xml.toString(),
@@ -74,7 +75,7 @@ void main() {
     String key,
     String uploadId,
     List<(int, String)> parts,
-  ) => http.post(
+  ) => server.client.post(
     server.url('/$bucket/$key?uploadId=$uploadId'),
     headers: {...server.auth(json: true), 'content-type': 'application/json'},
     body: jsonEncode({
@@ -120,7 +121,7 @@ void main() {
       expect(xmlTag(completed.body, 'ETag'), '&quot;$expectedEtag&quot;');
       expect(xmlTag(completed.body, 'Key'), key);
 
-      final object = await http.get(
+      final object = await server.client.get(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
@@ -160,41 +161,44 @@ void main() {
         (2, etags[1]),
       ]);
       expect(completed.statusCode, 200);
-      final object = await http.get(
+      final object = await server.client.get(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
       expect(object.bodyBytes.first, 1);
     });
 
-    test('Should answer the same to a Complete retried while the first runs', () async {
-      const key = 'retried.bin';
-      final uploadId = await createId(key);
-      final etags = await uploadBoth(key, uploadId);
-      final parts = [(1, etags[0]), (2, etags[1])];
+    test(
+      'Should answer the same to a Complete retried while the first runs',
+      () async {
+        const key = 'retried.bin';
+        final uploadId = await createId(key);
+        final etags = await uploadBoth(key, uploadId);
+        final parts = [(1, etags[0]), (2, etags[1])];
 
-      final responses = await Future.wait([
-        completeJson(key, uploadId, parts),
-        completeJson(key, uploadId, parts),
-      ]);
-      for (final response in responses) {
-        expect(response.statusCode, 200, reason: response.body);
-      }
-      expect(
-        jsonDecode(responses[0].body)['etag'],
-        jsonDecode(responses[1].body)['etag'],
-      );
+        final responses = await Future.wait([
+          completeJson(key, uploadId, parts),
+          completeJson(key, uploadId, parts),
+        ]);
+        for (final response in responses) {
+          expect(response.statusCode, 200, reason: response.body);
+        }
+        expect(
+          jsonDecode(responses[0].body)['etag'],
+          jsonDecode(responses[1].body)['etag'],
+        );
 
-      final object = await http.get(
-        server.url('/$bucket/$key'),
-        headers: server.auth(),
-      );
-      expect(object.bodyBytes.length, part1.length + part2.length);
-      expect(
-        md5.convert(object.bodyBytes).toString(),
-        md5.convert([...part1, ...part2]).toString(),
-      );
-    });
+        final object = await server.client.get(
+          server.url('/$bucket/$key'),
+          headers: server.auth(),
+        );
+        expect(object.bodyBytes.length, part1.length + part2.length);
+        expect(
+          md5.convert(object.bodyBytes).toString(),
+          md5.convert([...part1, ...part2]).toString(),
+        );
+      },
+    );
 
     test('Should keep the file and the ETag of the same part uploaded twice at once', () async {
       const key = 'part-race.bin';
@@ -207,7 +211,7 @@ void main() {
         expect(response.statusCode, 200, reason: response.body);
       }
 
-      final listed = await http.get(
+      final listed = await server.client.get(
         server.url('/$bucket/$key?uploadId=$uploadId'),
         headers: server.auth(json: true),
       );
@@ -215,12 +219,15 @@ void main() {
       final completed = await completeJson(key, uploadId, [(1, etag)]);
       expect(completed.statusCode, 200, reason: completed.body);
 
-      final object = await http.get(
+      final object = await server.client.get(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
       // The ETag of the part that stayed, whichever of the two it was
-      expect(md5.convert(object.bodyBytes).toString(), etag.replaceAll('"', ''));
+      expect(
+        md5.convert(object.bodyBytes).toString(),
+        etag.replaceAll('"', ''),
+      );
     });
 
     test('Should allow a single small part', () async {
@@ -231,7 +238,7 @@ void main() {
         (1, part.headers['etag']!),
       ]);
       expect(completed.statusCode, 200);
-      final object = await http.get(
+      final object = await server.client.get(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
@@ -247,7 +254,7 @@ void main() {
       );
       expect(dir.existsSync(), isTrue);
 
-      final aborted = await http.delete(
+      final aborted = await server.client.delete(
         server.url('/$bucket/$key?uploadId=$uploadId'),
         headers: server.auth(),
       );
@@ -260,7 +267,7 @@ void main() {
 
     test('Should not list the pending uploads as a bucket', () async {
       await createId('pending.bin');
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: server.auth(json: true),
       );
@@ -336,7 +343,7 @@ void main() {
     test('Should reject a malformed part list', () async {
       const key = 'bad.bin';
       final uploadId = await createId(key);
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket/$key?uploadId=$uploadId'),
         headers: {...server.auth(), 'content-type': 'application/xml'},
         body: '<CompleteMultipartUpload></CompleteMultipartUpload>',
@@ -370,7 +377,7 @@ void main() {
     });
 
     test('Should fail on a missing bucket or a folder key', () async {
-      final noBucket = await http.post(
+      final noBucket = await server.client.post(
         server.url('/missing/a.bin?uploads'),
         headers: server.auth(),
       );
@@ -384,7 +391,7 @@ void main() {
     test(
       'Should reject POST on an object without ?uploads/?uploadId',
       () async {
-        final response = await http.post(
+        final response = await server.client.post(
           server.url('/$bucket/other.txt'),
           headers: server.auth(),
         );
@@ -394,14 +401,16 @@ void main() {
     );
 
     test('Should fail without auth (401)', () async {
-      final response = await http.post(server.url('/$bucket/a.bin?uploads'));
+      final response = await server.client.post(
+        server.url('/$bucket/a.bin?uploads'),
+      );
       expect(response.statusCode, 401);
     });
   });
 
   group('S3Controller - multipart with SigV4', () {
     test('Should create an upload signed with the service keys', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket/signed.bin?uploads'),
         headers: server.sigV4(
           'POST',
@@ -417,18 +426,18 @@ void main() {
   group('BucketService - multipart cleanup', () {
     test('Should abort the pending uploads when a bucket is deleted', () async {
       const other = 'mp-temp';
-      final created = await http.put(
+      final created = await server.client.put(
         server.url('/$other'),
         headers: server.auth(),
       );
       expect(created.statusCode, 200);
-      final start = await http.post(
+      final start = await server.client.post(
         server.url('/$other/a.bin?uploads'),
         headers: server.auth(json: true),
       );
       final uploadId = jsonDecode(start.body)['upload_id'] as String;
 
-      final deleted = await http.delete(
+      final deleted = await server.client.delete(
         server.url('/$other'),
         headers: server.auth(),
       );
@@ -448,7 +457,7 @@ void main() {
     setUpAll(() => server.createBucket(listBucket));
 
     Future<String> start(String key) async {
-      final created = await http.post(
+      final created = await server.client.post(
         server.url('/$listBucket/$key?uploads'),
         headers: server.auth(json: true),
       );
@@ -459,7 +468,7 @@ void main() {
       final first = await start('b/one.bin');
       final second = await start('a/two.bin');
 
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$listBucket?uploads'),
         headers: server.auth(),
       );
@@ -475,7 +484,7 @@ void main() {
     });
 
     test('Should filter by prefix and answer JSON', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$listBucket?uploads&prefix=a/'),
         headers: server.auth(json: true),
       );
@@ -483,17 +492,20 @@ void main() {
       expect(uploads.map((u) => u['key']), ['a/two.bin']);
     });
 
-    test('Should not list the uploads of other buckets nor the finished ones', () async {
-      final response = await http.get(
-        server.url('/$bucket?uploads'),
-        headers: server.auth(json: true),
-      );
-      final keys = (jsonDecode(response.body) as List).map((u) => u['key']);
-      expect(keys, isNot(contains('b/one.bin')));
-    });
+    test(
+      'Should not list the uploads of other buckets nor the finished ones',
+      () async {
+        final response = await server.client.get(
+          server.url('/$bucket?uploads'),
+          headers: server.auth(json: true),
+        );
+        final keys = (jsonDecode(response.body) as List).map((u) => u['key']);
+        expect(keys, isNot(contains('b/one.bin')));
+      },
+    );
 
     test('Should return 404 for a missing bucket', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/missing?uploads'),
         headers: server.auth(),
       );
@@ -507,7 +519,7 @@ void main() {
     setUpAll(() => server.putObject(copyBucket, 'source.txt', 'abcdefghij'));
 
     Future<String> start(String key) async {
-      final created = await http.post(
+      final created = await server.client.post(
         server.url('/$copyBucket/$key?uploads'),
         headers: server.auth(json: true),
       );
@@ -520,7 +532,7 @@ void main() {
       int number, {
       String? range,
       Map<String, String> headers = const {},
-    }) => http.put(
+    }) => server.client.put(
       server.url('/$copyBucket/$key?partNumber=$number&uploadId=$uploadId'),
       headers: {
         ...server.auth(),
@@ -537,7 +549,9 @@ void main() {
       expect(response.body, contains('<CopyPartResult'));
       expect(
         response.body,
-        contains('<ETag>&quot;${md5.convert(utf8.encode('abcdefghij'))}&quot;</ETag>'),
+        contains(
+          '<ETag>&quot;${md5.convert(utf8.encode('abcdefghij'))}&quot;</ETag>',
+        ),
       );
     });
 
@@ -553,10 +567,11 @@ void main() {
           RegExp(r'<ETag>(.*?)</ETag>').firstMatch(r.body)!.group(1)!;
       // The first part is under 5 MiB: it is only valid as the single part,
       // so the upload is completed with the second one to check its content
-      final completed = await http.post(
+      final completed = await server.client.post(
         server.url('/$copyBucket/$key?uploadId=$uploadId'),
         headers: server.auth(),
-        body: '<CompleteMultipartUpload><Part><PartNumber>2</PartNumber>'
+        body:
+            '<CompleteMultipartUpload><Part><PartNumber>2</PartNumber>'
             '<ETag>${etag(second)}</ETag></Part></CompleteMultipartUpload>',
       );
       expect(completed.statusCode, 200, reason: completed.body);
@@ -568,14 +583,24 @@ void main() {
 
     test('Should reject a range outside the source (416)', () async {
       final uploadId = await start('outside.txt');
-      final response = await copyPart('outside.txt', uploadId, 1, range: 'bytes=5-20');
+      final response = await copyPart(
+        'outside.txt',
+        uploadId,
+        1,
+        range: 'bytes=5-20',
+      );
       expect(response.statusCode, 416);
       expect(response.body, contains('<Code>InvalidRange</Code>'));
     });
 
     test('Should reject a malformed range (400)', () async {
       final uploadId = await start('bad.txt');
-      final response = await copyPart('bad.txt', uploadId, 1, range: 'bytes=5-');
+      final response = await copyPart(
+        'bad.txt',
+        uploadId,
+        1,
+        range: 'bytes=5-',
+      );
       expect(response.statusCode, 400);
     });
 
@@ -598,14 +623,16 @@ void main() {
     setUpAll(() => server.createBucket(partsBucket));
 
     Future<String> startWithParts(String key, List<int> numbers) async {
-      final created = await http.post(
+      final created = await server.client.post(
         server.url('/$partsBucket/$key?uploads'),
         headers: server.auth(json: true),
       );
       final uploadId = jsonDecode(created.body)['upload_id'] as String;
       for (final number in numbers) {
-        await http.put(
-          server.url('/$partsBucket/$key?partNumber=$number&uploadId=$uploadId'),
+        await server.client.put(
+          server.url(
+            '/$partsBucket/$key?partNumber=$number&uploadId=$uploadId',
+          ),
           headers: server.auth(),
           body: List<int>.filled(number, number),
         );
@@ -615,7 +642,7 @@ void main() {
 
     test('Should list the uploaded parts in order (XML)', () async {
       final uploadId = await startWithParts('parts.bin', [3, 1, 2]);
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$partsBucket/parts.bin?uploadId=$uploadId'),
         headers: server.auth(),
       );
@@ -635,7 +662,7 @@ void main() {
 
     test('Should page with part-number-marker and max-parts (JSON)', () async {
       final uploadId = await startWithParts('pages.bin', [1, 2, 3]);
-      final response = await http.get(
+      final response = await server.client.get(
         server.url(
           '/$partsBucket/pages.bin?uploadId=$uploadId'
           '&part-number-marker=1&max-parts=1',
@@ -647,7 +674,7 @@ void main() {
     });
 
     test('Should answer NoSuchUpload for an unknown upload', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$partsBucket/x.bin?uploadId=${'0' * 32}'),
         headers: server.auth(),
       );
@@ -657,14 +684,17 @@ void main() {
 
     test('Should not let an anonymous reader list the parts (403)', () async {
       final uploadId = await startWithParts('anonymous.bin', [1]);
-      final rule = await http.post(
+      final rule = await server.client.post(
         server.url('/_admin/bucket/$partsBucket/anonymous-access'),
-        headers: {...server.auth(json: true), 'content-type': 'application/json'},
+        headers: {
+          ...server.auth(json: true),
+          'content-type': 'application/json',
+        },
         body: jsonEncode({'prefix': '*', 'access': 'readOnly'}),
       );
       expect(rule.statusCode, anyOf(200, 201), reason: rule.body);
 
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$partsBucket/anonymous.bin?uploadId=$uploadId'),
       );
       expect(response.statusCode, 403);

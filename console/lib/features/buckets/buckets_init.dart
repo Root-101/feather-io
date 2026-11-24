@@ -2,10 +2,10 @@ import 'package:console/app_exporter.dart';
 
 class BucketsInit {
   static Future init() async {
-    BucketClient client = BucketClient(app.di.find());
+    BucketsClient client = BucketsClient(app.di.find());
     app.di.put(client);
 
-    BucketRepo repo = BucketRepo(client);
+    BucketsRepo repo = BucketsRepo(client);
     app.di.put(repo);
   }
 }

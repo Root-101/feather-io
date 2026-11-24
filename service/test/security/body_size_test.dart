@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8100, name: 'body_size');
+  final server = TestApp(name: 'body_size', port: 8100);
   const bucket = 'big-bucket';
   const mb = 1024 * 1024;
 
@@ -25,7 +25,7 @@ void main() {
   tearDownAll(server.stop);
 
   Future<http.Response> put(String key, int size, {bool json = false}) =>
-      http.put(
+      server.client.put(
         server.url('/$bucket/$key'),
         headers: server.auth(json: json),
         body: List<int>.filled(size, 7),
@@ -67,7 +67,7 @@ void main() {
           'PUT',
           server.url('/$bucket/chunked-huge.bin'),
         )..headers.addAll(server.auth());
-        final sent = request.send();
+        final sent = server.client.send(request);
         for (var i = 0; i < 13; i++) {
           request.sink.add(List<int>.filled(mb, 7));
         }
@@ -92,7 +92,7 @@ void main() {
 
   group('BodySizeFilter - other requests', () {
     test('Should reject a JSON body over 2 MB (413)', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/${env.adminPrefix}/login'),
         headers: {'content-type': 'application/json'},
         body: jsonEncode({'access': 'a' * (3 * mb), 'secret': testSecret}),
@@ -107,7 +107,7 @@ void main() {
       )..headers['content-type'] = 'application/json';
       // send() first: the sink doesn't close until someone reads the stream.
       // If the server cuts it, the error comes through send()'s future
-      final sent = request.send();
+      final sent = server.client.send(request);
       request.sink.add(body);
       unawaited(request.sink.close());
       return sent;
@@ -138,7 +138,7 @@ void main() {
     );
 
     test('Should still accept a normal JSON request', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/${env.adminPrefix}/login'),
         headers: {'content-type': 'application/json'},
         body: jsonEncode({'access': testAccess, 'secret': testSecret}),

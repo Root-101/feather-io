@@ -7,15 +7,18 @@ import 'package:material_ui/material_ui.dart';
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
+  /// The browser's language: the saved one isn't loaded yet
+  AppTexts get _texts => AppIntl.of(AppIntl.browser);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeConfig.theme,
+      theme: AppTheme.dark,
       // The browser's, like the app until the saved language loads
-      locale: browserLocale,
-      localizationsDelegates: appLocalizationsDelegates,
-      supportedLocales: appSupportedLocales,
+      locale: Locale(AppIntl.browser.languageCode),
+      localizationsDelegates: AppIntl.delegates,
+      supportedLocales: AppIntl.supportedLocales,
       builder: (context, child) => Scaffold(
         backgroundColor: app.colors.primary.background1,
         body: Center(
@@ -24,10 +27,10 @@ class SplashScreen extends StatelessWidget {
             children: [
               Image.asset(app.assets.appIcon, width: 96, height: 96),
               app.dimensions.padding.xxl.gap(),
-              AppWordmark(name: context.intl.app.name, fontSize: 56),
+              AppWordmark(name: _texts.app.name, fontSize: 56),
               app.dimensions.padding.l.gap(),
               Text(
-                context.intl.app.splashText,
+                _texts.app.splashText,
                 style: TextTheme.of(context).bodyLarge?.copyWith(
                   color: app.colors.neutral.grey3,
                   letterSpacing: 0,

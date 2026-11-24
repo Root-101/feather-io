@@ -133,7 +133,7 @@ class BrowserRepo {
   }
 }
 
-extension ListObjectsResponseMapping on ListObjectsResponse {
+extension ListObjectsResponseToModel on ListObjectsResponse {
   ListObjectsModel toModel() {
     return ListObjectsModel(
       bucketName: bucketName,
@@ -148,7 +148,7 @@ extension ListObjectsResponseMapping on ListObjectsResponse {
   }
 }
 
-extension ObjectResponseMapping on ObjectResponse {
+extension ObjectResponseToModel on ObjectResponse {
   BrowserObjectModel toModel() {
     return BrowserObjectModel(
       key: key,
@@ -158,13 +158,13 @@ extension ObjectResponseMapping on ObjectResponse {
   }
 }
 
-extension PresignResponseMapping on PresignResponse {
+extension PresignResponseToModel on PresignResponse {
   SharedLinkModel toModel() {
     return SharedLinkModel(url: url, expiresAt: expiresAt.toLocal());
   }
 }
 
-extension ObjectInfoResponseMapping on ObjectInfoResponse {
+extension ObjectInfoResponseToModel on ObjectInfoResponse {
   ObjectInfoModel toModel() {
     return ObjectInfoModel(
       contentType: contentType,
@@ -174,7 +174,7 @@ extension ObjectInfoResponseMapping on ObjectInfoResponse {
   }
 }
 
-extension ObjectDataResponseMapping on ObjectDataResponse {
+extension ObjectDataResponseToModel on ObjectDataResponse {
   ObjectDataModel toModel() {
     return ObjectDataModel(bytes: bytes, contentType: contentType);
   }

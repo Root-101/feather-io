@@ -1,7 +1,8 @@
 import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AuthCubit extends Cubit<AuthState> {
+class AuthCubit extends Cubit<AuthState>
+    with GlobalEventBusCommunication<AuthState> {
   final AuthRepo repo;
   AuthModel? _auth;
 
@@ -16,22 +17,22 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   void login({required String access, required String secret}) async {
-    emit(AuthProcessInProgressState());
+    emit(AuthLoggingInState());
     try {
       _auth = await repo.login(access: access, secret: secret);
       await repo.save(_auth!);
-      emit(AuthProcessingOKState());
+      emit(AuthLoggedInOkState());
     } catch (e) {
       _auth = null;
       final exc = ExceptionConverter.parse(e);
-      emit(AuthProcessingErrorState(exc.message));
+      emit(AuthLoggingInErrorState(exc.intlMessage));
     }
   }
 
   void logout() {
     _auth = null;
     repo.clear();
-    emit(AuthLogoutState());
+    emit(AuthLogoutOkState());
   }
 
   void reset() {
@@ -43,16 +44,16 @@ class AuthCubit extends Cubit<AuthState> {
 
 abstract class AuthState {}
 
-class AuthInitialState extends AuthState {}
+final class AuthInitialState extends AuthState {}
 
-class AuthProcessInProgressState extends AuthState {}
+final class AuthLoggingInState extends AuthState {}
 
-class AuthProcessingOKState extends AuthState {}
+final class AuthLoggedInOkState extends AuthState {}
 
-class AuthProcessingErrorState extends AuthState {
+final class AuthLoggingInErrorState extends AuthState {
   final String message;
 
-  AuthProcessingErrorState(this.message);
+  AuthLoggingInErrorState(this.message);
 }
 
-class AuthLogoutState extends AuthState {}
+final class AuthLogoutOkState extends AuthState {}

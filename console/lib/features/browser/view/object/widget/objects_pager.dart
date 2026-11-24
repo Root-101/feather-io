@@ -20,7 +20,7 @@ class ObjectsPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final busy = state is! BrowserLoadingSuccessState;
+    final busy = state is! BrowserSearchOkState;
     final totalPages = state.totalPages;
     return Container(
       height: 52,

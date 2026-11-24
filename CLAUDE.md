@@ -47,8 +47,8 @@ cell, and the separator row with dashes across the whole width (`|------|`), nev
 
 ## Commands
 
-The project pins Flutter via FVM (`.fvmrc` in both packages, Flutter 3.47.1 / Dart 3.13). Both
-packages need Dart SDK ^3.13.0. The system `dart` on PATH may be older, so prefix commands with
+The project pins Flutter via FVM (`.fvmrc` in both packages, Flutter 3.50.1 / Dart 3.14). Both
+packages need Dart SDK ^3.14.0. The system `dart` on PATH may be older, so prefix commands with
 `fvm` (`fvm dart …`, `fvm flutter …`).
 
 ### Service (run from `service/`)
@@ -58,7 +58,7 @@ directory, so always run from `service/`.
 
 ```bash
 fvm dart pub get
-fvm dart run build_runner build          # only for Drift (lib/features/db/database.g.dart)
+fvm dart run build_runner build          # only for Drift (lib/db/database.g.dart)
 fvm dart run slang                       # after editing lib/i18n/*.i18n.yaml (error messages)
 fvm dart analyze
 fvm dart test                            # all tests
@@ -85,7 +85,7 @@ local `.env` works too. See `service/README.md` (its endpoint table lists only s
 controllers as the source of truth).
 
 `service/Dockerfile` builds with `docker build -t feather-io .` from `service/` (each release
-publishes it as `ghcr.io/root-101/feather-io`). It compiles AOT on `dart:3.13.1` with `dart build cli` (the build hook of the `sqlite3`
+publishes it as `ghcr.io/root-101/feather-io`). It compiles AOT on `dart:3.14.0` with `dart build cli` (the build hook of the `sqlite3`
 package bundles SQLite next to the binary, so no system SQLite is needed anywhere) and runs on
 `scratch` with the Dart runtime, that bundle and a `/tmp` (zip downloads); `STORAGE_VOLUME_PATH=/data` is a volume. Bump the image tag with `.fvmrc`. The orchestrator
 probes the public `GET /{admin}/health` (Winter's `Route.health`: database and a write to the
@@ -95,7 +95,7 @@ volume, `503` when one fails); how to back up the volume is in `service/README.m
 
 ```bash
 fvm flutter pub get
-fvm dart run slang                                              # after editing lib/l10n/*.i18n.yaml
+fvm dart run slang                                              # after editing lib/i18n/*.i18n.yaml
 fvm flutter run -d chrome --web-port=8081
 fvm flutter analyze
 fvm flutter test                                                # on the VM, no browser
@@ -123,8 +123,12 @@ fvm flutter test                                                # on the VM, no 
   `connectTimeout`/`receiveTimeout` = `Duration.zero` (no limit) and rely on a `CancelToken`.
 - On web, Dio reports 401/403 as `connectionError` rather than `badResponse`.
   `ApiExceptionConverter` therefore maps web connection errors to `GlobalExceptionType.auth`.
-- Errors of the service are Problem Details: `ApiExceptionConverter` shows their `detail`, and a
-  422 becomes `ValidationError`s from its `violations` (`fieldName` = the form field).
+- Errors of the service are Problem Details: `ApiExceptionConverter` keeps their `detail`, their
+  status and their `code` (`GlobalException.errorCode`, compared with `hasCode`), and a 422
+  becomes `ValidationError`s from its `violations` (`fieldName` = the form field). Network errors
+  carry a `GlobalExceptionCode`, and views show any error with `exception.intlMessage` (translated
+  by its code), never `exception.message`. The language goes in `Accept-Language`
+  (`LanguageHeaderInterceptor`).
 
 ## HTTP contract (both sides)
 
@@ -137,9 +141,20 @@ fvm flutter test                                                # on the VM, no 
 
 ## Service architecture
 
-**Bootstrap.** `FeatherIO.start()` in `lib/main.dart` registers deserializers on the ObjectMapper (
-`om`), puts `AppDatabase`, `ObjectService`, `BucketService` and `JwtService` into Winter's `di`, then builds
-`S3Controller` and `AdminController` and passes their `.routing` to `Winter.start`. `S3Controller`
+The service follows the Winter service standard (the `winter-service-standard` skill, as Dumpling),
+with the S3 API as the protocol imposed from outside that the standard describes. Exceptions, on
+purpose: the admin API keeps its paths and keys (`/bucket/{bucket}` in the singular,
+`/access-keys/{id}`, `admin.bucket.get`): renaming them would break every client for no new
+behaviour.
+
+**Bootstrap.** `FeatherIO.setUp()` in `lib/main.dart` registers deserializers on the ObjectMapper (
+`om`), puts the infrastructure into Winter's `di` (`AppDatabase`, `SecretCipher`, `JwtService`,
+`LoginRateLimiter`), registers every repo, service and controller (`config/dependencies.dart`,
+`putLazy`; they find each other with `final X x = di.find();`, never `X()`) and returns the
+router, filters and security (`FeatherApp`); `start()` serves them with `Winter.start`, and the
+tests in memory. The router has the `.routing` of `AdminController` and `S3Controller`, the
+routing classes: they only declare routes, the handlers live in the feature controllers
+(`BucketAdminController` for the admin operations on a bucket). `S3Controller`
 only holds the S3 routes: S3 multiplexes several operations on one method and path (by query and
 headers), so each route hands the request to its operation in `BucketController`,
 `ObjectController` or `MultipartController`. What those read from a request (bucket, key, stored
@@ -169,9 +184,9 @@ file.
   for `LOGIN_LOCK_SECONDS` (15 min, `429` + `Retry-After`, even with good credentials); a success
   clears it. The IP is `request.clientIp` (an IPv6 by its /64, `defaultClientId`), and
   `TRUSTED_PROXIES` becomes Winter's `ServerConfig.trustedProxies`, so `X-Forwarded-*` are ignored
-  unless proxies are declared. Credentials are compared in constant time. That endpoint
-  checks `FEATHER_ACCESS`/`FEATHER_SECRET` and issues a
-  token with a fixed permission list.
+  unless proxies are declared. Credentials are compared in constant time (`Secrets.sameText`, the
+  one helper, also for SigV4 signatures). That endpoint (`AuthService`) checks
+  `FEATHER_ACCESS`/`FEATHER_SECRET` and issues a token with `Permissions.all`.
 - A general `RateLimiterFilter` (Winter's) is the first global filter: `RATE_LIMIT_REQUESTS` (2000)
   requests per IP every `RATE_LIMIT_WINDOW_SECONDS` (60), 0 disables it; the number comes from
   measured client bursts (see `DECISIONS.md`). It throws Winter's 429, which `S3ExceptionHandler`
@@ -221,13 +236,15 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   is written at most once a minute per key (`AccessKeyService.touch`). Deleting a bucket deletes
   its grants. See `DECISIONS.md`.
 - Each route declares its own permission with
-  `AuthFilter(rule: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
+  `AuthFilter(rule: hasPermission(Permissions.s3PutObject) | hasPermission(Permissions.anonymous(Permissions.s3PutObject)))`.
   The S3 routes pass `cacheControl: null`, so, like S3, a response only has the `Cache-Control`
   stored with its object (Winter adds `private` by default, which the admin API keeps).
   Route keys and permission names match (`s3.*`, `admin.*`).
-- New endpoints need the route key, an `AuthFilter`, **and** the permission added to the list in
-  `admin/auth/controller/auth_controller.dart` (and to `S3SigV4Filter` if native S3 clients should reach
-  it). An admin endpoint also needs its `docs:` (see *OpenAPI*).
+- Every permission is a constant of `Permissions` (`security/permissions.dart`), never typed again:
+  the login token gets `Permissions.all`, an access key the sets `s3Read`/`s3Write`. A new endpoint
+  needs its route key, an `AuthFilter` **and** its permission in `Permissions` (and in `all`);
+  `test/security/routes_test.dart` reads the `hasPermission` of every route and checks it. An
+  admin endpoint also needs its `docs:` (see *OpenAPI*).
 - `AnonymousAccessFilter` runs on the S3 parent after the SigV4 filter, for unauthenticated
   requests and, as in AWS, for requests signed with an access key that lacks the route's permission
   (it adds the rule's `s3.anonymous.*` permissions to the key's, which stays the principal; a copy
@@ -254,16 +271,16 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
 
 A parent feature keeps what its sub-features share, and each sub-feature has its own folders:
 
-- `admin/` (`admin_controller.dart` with the admin routes) with `auth/`, `anonymous_access/` and
-  `access_keys/`.
+- `admin/` (`admin_controller.dart` with the admin routes) with `auth/`, `buckets/` (the admin
+  operations on a bucket), `anonymous_access/` and `access_keys/`.
 - `s3/` (`s3_controller.dart` with the S3 routes, `s3_request.dart`, `s3_response.dart`;
   `filter/`; `utils/` with `AwsChunkedDecoder`, `S3Validator` and `S3Xml`) with `buckets/`
   (`BucketService`: their folder, metadata and what goes away with them), `objects/`
   (`ObjectService`: objects on disk, `ObjectMetaService`, `PresignService`) and `multipart/`.
-- `db/` (Drift).
 
-Outside `features/`: `config/`, `exceptions/` (`S3Exception`, `S3ErrorCode` and
-`S3ExceptionHandler`), `i18n/`, `security/` (JWT, SigV4, secrets) and `xml/` (the XML mapper).
+Outside `features/`: `config/` (env, dependencies), `core/` (what every feature shares:
+`S3Exception`, `S3ErrorCode` and `S3ExceptionHandler`), `db/` (Drift: `database.dart` and a file
+per feature in `tables/`), `i18n/`, `security/` (JWT, SigV4, secrets) and `xml/` (the XML mapper).
 
 **Layer rules.**
 
@@ -279,7 +296,9 @@ Outside `features/`: `config/`, `exceptions/` (`S3Exception`, `S3ErrorCode` and
 - Don't add dependencies for things Dart core or Winter already cover.
 
 **Models / serialization.** JSON is hand-written, without interfaces: a model has a
-`Map<String, Object?> toJson()` (Winter finds it by itself) with the `snake_case` names. Request
+`Map<String, Object?> toJson()` (Winter finds it by itself) with the `snake_case` names. Dates go
+out with `toJsonDate()` (ISO 8601 in UTC with milliseconds, never epoch numbers), every moment is
+`utcNow()` and a wait or deadline a `Stopwatch` (`core/time.dart`). Request
 models have a `fromJson` factory that reads each field with `json.field<T>('json_name')` (never
 casts: a wrong body is then a 400 that names the field, `$.buckets[0]: expected an object, got a
 string`), **and** a `Deserializer<T>.json(T.fromJson)` in `main.dart`; a list of objects
@@ -326,7 +345,7 @@ never enabled; rclone asks before a purge).
 `type`, `title`, `status`, `detail`), as Winter answers them.
 
 - S3 errors (from services and S3 filters) throw
-  `S3Exception(S3ErrorCode.x, message: …, resource: …)` (`exceptions/`), or
+  `S3Exception(S3ErrorCode.x, message: …, resource: …)` (`core/`), or
   one of its named constructors (`invalidBucketName`, `invalidKey`, `noSuchBucket`, `noSuchKey`).
   It is an `ApiException`: `detail` is the message and the extensions `code` and `resource`. Each
   `S3ErrorCode` carries the AWS code and its HTTP status; add new codes there.
@@ -336,8 +355,12 @@ never enabled; rclone asks before a purge).
   `SlowDown`; everything else follows Winter's rules (a 400 of the object mapper with the path of
   the field, a 422 with `violations` (`fieldName`, `message`, `code`, `params`), a 500 that only
   shows the `requestId`).
-- The admin API throws `S3Exception` too (`InvalidCredentials`, `NoSuchAccessKey`,
-  `InvalidRequest`…), so its errors are Problem Details with `code` and `resource` as well.
+- What only the admin API can fail (login, access keys, its own query params) throws an
+  `AppException(ErrorCode.x, intl.errors.<feature>.<rule>)` (`core/`): its `code` is
+  `<feature>.<rule>`, the i18n key without `errors.` (`auth.invalidCredentials`,
+  `accessKeys.notFound`); `test/core/error_code_test.dart` checks every code has its message. What
+  the two APIs share (a bucket, an object, through the same services) keeps its `S3Exception` and
+  S3 code on both, so one failure never has two codes.
 - Messages are translated, codes never (`DECISIONS.md` §7). The texts live in
   `lib/i18n/en.i18n.yaml` (base, with the parameter types) and `es.i18n.yaml`, generated by slang
   (`fvm dart run slang`, generated code versioned). Any code reads them with the `intl` getter
@@ -503,7 +526,7 @@ and almost every incompatibility so far was found by them, not by `dart test`:
 
 | When                                                                | Run                                                       | Time     |
 |---------------------------------------------------------------------|-----------------------------------------------------------|----------|
-| Every change                                                        | `fvm dart test` (from `service/`)                         | ~11 s    |
+| Every change                                                        | `fvm dart test` (from `service/`)                         | ~35 s    |
 | Touching the S3 API (controller, filters, signatures, XML, headers) | also `service/tool/s3_compat/run.sh` (AWS CLI and rclone) | ~1–2 min |
 | Before a release or after big protocol changes                      | also `run.sh mint`, i.e. the *Full test run* below        | ~5 min   |
 
@@ -548,18 +571,22 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `security/`, `xml/`, `i18n/`), and `support/` holds the helpers. `s3_controller_test.dart`
   (in `features/s3/`) holds the happy path (upload → list → get → delete); each endpoint gets its
   own file (`put_object_test.dart`, `list_buckets_test.dart`…).
-- Use `TestServer` (`test/support/test_server.dart`): `TestServer(port: …, name: …)`, then
-  `setUpAll(server.start)` / `tearDownAll(server.stop)`. It sets the env, starts the real server
-  with an in-memory SQLite (`FeatherIO.start(database: …)`), logs in to get `server.token`, and
-  creates and deletes `./uploads_test/<name>` (gitignored); `fileDatabase: true` uses the real
-  SQLite file inside that folder instead. It sets `LOG_LEVEL=warning`, so only problems are
-  printed. Helpers: `server.url(path)`,
+- Use `TestApp` (`test/support/test_app.dart`): `TestApp(name: …)`, then
+  `setUpAll(server.start)` / `tearDownAll(server.stop)`. It sets the env, builds the real service
+  with an in-memory SQLite (`FeatherIO.setUp(database: …)`) and serves it in memory
+  (`WinterTestClient`: the same filters, routing and security, no port, so files run in parallel),
+  logs in to get `server.token`, and creates and deletes `./uploads_test/<name>` (gitignored);
+  `fileDatabase: true` uses the real SQLite file inside that folder instead. It sets
+  `LOG_LEVEL=warning`, so only problems are printed. Requests go through `server.client` (a
+  `package:http` client: `server.client.get(server.url(path))`, `server.client.send(request)`),
+  which sends `Host: localhost` (`server.host`, what SigV4 signs). Helpers:
   `server.auth(json: …)`, `server.createBucket(…)` (tolerates an existing one),
   `server.putObject(…, headers: …)` (creates the bucket first and sends bytes without
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
-  in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8117.
+  in the test). Uploading with `server.client.put` needs the bucket created.
+- Only what needs a real socket passes a `port:` (a raw `Socket`, a body that never ends, the
+  address it listens on), one distinct port per file. Ports in use: 8087, 8100, 8107, 8117.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error
@@ -574,19 +601,19 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
 | Path                                     | Contents                                                                                                                                                                                                                                       |
 |------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `data/rest/<feature>_client.dart`        | Client extending `BaseClient`; every call passes `options(token: …)`. All DTOs live at the end of the file, each under a `//---------- {NAME} REQUEST/RESPONSE ----------` header. Requests have `toJson()`, responses a `fromJson()` factory. |
-| `data/repo/<feature>_repo.dart`          | Receives the client by constructor, maps DTOs to models with extensions (`extension XResponseMapping on XResponse`), wraps every call in `try/catch` → `throw ExceptionConverter.parse(e)`.                                                    |
+| `data/repo/<feature>_repo.dart`          | Receives the client by constructor, maps DTOs to models with extensions (`extension XResponseToModel on XResponse`, `XFormModelToRequest`), wraps every call in `try/catch` → `throw ExceptionConverter.parse(e)`.                             |
 | `logic/cubit/`                           | Cubit and its states in the same file.                                                                                                                                                                                                         |
-| `logic/model/`                           | Domain models, view models (e.g. `BrowserObjectWrapper`) and form models. No models inside `view/`.                                                                                                                                            |
+| `logic/model/`                           | Domain models, view models (e.g. `BrowserObjectWrapper`) and form models (`XFormModel`), one per file. No models inside `view/`.                                                                                                               |
 | `view/`                                  | `<feature>_screen.dart` entry point, sub-screens, `form/` for dialogs/drawers with data entry.                                                                                                                                                 |
 | `<feature>.dart` / `<feature>_init.dart` | Barrel, and the init that builds client + repo (+ cubit) and registers them in DI.                                                                                                                                                             |
 
 **Cross-feature dependencies.** Each concept has one owning feature: `buckets` owns everything about
-buckets (`BucketModel`, list/create/delete in `BucketClient`/`BucketRepo`/`BucketCubit`, the list
+buckets (`BucketModel`, list/create/delete in `BucketsClient`/`BucketsRepo`/`BucketsCubit`, the list
 view `BucketsSubScreen` and the create/edit form `BucketForm`); `browser` owns object navigation (
 `BrowserCubit`: list/upload/download/preview/delete objects of the selected bucket);
 `anonymous_access` owns a bucket's anonymous rules (it takes the bucket name as a string, so it
 depends on nothing); `transfers` owns the background transfer queue, uploads and zip downloads (
-`TransferCubit`, app-wide in DI: transfers keep going across folders, buckets and sections, 2
+`TransfersCubit`, app-wide in DI: transfers keep going across folders, buckets and sections, 2
 uploads and 2 downloads at a time, with progress, cancel and retry; files over 16 MiB go multipart
 in 8 MiB parts, one after another, so on web only one part is in memory, and a failed or cancelled
 upload is aborted; the browser only calls `upload`/`download`, the rail shows `TransfersIndicator`
@@ -595,24 +622,34 @@ browser to save, finished uploads fire `BucketChangedEvent`, at most every 2 s p
 are pending, and it asks before closing the tab while transfers are running); `access_keys` owns the *Access keys* section (`AccessKeysScreen` at `/keys`: the
 root key plus the managed keys, `AccessKeyForm` drawer, `AccessKeySecretDialog`, which shows the
 secret once and can't be dismissed until the user confirms it was saved; it reads the buckets
-through `BucketCubit`); `bucket_admin` is the
+through `BucketsCubit`); `bucket_admin` is the
 *Buckets* section (`BucketAdminScreen`, list + detail tabs) and composes `buckets`,
 `anonymous_access` and `browser` ("Open in browser" uses `BrowserScreen.navigator.openBucket`). A
 feature may consume another feature's models, cubits and views, but never its client or repo, and
 dependencies go one way only (`browser` → `buckets`/`transfers`, `transfers` → `buckets`,
 `access_keys` → `buckets`, `bucket_admin` → everything else, never the reverse). A screen that composes several features
 provides their cubits (e.g. `BrowserScreen.navigator.builder` provides `BrowserCubit` and
-`BucketCubit`); dialogs opened from it reuse the instance with `BlocProvider.value`.
+`BucketsCubit`); dialogs opened from it reuse the instance with `BlocProvider.value`.
 
-`FeaturesInit.init()` (`features/features_init.dart`) wires all inits. Add the cubit to
-`blocProviders` only if it is needed at the root; screen-scoped cubits are created in the screen's
-navigator `builder`. Everything is imported through `package:console/app_exporter.dart`.
+The console follows the Flutter app standard (the `flutter-app-standard` skill, as Maple
+and Dumpling), with the exceptions listed below.
 
-**State naming.** States are prefixed with the feature and follow:
+`FeaturesInit.init()` (`features/features_init.dart`) wires all inits. The singleton cubits
+(`AuthCubit`, `LanguageCubit`, `TransfersCubit`) are put in DI by their init, listed in
+`blocProviders` and, except the language, reset on logout (`_resetCubits()`); screen-scoped cubits
+are created in the screen's navigator `builder`, and form cubits by the navigator that opens the
+form. Everything is imported through `package:console/app_exporter.dart`.
 
-- `{F}InitialState`
-- `{F}LoadingInProgressState`, `{F}LoadingSuccessState`, `{F}LoadingErrorState` (fetching data)
-- `{F}ProcessInProgressState`, `{F}ProcessingOKState`, `{F}ProcessingErrorState` (actions)
+**State naming.** Every cubit is `with GlobalEventBusCommunication`, so each state also travels on
+the bus. States are named after the cubit (its name without `Cubit`, one prefix per cubit), the
+concrete ones `final class`:
+
+- `XInitialState`
+- `XSearchingState`, `XSearchOkState`, `XSearchErrorState` (fetching a list)
+- per action `X<Verb>ingState`, `X<Verb>edOkState`, `X<Verb>ingErrorState` (`AccessKeysUpdating…`,
+  `AnonymousAccessDeleting…`, `ShareLinkSigning…`, `AuthLoggingIn…`); the OK states of writes are
+  what other features listen to, so grep `onBus<` before renaming one
+- forms: `XFormProcessInProgressState`, `XFormProcessingOKState`, `XFormProcessingErrorState`
 
 The browser pages objects: `BrowserSearchState` keeps the loaded `pages` of the folder (contiguous
 from the first, each with its `nextContinuationToken`), the `pageIndex` shown and the `pageSize` (
@@ -626,12 +663,25 @@ Views only call cubit methods to run actions; everything a view needs to know co
 cubit never exposes public getters for views (e.g. `canGoForward` is a field of
 `BrowserSearchState`, filled on every emit, not `cubit.canGoForward`).
 
-Error states carry the `GlobalException` or its `message`; cubits get it via
+Error states carry the `GlobalException` or its `intlMessage`; cubits get it via
 `ExceptionConverter.parse(e)`, never `e.toString()`. Cubits read the token from `AuthCubit` (
 `auth.auth?.accessToken`) and pass it as `token:` to the repo.
 
+**Exceptions to the standard** (on purpose; never copied into new code as the rule):
+
+| Standard                                         | Here                                                | Why                                                                                                         |
+|--------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `await auth.accessToken`, refreshed when expired | `auth.auth?.accessToken`                            | The service gives one JWT per login, without refresh; a 401 logs out                                        |
+| Forms in `AppFormDialog` (admin web)             | Drawers (`FormDrawerTemplate`)                      | The Claude Design canvas draws them as drawers                                                              |
+| Tokens `surface/text/border…`, `app.space`       | `primary/neutral/palette`, `app.dimensions.padding` | The names of the canvas and its tokens; renaming them is a redesign of its own                              |
+| `GlobalExceptionType` of the standard            | Adds `conflict`                                     | A 409 (name taken, `KeyConflict`) is shown on the field                                                     |
+| Light theme                                      | `AppTheme.dark` only                                | The design is dark                                                                                          |
+| Facts on the bus are the OK states of writes     | Also `BucketChangedEvent`                           | Four cubits change buckets and three react: one event instead of every writer's states                      |
+| `ObjectAction…` / `ObjectDetails…` states        | `ProcessInProgress…` / `LoadingInProgress…`         | The cubit of a dialog that runs one of several actions, and the one of the details drawer, named like forms |
+| Version bump and CHANGELOG with each change      | One version for service and console, at release     | Both are released together (root `CHANGELOG.md`)                                                            |
+
 **Globals.** The `app` singleton in `main.dart` exposes DI (`app.di.find<T>()`, backed by GetX —
-only `adapter/di.dart` may import `get`), `app.navigator`, `app.dialog`, `app.snack`, `app.loading`,
+only `adapter/di.dart` may import `get`), `app.navigator`, `app.dialog`, `app.toast` (`success(text)`, `error(text)`), `app.loading`,
 `app.dateFormatter`, `app.storageFormatter`, `app.colors`, `app.dimensions`, `app.assets` and
 `app.intl`. Routing is `go_router` in `config/route_config.dart`, and it redirects to login when
 `AuthCubit.auth` is null, keeping the location asked for in `/login?from=…`; after logging in the
@@ -659,12 +709,15 @@ nothing happens.
 
 **View rules.**
 
-- Each screen exposes a static navigator object (`static final XScreenNavigator navigator`) with
-  `name`, `path` and `builder`; routes in `route_config.dart` use it.
-- Use the design system (`design_system/`): `CustomAppBar.build(title: …)`, `PrimaryButton.*`,
+- Every screen, drawer and dialog exposes one navigator (`static final XNavigator navigator`):
+  screens have `name`, `path`, `builder` and `routes()` (`route_config.dart` only places those),
+  forms `create(context)` / `edit(context, …)`, other dialogs and drawers `open(…)`. Callers use
+  `X.navigator.…`; `DialogTemplate.open` and `FormDrawerTemplate` are only called inside a navigator.
+- Use the design system (`design_system/`: `tokens/`, `theme/`, `icons/`, `components/`): `CustomAppBar.build(title: …)`, `PrimaryButton.*`,
   `AppFormInput`, `AppTextSearchField`, `ConfirmDialog`, `FormDrawerTemplate`, colors/dimensions
   from `app.*`. Spacing with `.gap()`.
-- Shared states: `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`, `NoDataPage(title: …)`.
+- Shared states (`features/global/`): `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`,
+  `NoDataPage(title: …)`.
 - Text is not mouse-selectable: don't add `SelectionArea` or `SelectableText`. Table rows are
   clickable as a whole (hand cursor, and the name of the hovered row underlined, like a link).
 - Access cubits with `context.read<T>()` or `app.di.find<T>()`. Keep widgets small.
@@ -672,41 +725,37 @@ nothing happens.
   `listener: (context, state) { … }`), never extracted to a separate method such as `_onState`.
 
 **Localization (mandatory).** No user-visible string is hardcoded: every label, hint, tooltip,
-dialog text, error message and validation message comes from `app.intl.<key>` (or
-`context.intl.<key>` inside a `MaterialApp` builder before the navigator exists, e.g. splash).
-Rules:
+dialog text, error message and validation message comes from `app.intl.<key>`, which needs no
+`BuildContext` (it works in the splash too). Rules:
 
-- The texts are slang YAML, like the service's: `lib/l10n/en.i18n.yaml` (base, with the
+- The texts are slang YAML, like the service's: `lib/i18n/en.i18n.yaml` (base, with the
   parameter types, `{name: String}`) and `es.i18n.yaml`, grouped by feature
   (`app.intl.accessKeys.create`, `app.intl.common.cancel`); `fvm dart run slang` generates
-  `messages*.g.dart` (versioned), and a key missing in Spanish doesn't compile. Use named
+  `strings*.g.dart` (versioned), and a key missing in Spanish doesn't compile. Use named
   placeholders (`objects.renamed(name: n)`) and plurals (`moved(plural, param=count)`) instead of
   concatenation.
 - Delete keys that are no longer referenced.
-- The language is the `MaterialApp`'s (`LanguageCubit`): `context.intl` reads
-  `Localizations.localeOf`, so there is no slang `LocaleSettings`. `MaterialApp` gets
-  `supportedLocales: appSupportedLocales` and `material_ui`'s `GlobalMaterialLocalizations.delegates`
-  (`appLocalizationsDelegates` in `main.dart`, also used by the splash), never
+- `AppIntl` (`lib/i18n/i18n.dart`) keeps the current language: `LanguageCubit` sets
+  `AppIntl.current` (the browser's until the user picks one) and `app.intl` is `AppIntl.texts`; no
+  slang `LocaleSettings`. Every `MaterialApp` gets `supportedLocales: AppIntl.supportedLocales` and
+  `localizationsDelegates: AppIntl.delegates` (`material_ui`'s `GlobalMaterialLocalizations`), never
   `flutter_localizations`' Material strings, which `material_ui` widgets can't see (any locale but
   English would fail with "No MaterialLocalizations found").
 - Exempt: brand-neutral technical tokens (`PDF`, `JSON`, units like `KB`), JSON/header keys, file
   names, log/`toString` output.
 
 **Assets.** SVG icons live in `assets/icons/<group>/` and are only reached through getters in
-`design_system/assets/app_icons.dart` (`app.assets.icons.actions.delete.build(...)`). Adding an
+`design_system/icons/app_icons.dart` (`app.assets.icons.actions.delete.build(...)`). Adding an
 icon = file + getter + folder in `pubspec.yaml`; when a getter loses its last use, delete the getter
 and the file. `assets/app/app_icon.png` is the app icon (a copy of `docs/design/brand/icon.png`),
 shown by both splashes (`app.assets.appIcon`); the web icons in `web/` are made from the brand
 PNGs and SVG (`docs/brand.md`) of icon A, the favicon too (`favicon.svg`, `favicon.png` for the
 rest).
 
-**Claude Design.** The console has two Claude Design artifacts, both named "Feather IO Console"
-(in English, like the docs):
-
-- Design system: https://claude.ai/artifact/1dJk7nhzEP7Y2CcgnTMyuB. Tokens, components and icons
-  from `design_system/`.
-- Canvas: https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC. A faithful replica of the current
-  screens at 1536×720 (125% Windows scaling), used as the base for the redesign.
+**Claude Design.** The console has a Claude Design canvas, "Feather IO Console" (in English, like
+the docs): https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC. A faithful replica of the current
+screens at 1536×720 (125% Windows scaling), used as the base for the redesign; its "Design system"
+page summarizes the tokens and components of `design_system/`.
 
 The brand (icon and presentation images) has its own canvas, "Feather IO Brand":
 https://claude.ai/artifact/KeQUsAasyicZhB1xgijBaU. `docs/brand.md` describes it and

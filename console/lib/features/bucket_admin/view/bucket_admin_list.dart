@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 class BucketAdminList extends StatefulWidget {
   static const double width = 320;
 
-  final BucketState state;
+  final BucketsState state;
   final BucketModel? selected;
   final ValueChanged<BucketModel> onSelected;
 
@@ -65,7 +65,7 @@ class _BucketAdminListState extends State<BucketAdminList> {
               Tooltip(
                 message: app.intl.buckets.create,
                 child: PrimaryButton.svgIcon(
-                  onPressed: () => BucketForm.open(context),
+                  onPressed: () => BucketForm.navigator.create(context),
                   icon: app.assets.icons.actions.add,
                   backgroundColor: app.colors.palette.violet,
                   iconColor: app.colors.neutral.white,
@@ -89,7 +89,7 @@ class _BucketAdminListState extends State<BucketAdminList> {
           app.dimensions.padding.s.gap(),
           Expanded(
             child: LoadingOverlay(
-              visible: widget.state is BucketLoadingInProgressState,
+              visible: widget.state is BucketsSearchingState,
               overlayWidgetBuilder: LoadingOverlayStyles.table,
               disableBackButton: false,
               child: buckets.isEmpty && _query.isNotEmpty

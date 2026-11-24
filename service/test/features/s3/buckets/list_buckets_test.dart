@@ -3,19 +3,18 @@ library;
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8084, name: 'list_buckets');
+  final server = TestApp(name: 'list_buckets');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
 
   Future<List> listBuckets() async {
-    final response = await http.get(
+    final response = await server.client.get(
       server.url('/'),
       headers: server.auth(json: true),
     );
@@ -25,7 +24,7 @@ void main() {
 
   group('S3Controller - List Buckets', () {
     test('GET / - Should fail without auth (401)', () async {
-      final response = await http.get(server.url('/'));
+      final response = await server.client.get(server.url('/'));
       expect(response.statusCode, 401);
     });
 
@@ -61,7 +60,7 @@ void main() {
     );
 
     test('GET / - Should include the metadata of created buckets', () async {
-      final create = await http.put(
+      final create = await server.client.put(
         server.url('/test-bucket-3'),
         headers: {...server.auth(), 'content-type': 'application/json'},
         body: jsonEncode({'description': 'Backups', 'color': 0xFF00FF00}),
@@ -77,7 +76,10 @@ void main() {
     });
 
     test('GET / - Should return XML by default', () async {
-      final response = await http.get(server.url('/'), headers: server.auth());
+      final response = await server.client.get(
+        server.url('/'),
+        headers: server.auth(),
+      );
 
       expect(response.statusCode, 200);
       expect(response.headers['content-type'], contains('application/xml'));
@@ -95,7 +97,7 @@ void main() {
     });
 
     test('GET / - Should update stats after deleting a file', () async {
-      final deleteResponse = await http.delete(
+      final deleteResponse = await server.client.delete(
         server.url('/test-bucket-1/test.txt'),
         headers: server.auth(),
       );
@@ -117,8 +119,14 @@ void main() {
       expect(bucket['creation_date'] as String, endsWith('Z'));
       expect(bucket['last_modified'] as String, endsWith('Z'));
 
-      await http.delete(server.url('/utc-dates/a.txt'), headers: server.auth());
-      await http.delete(server.url('/utc-dates'), headers: server.auth());
+      await server.client.delete(
+        server.url('/utc-dates/a.txt'),
+        headers: server.auth(),
+      );
+      await server.client.delete(
+        server.url('/utc-dates'),
+        headers: server.auth(),
+      );
     });
   });
 }

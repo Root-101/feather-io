@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
 
-class _MockRepo extends Mock implements AccessKeyRepo {}
+class _MockRepo extends Mock implements AccessKeysRepo {}
 
 class _MockAuth extends Mock implements AuthCubit {}
 
@@ -15,7 +15,7 @@ void main() {
   late _MockRepo repo;
   late _MockAuth auth;
 
-  final draft = AccessKeyDraft.of(
+  final draft = AccessKeyFormModel.of(
     accessKey(name: 'CI', allBuckets: AccessKeyLevel.readWrite),
   );
 

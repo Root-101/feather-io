@@ -1,3 +1,5 @@
+import 'package:service/feather.dart';
+
 /// What an access key may do on a bucket (the same levels as the anonymous
 /// rules).
 enum AccessKeyLevel {
@@ -61,8 +63,7 @@ class AccessKeyModel {
     secret: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
   );
 
-  bool get isExpired =>
-      expiresAt != null && !DateTime.now().isBefore(expiresAt!);
+  bool get isExpired => expiresAt != null && !utcNow().isBefore(expiresAt!);
 
   /// Enabled and not expired: S3 clients can sign with it.
   bool get isUsable => enabled && !isExpired;
@@ -109,9 +110,9 @@ class AccessKeyModel {
       'expired': isExpired,
       'all_buckets': allBuckets?.name,
       'buckets': grants,
-      'expires_at': expiresAt?.toUtc().toIso8601String(),
-      'created_at': createdAt.toUtc().toIso8601String(),
-      'last_used_at': lastUsedAt?.toUtc().toIso8601String(),
+      'expires_at': expiresAt?.toJsonDate(),
+      'created_at': createdAt.toJsonDate(),
+      'last_used_at': lastUsedAt?.toJsonDate(),
       if (secret != null) 'secret_access_key': secret,
     };
   }

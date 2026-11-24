@@ -13,33 +13,11 @@ import 'package:service/feather.dart';
 class S3SigV4Filter extends Filter {
   static final S3SigV4Filter _instance = S3SigV4Filter._();
 
-  late final AccessKeyService _accessKeys = AccessKeyService();
+  late final AccessKeyService _accessKeys = di.find();
 
   S3SigV4Filter._();
 
   factory S3SigV4Filter() => _instance;
-
-  static const Set<String> _readPermissions = {
-    's3.list-objects',
-    's3.get-object',
-  };
-
-  static const Set<String> _writePermissions = {
-    's3.put-object',
-    's3.delete-object',
-    's3.multi-delete-objects',
-  };
-
-  static const Set<String> _rootPermissions = {
-    's3.list-buckets',
-    's3.create-bucket',
-    's3.delete-bucket',
-    's3.list-objects',
-    's3.put-object',
-    's3.get-object',
-    's3.delete-object',
-    's3.multi-delete-objects',
-  };
 
   @override
   Future<ResponseEntity> doFilter(
@@ -75,7 +53,7 @@ class S3SigV4Filter extends Filter {
             : Authentication(
                 principal: principal,
                 roles: {'admin'},
-                permissions: _rootPermissions,
+                permissions: Permissions.s3,
               ),
       );
     } catch (e) {
@@ -108,12 +86,12 @@ class S3SigV4Filter extends Filter {
   static Set<String> keyPermissions(AccessKeyModel key, String? bucket) {
     final level = bucket == null ? null : key.levelOn(bucket);
     return {
-      's3.list-buckets',
-      if (level?.canRead ?? false) ..._readPermissions,
-      if (level?.canWrite ?? false) ..._writePermissions,
+      Permissions.s3ListBuckets,
+      if (level?.canRead ?? false) ...Permissions.s3Read,
+      if (level?.canWrite ?? false) ...Permissions.s3Write,
       if (key.allBuckets?.canWrite ?? false) ...{
-        's3.create-bucket',
-        's3.delete-bucket',
+        Permissions.s3CreateBucket,
+        Permissions.s3DeleteBucket,
       },
     };
   }
@@ -148,7 +126,7 @@ class S3SigV4Filter extends Filter {
 
   /// Checks that a signature's date is within [maxClockSkew].
   static void _checkClockSkew(DateTime? signedAt) {
-    final now = DateTime.now().toUtc();
+    final now = utcNow();
     if (signedAt == null ||
         signedAt.isBefore(now.subtract(maxClockSkew)) ||
         signedAt.isAfter(now.add(maxClockSkew))) {
@@ -225,15 +203,13 @@ class S3SigV4Filter extends Filter {
       );
     }
     // A future date would stretch the URL past its maximum expiration
-    if (signedAt.isAfter(DateTime.now().toUtc().add(maxClockSkew))) {
+    if (signedAt.isAfter(utcNow().add(maxClockSkew))) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
         message: intl.errors.signature.presignNotYetValid,
       );
     }
-    if (DateTime.now().toUtc().isAfter(
-      signedAt.add(Duration(seconds: expires)),
-    )) {
+    if (utcNow().isAfter(signedAt.add(Duration(seconds: expires)))) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
         message: intl.errors.signature.expired,

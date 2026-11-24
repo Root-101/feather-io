@@ -30,7 +30,7 @@ locally or from the environment of its Docker image:
 
 ```bash
 docker run -p 8081:80 -e SERVICE_URL=https://s3.example.com -e ADMIN_PREFIX=_admin \
-  ghcr.io/root-101/feather-io-console:1.1.1
+  ghcr.io/root-101/feather-io-console:1.2.0
 ```
 
 The screen shows the brand (icon, tagline, a line on how easy it is to start and its tags) next to
@@ -58,8 +58,9 @@ While it starts, the console shows a splash:
 
 The rail on the left opens the three sections: **Browser** (`/#/browser`), **Buckets**
 (`/#/buckets`) and **Access keys** (`/#/keys`). At its foot: the **transfers** indicator (with
-the progress of the uploads and downloads in course), the **language** and **log out**. The menu
-button expands it to show the names.
+the progress of the uploads and downloads in course), the **language** and **log out**. At its top,
+the Feather IO icon; the notch on its edge, next to the icon, expands it to show the names (and the
+name of the app) and collapses it again.
 
 **Behind it:** the transfers are the uploads and downloads described in each section; the language
 is also sent to the service (`Accept-Language`), so its error messages come in the same language.
@@ -122,7 +123,7 @@ Selecting several objects enables downloading them (as a zip), moving them or de
 | ![New folder](design/screens/16-new-folder.png)   | ![Rename](design/screens/17-rename.png)                                                     |
 | **New folder**                                    | **Rename** (copy and delete, like S3)                                                       |
 | ![Move](design/screens/18-move.png)               | ![Share](design/screens/19-share-link.png)                                                  |
-| **Move** to another folder of the bucket          | **Share link**: a presigned URL for 1 hour, 1 day or 7 days, which works without logging in |
+| **Move** to another folder of the bucket          | **Share link**: a presigned URL for 1 hour, 1 day or 7 days, which works without signing in |
 
 **Preview** opens the object in a new tab: images, video, audio and PDFs as they are; text, HTML,
 SVG and other markup as plain text (an uploaded page must not run inside the console); anything

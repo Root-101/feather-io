@@ -13,7 +13,7 @@
 FROM --platform=$BUILDPLATFORM debian:trixie-slim AS build
 
 # Bump it with .fvmrc
-ARG FLUTTER_VERSION=3.47.1
+ARG FLUTTER_VERSION=3.50.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils \
     && rm -rf /var/lib/apt/lists/*

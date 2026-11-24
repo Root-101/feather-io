@@ -4,7 +4,6 @@ import 'package:console/app_exporter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:intl/intl.dart';
 
 class FeaturesInit {
   static Future<void> init() async {
@@ -22,15 +21,12 @@ class FeaturesInit {
       };
     useBrowserHttpAdapter(dio);
     dio.interceptors.add(
+      LanguageHeaderInterceptor(
+        languageCode: () => AppIntl.current.languageCode,
+      ),
+    );
+    dio.interceptors.add(
       InterceptorsWrapper(
-        // The service translates its error messages to the app's language
-        onRequest: (RequestOptions options, RequestInterceptorHandler handler) {
-          final language = Intl.defaultLocale;
-          if (language != null) {
-            options.headers[HttpHeaders.acceptLanguageHeader] = language;
-          }
-          return handler.next(options);
-        },
         onError: (DioException e, ErrorInterceptorHandler handler) async {
           if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
             app.di.find<AuthCubit>().logout();
@@ -54,14 +50,14 @@ class FeaturesInit {
 
     // Listen for logout to reset other cubits
     app.di.find<AuthCubit>().stream.listen((state) async {
-      if (state is AuthLogoutState) {
+      if (state is AuthLogoutOkState) {
         await _resetCubits();
       }
     });
   }
 
   static Future<void> _resetCubits() async {
-    app.di.find<TransferCubit>().reset();
+    app.di.find<TransfersCubit>().reset();
     app.di.find<AuthCubit>().reset();
   }
 
@@ -71,6 +67,10 @@ class FeaturesInit {
     // LANGUAGE
     BlocProvider<LanguageCubit>(
       create: (context) => app.di.find<LanguageCubit>(),
+    ),
+    // TRANSFERS
+    BlocProvider<TransfersCubit>(
+      create: (context) => app.di.find<TransfersCubit>(),
     ),
   ];
 }

@@ -49,8 +49,7 @@ so the shapes span 6 → 154.
 | Feather, barbs   | `#958FAF`             |                            | A muted violet, 1.1 units                           |
 | Feather, shadow  | `#13111C` at 45 %     | `background1`              |                                                     |
 
-The rest of the brand uses the palette of the console
-([design system](https://claude.ai/artifact/1dJk7nhzEP7Y2CcgnTMyuB)):
+The rest of the brand uses the palette of the console (`console/lib/design_system/`):
 
 | Use                           | Color     | Token           |
 |-------------------------------|-----------|-----------------|

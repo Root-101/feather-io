@@ -30,9 +30,7 @@ errors:
     objectNotDeleted: 'The object could not be deleted; please retry.'
     incompleteChunkedBody: 'The aws-chunked body is incomplete or malformed.'
     nothingToDownload: 'No objects found to download.'
-    missingFolderPrefix: 'Missing the folder to delete (prefix).'
     slowDown: 'Please reduce your request rate.'
-    presignExpiration: 'The expiration must be between 1 second and 7 days.'
   # CopyObject and UploadPartCopy
   copy:
     needsReadPermission: 'Copying an object requires read permission on the source.'
@@ -75,14 +73,17 @@ errors:
     invalidDateOrExpires: 'Invalid X-Amz-Date or X-Amz-Expires'
     presignNotYetValid: 'The presigned URL is not valid yet.'
     expired: 'Request has expired'
-  # Admin API
-  admin:
+  # The admin API's own errors: `code` is the key without `errors.`
+  auth:
     invalidCredentials: 'Invalid credentials'
     tooManyLoginAttempts: 'Too many failed login attempts'
-    invalidLoginRequest: 'Invalid login request'
-    invalidRequest: 'Invalid request'
+  accessKeys:
+    notFound: 'Access key not found'
+  buckets:
+    missingFolderPrefix: 'Missing the folder to delete (prefix).'
+  # Admin API
+  admin:
     tooManyRequests: 'Too many requests'
-    accessKeyNotFound: 'Access key not found'
   # Validation rules of the service's own requests (Winter translates its validators)
   validations:
     bucketName: 'Not a valid bucket name'

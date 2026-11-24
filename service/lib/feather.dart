@@ -1,7 +1,8 @@
 export 'package:winter/winter.dart';
 
 export 'config/config.dart';
-export 'exceptions/exceptions.dart';
+export 'core/core.dart';
+export 'db/db.dart';
 export 'features/features.dart';
 export 'i18n/i18n.dart';
 export 'main.dart';

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.0 (2026-11-24)
+
+- Dart 3.14 (image `dart:3.14.0`) and every dependency on its latest version, pinned exactly.
+- Errors of the admin API that only it can raise are now `<feature>.<rule>` codes instead of
+  made-up S3 codes: `InvalidCredentials` -> `auth.invalidCredentials` (403), `NoSuchAccessKey` ->
+  `accessKeys.notFound` (404), the login lock -> `auth.tooManyLoginAttempts` (429, `Retry-After`)
+  and a delete of a folder without `prefix` -> `buckets.missingFolderPrefix` (400). Anything about
+  buckets and objects keeps its S3 code on both APIs.
+- `POST /{admin}/login`: `expire_at` is an ISO 8601 date in UTC like every other date of the API
+  (it was epoch milliseconds); a missing `access` or `secret` is a `422` with `violations` (it was a
+  `400`).
+- Unexpected errors of the login and of the zip download are a `500` with the request id, logged
+  with their stack trace (they were a `400` without a trace).
+- Internal, following the Winter service standard: `lib/db/` with a table per file, `core/`, every
+  repo, service and controller in Winter's DI (one instance each), permissions in one place
+  (`security/permissions.dart`), the login in `AuthService`, one constant-time comparison for
+  secrets and signatures, `utcNow()`/`toJsonDate()` for dates, and the tests in memory
+  (`WinterTestClient`) with a scan of every route and of every error code.
+
 ## 1.1.1 (2026-11-06)
 
 - No changes; released with the fix of the console.

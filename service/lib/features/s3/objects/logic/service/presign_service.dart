@@ -3,9 +3,7 @@ import 'package:service/feather.dart';
 /// Builds presigned URLs (SigV4 in the query) with the service credentials, so
 /// the console can share an object without knowing them.
 class PresignService {
-  final ObjectService objectService;
-
-  PresignService() : objectService = di.find();
+  final ObjectService objectService = di.find();
 
   /// `GET` URL of [key] valid for [expiresIn]. [host] and [scheme] come from
   /// `PUBLIC_URL` or, without it, from the request; the signature includes the host.
@@ -16,17 +14,10 @@ class PresignService {
     required String key,
     required Duration expiresIn,
   }) async {
-    if (expiresIn.inSeconds < 1 || expiresIn > SigV4Signer.maxExpiration) {
-      throw S3Exception(
-        S3ErrorCode.invalidArgument,
-        message: intl.errors.s3.presignExpiration,
-        resource: key,
-      );
-    }
     // Validates the bucket and the key and checks that the object exists
     await objectService.getFile(bucketName: bucketName, key: key);
 
-    final now = DateTime.now().toUtc();
+    final now = utcNow();
     final amzDate = SigV4Signer.amzDate(now);
     final scope = SigV4Signer.scope(SigV4Signer.dateStamp(now));
     final path =

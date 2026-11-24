@@ -1,6 +1,4 @@
-/// Operations a rule allows without credentials. The names are the ones the
-/// API expects (`readOnly`, `writeOnly`, `readWrite`)
-enum AnonymousAccessType { readOnly, writeOnly, readWrite }
+import 'package:console/app_exporter.dart';
 
 /// Anonymous access rule: a prefix of the bucket, or a pattern with `*` as a
 /// wildcard, reachable without credentials

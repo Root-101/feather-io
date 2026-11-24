@@ -49,16 +49,15 @@ void main() {
       ),
       act: (cubit) => cubit.open(bucket: 'media', prefix: 'photos/'),
       expect: () => [
-        isA<MoveTargetLoadingInProgressState>().having(
+        isA<MoveTargetSearchingState>().having(
           (s) => s.prefix,
           'prefix',
           'photos/',
         ),
-        isA<MoveTargetLoadingSuccessState>().having(
-          (s) => s.folders,
-          'folders',
-          ['photos/2025/', 'photos/2026/'],
-        ),
+        isA<MoveTargetSearchOkState>().having((s) => s.folders, 'folders', [
+          'photos/2025/',
+          'photos/2026/',
+        ]),
       ],
       verify: (_) => verify(
         () => repo.listObjects(
@@ -84,9 +83,9 @@ void main() {
         await first;
       },
       expect: () => [
-        isA<MoveTargetLoadingInProgressState>(),
-        isA<MoveTargetLoadingInProgressState>(),
-        isA<MoveTargetLoadingSuccessState>()
+        isA<MoveTargetSearchingState>(),
+        isA<MoveTargetSearchingState>(),
+        isA<MoveTargetSearchOkState>()
             .having((s) => s.prefix, 'prefix', 'docs/')
             .having((s) => s.folders, 'folders', ['docs/a/']),
       ],
@@ -242,8 +241,8 @@ void main() {
         expiration: ShareLinkExpiration.week,
       ),
       expect: () => [
-        isA<ShareLinkLoadingInProgressState>(),
-        isA<ShareLinkLoadingSuccessState>()
+        isA<ShareLinkSigningState>(),
+        isA<ShareLinkSignedOkState>()
             .having((s) => s.link.url, 'url', link.url)
             .having(
               (s) => s.expiration,
@@ -284,9 +283,9 @@ void main() {
         await first;
       },
       expect: () => [
-        isA<ShareLinkLoadingInProgressState>(),
-        isA<ShareLinkLoadingInProgressState>(),
-        isA<ShareLinkLoadingSuccessState>().having(
+        isA<ShareLinkSigningState>(),
+        isA<ShareLinkSigningState>(),
+        isA<ShareLinkSignedOkState>().having(
           (s) => s.expiration,
           'expiration',
           ShareLinkExpiration.week,
@@ -304,8 +303,8 @@ void main() {
         expiration: ShareLinkExpiration.day,
       ),
       expect: () => [
-        isA<ShareLinkLoadingInProgressState>(),
-        isA<ShareLinkLoadingErrorState>().having(
+        isA<ShareLinkSigningState>(),
+        isA<ShareLinkSigningErrorState>().having(
           (s) => s.exception.message,
           'message',
           'down',

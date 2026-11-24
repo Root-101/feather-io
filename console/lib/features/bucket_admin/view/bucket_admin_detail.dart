@@ -16,7 +16,7 @@ class BucketAdminDetail extends StatelessWidget {
   });
 
   void _onDelete(BuildContext context) {
-    final cubit = context.read<BucketCubit>();
+    final cubit = context.read<BucketsCubit>();
     ConfirmDialog.show(
       title: app.intl.buckets.deleteTitle,
       description: app.intl.buckets.deleteConfirm(name: bucket.name),
@@ -27,8 +27,8 @@ class BucketAdminDetail extends StatelessWidget {
   }
 
   void _onEmpty(BuildContext context) {
-    final cubit = context.read<BucketCubit>();
-    BucketEmptyDialog.show(
+    final cubit = context.read<BucketsCubit>();
+    BucketEmptyDialog.navigator.open(
       bucket: bucket,
       onConfirm: () => cubit.emptyBucket(bucket: bucket),
     );
@@ -124,7 +124,7 @@ class BucketAdminDetail extends StatelessWidget {
         PrimaryButton.primary(
           title: app.intl.common.edit,
           icon: app.assets.icons.actions.edit,
-          onPressed: () => BucketForm.open(context, bucket: bucket),
+          onPressed: () => BucketForm.navigator.edit(context, bucket: bucket),
           h: 42,
           w: 120,
         ),
@@ -149,7 +149,7 @@ class _BucketAdminTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     // the rule counter only shows once they are loaded
     final accessState = context.watch<AnonymousAccessCubit>().state;
-    final ruleCount = accessState is AnonymousAccessLoadingSuccessState
+    final ruleCount = accessState is AnonymousAccessSearchOkState
         ? accessState.rules.length
         : null;
     return Container(

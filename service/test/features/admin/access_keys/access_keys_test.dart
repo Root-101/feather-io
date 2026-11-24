@@ -7,10 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8111, name: 'access_keys');
+  final server = TestApp(name: 'access_keys');
   const photos = 'ak-photos';
   const backups = 'ak-backups';
   const inbox = 'ak-inbox';
@@ -23,11 +23,12 @@ void main() {
     'content-type': 'application/json',
   };
 
-  Future<http.Response> createKey(Map<String, dynamic> body) => http.post(
-    server.url(keysPath()),
-    headers: jsonAuth(),
-    body: jsonEncode(body),
-  );
+  Future<http.Response> createKey(Map<String, dynamic> body) =>
+      server.client.post(
+        server.url(keysPath()),
+        headers: jsonAuth(),
+        body: jsonEncode(body),
+      );
 
   /// Creates a key and returns its JSON (with the secret).
   Future<Map<String, dynamic>> newKey(Map<String, dynamic> body) async {
@@ -37,14 +38,14 @@ void main() {
   }
 
   Future<http.Response> updateKey(String id, Map<String, dynamic> body) =>
-      http.put(
+      server.client.put(
         server.url(keysPath('/$id')),
         headers: jsonAuth(),
         body: jsonEncode(body),
       );
 
   Future<Map<String, dynamic>> listKeys() async {
-    final response = await http.get(
+    final response = await server.client.get(
       server.url(keysPath()),
       headers: server.auth(),
     );
@@ -72,7 +73,7 @@ void main() {
         ),
       );
     if (body != null) request.bodyBytes = body;
-    return request.send().then(http.Response.fromStream);
+    return server.client.send(request).then(http.Response.fromStream);
   }
 
   setUpAll(() async {
@@ -127,13 +128,13 @@ void main() {
     });
 
     test('Should require the JWT (401)', () async {
-      final response = await http.get(server.url(keysPath()));
+      final response = await server.client.get(server.url(keysPath()));
       expect(response.statusCode, 401);
     });
 
     test('Should not be reachable with a SigV4 signature (401)', () async {
       final path = keysPath();
-      final response = await http.get(
+      final response = await server.client.get(
         server.url(path),
         headers: server.sigV4('GET', path),
       );
@@ -248,7 +249,8 @@ void main() {
         'all_buckets': 'readOnly',
       });
       expect(update.statusCode, 404);
-      final delete = await http.delete(
+      expect(jsonDecode(update.body)['code'], 'accessKeys.notFound');
+      final delete = await server.client.delete(
         server.url(keysPath('/FIOKNOPE')),
         headers: server.auth(),
       );
@@ -418,7 +420,7 @@ void main() {
 
     test('Regenerating the secret invalidates the old one', () async {
       final key = await newKey({'name': 'Rotate', 'all_buckets': 'readOnly'});
-      final response = await http.post(
+      final response = await server.client.post(
         server.url(keysPath('/${key['access_key_id']}/secret')),
         headers: server.auth(),
       );
@@ -438,7 +440,7 @@ void main() {
 
     test('A deleted key answers InvalidAccessKeyId', () async {
       final key = await newKey({'name': 'Gone', 'all_buckets': 'readOnly'});
-      final response = await http.delete(
+      final response = await server.client.delete(
         server.url(keysPath('/${key['access_key_id']}')),
         headers: server.auth(),
       );
@@ -468,7 +470,7 @@ void main() {
           {'bucket': photos, 'access': 'readOnly'},
         ],
       });
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/ak-temp'),
         headers: server.auth(),
       );

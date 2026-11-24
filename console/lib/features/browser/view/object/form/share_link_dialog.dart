@@ -6,14 +6,7 @@ import 'package:material_ui/material_ui.dart';
 /// Dialog to share an object with a link that expires (presigned URL).
 /// It generates the link when it opens and when the expiry changes
 class ShareLinkDialog extends StatefulWidget {
-  static void show({required String bucket, required String key}) {
-    DialogTemplate.open(
-      title: app.intl.objects.shareLink,
-      w: 560,
-      h: 360,
-      child: ShareLinkDialog._(bucket: bucket, objectKey: key),
-    );
-  }
+  static final ShareLinkDialogNavigator navigator = ShareLinkDialogNavigator();
 
   final String bucket;
   final String objectKey;
@@ -61,7 +54,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
     return BlocBuilder<ShareLinkCubit, ShareLinkState>(
       bloc: cubit,
       builder: (context, state) {
-        final link = state is ShareLinkLoadingSuccessState ? state.link : null;
+        final link = state is ShareLinkSignedOkState ? state.link : null;
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: app.dimensions.padding.xl),
           child: Column(
@@ -111,7 +104,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                   border: Border.all(color: app.colors.neutral.grey5),
                 ),
                 child: LoadingOverlay(
-                  visible: state is ShareLinkLoadingInProgressState,
+                  visible: state is ShareLinkSigningState,
                   overlayWidgetBuilder: LoadingOverlayStyles.table,
                   disableBackButton: false,
                   child: Row(
@@ -119,15 +112,15 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                       Expanded(
                         child: Text(
                           switch (state) {
-                            ShareLinkLoadingErrorState(:final exception) =>
-                              exception.message,
+                            ShareLinkSigningErrorState(:final exception) =>
+                              exception.intlMessage,
                             _ => link?.url ?? '',
                           },
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: app.textTheme.bodyMedium?.copyWith(
                             fontFamily: 'monospace',
-                            color: state is ShareLinkLoadingErrorState
+                            color: state is ShareLinkSigningErrorState
                                 ? app.colors.primary.error
                                 : null,
                           ),
@@ -141,9 +134,8 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                                 Clipboard.setData(
                                   ClipboardData(text: link.url),
                                 );
-                                app.snack.showSuccess(
-                                  message: app.intl.objects.shareLinkCopied,
-                                  context: context,
+                                app.toast.success(
+                                  app.intl.objects.shareLinkCopied,
                                 );
                               },
                         icon: app.assets.icons.actions.copy.build(
@@ -178,6 +170,18 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Opens [ShareLinkDialog]
+class ShareLinkDialogNavigator {
+  void open({required String bucket, required String key}) {
+    DialogTemplate.open(
+      title: app.intl.objects.shareLink,
+      w: 560,
+      h: 360,
+      child: ShareLinkDialog._(bucket: bucket, objectKey: key),
     );
   }
 }

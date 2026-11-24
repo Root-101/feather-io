@@ -5,41 +5,7 @@ import 'package:material_ui/material_ui.dart';
 /// Drawer to create an access key or edit one ([key]): name, expiration,
 /// scope (every bucket or some) and the level on each
 class AccessKeyForm extends StatefulWidget {
-  /// Opens the drawer with its own [AccessKeyFormCubit]. On save it reloads the
-  /// screen's [AccessKeyCubit] and, after creating, shows the secret
-  static Future<void> open(BuildContext context, {AccessKeyModel? key}) async {
-    final formKey = GlobalKey<_AccessKeyFormState>();
-    final keysCubit = context.read<AccessKeyCubit>();
-    final bucketCubit = context.read<BucketCubit>();
-    if (bucketCubit.state is! BucketLoadingSuccessState) bucketCubit.load();
-    final formCubit = AccessKeyFormCubit(app.di.find(), app.di.find());
-
-    await FormDrawerTemplate.showAsDialog(
-      title: key == null
-          ? app.intl.accessKeys.formCreateTitle
-          : app.intl.accessKeys.formEditTitle,
-      description: key == null
-          ? app.intl.accessKeys.formCreateDescription
-          : app.intl.accessKeys.formEditDescription(id: key.id),
-      icon: app.assets.icons.actions.key,
-      loadingId: loadingId,
-      footerActions: [
-        _AccessKeyFormFooter(
-          editing: key != null,
-          onSubmit: () => formKey.currentState?.submit(),
-        ),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: keysCubit),
-          BlocProvider.value(value: bucketCubit),
-          BlocProvider.value(value: formCubit),
-        ],
-        child: AccessKeyForm(key: formKey, keyModel: key),
-      ),
-    );
-    await formCubit.close();
-  }
+  static final AccessKeyFormNavigator navigator = AccessKeyFormNavigator();
 
   /// Id of the drawer's [LoadingOverlay]
   static const String loadingId = 'access-key-form';
@@ -142,7 +108,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
     if (_missingBuckets) return;
     cubit.save(
       id: _editing?.id,
-      draft: AccessKeyDraft(
+      draft: AccessKeyFormModel(
         name: _nameController.text.trim(),
         enabled: _editing?.enabled ?? true,
         allBuckets: _allBuckets ? _allLevel : null,
@@ -167,19 +133,18 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
         }
         app.loading.hide(id: AccessKeyForm.loadingId);
         if (state is AccessKeyFormProcessingOKState) {
-          final keysCubit = context.read<AccessKeyCubit>();
+          final keysCubit = context.read<AccessKeysCubit>();
           Navigator.of(context).pop();
           keysCubit.load();
           if (state.created) {
-            AccessKeySecretDialog.show(
+            AccessKeySecretDialog.navigator.open(
               key: state.key,
               cubit: keysCubit,
               created: true,
             );
           } else {
-            app.snack.showSuccess(
-              message: app.intl.accessKeys.savedSuccess(name: state.key.name),
-              context: app.context,
+            app.toast.success(
+              app.intl.accessKeys.savedSuccess(name: state.key.name),
             );
           }
         } else if (state is AccessKeyFormProcessingErrorState) {
@@ -190,7 +155,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
           setState(() {
             _serverErrors = {AccessKeyFormField.name: ?nameError};
             _formError = state.fieldErrors.isEmpty
-                ? state.exception.message
+                ? state.exception.intlMessage
                 : others.isEmpty
                 ? null
                 : others.join('\n');
@@ -308,7 +273,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
   }
 
   Widget _buildPermissionsTitle() {
-    final buckets = context.watch<BucketCubit>().state.buckets;
+    final buckets = context.watch<BucketsCubit>().state.buckets;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -349,21 +314,21 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
   }
 
   Widget _buildBucketLevels() {
-    return BlocBuilder<BucketCubit, BucketState>(
+    return BlocBuilder<BucketsCubit, BucketsState>(
       builder: (context, state) {
         final buckets = state.buckets;
-        if (state is BucketLoadingErrorState && buckets.isEmpty) {
+        if (state is BucketsSearchErrorState && buckets.isEmpty) {
           return _message(
-            state.exception.message,
+            state.exception.intlMessage,
             color: app.colors.primary.error,
             action: TextButton(
-              onPressed: context.read<BucketCubit>().load,
+              onPressed: context.read<BucketsCubit>().load,
               child: Text(app.intl.common.tryAgain),
             ),
           );
         }
         if (buckets.isEmpty) {
-          return state is BucketLoadingSuccessState
+          return state is BucketsSearchOkState
               ? _message(app.intl.accessKeys.bucketsEmpty)
               : const Center(child: CircularProgressIndicator());
         }
@@ -754,5 +719,49 @@ class _AccessKeyFormFooter extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Opens [AccessKeyForm]
+class AccessKeyFormNavigator {
+  Future<void> create(BuildContext context) => _open(context);
+
+  Future<void> edit(BuildContext context, {required AccessKeyModel key}) =>
+      _open(context, key: key);
+
+  /// Opens the drawer with its own [AccessKeyFormCubit]. On save it reloads the
+  /// screen's [AccessKeysCubit] and, after creating, shows the secret
+  Future<void> _open(BuildContext context, {AccessKeyModel? key}) async {
+    final formKey = GlobalKey<_AccessKeyFormState>();
+    final keysCubit = context.read<AccessKeysCubit>();
+    final bucketCubit = context.read<BucketsCubit>();
+    if (bucketCubit.state is! BucketsSearchOkState) bucketCubit.load();
+    final formCubit = AccessKeyFormCubit(app.di.find(), app.di.find());
+
+    await FormDrawerTemplate.showAsDialog(
+      title: key == null
+          ? app.intl.accessKeys.formCreateTitle
+          : app.intl.accessKeys.formEditTitle,
+      description: key == null
+          ? app.intl.accessKeys.formCreateDescription
+          : app.intl.accessKeys.formEditDescription(id: key.id),
+      icon: app.assets.icons.actions.key,
+      loadingId: AccessKeyForm.loadingId,
+      footerActions: [
+        _AccessKeyFormFooter(
+          editing: key != null,
+          onSubmit: () => formKey.currentState?.submit(),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: keysCubit),
+          BlocProvider.value(value: bucketCubit),
+          BlocProvider.value(value: formCubit),
+        ],
+        child: AccessKeyForm(key: formKey, keyModel: key),
+      ),
+    );
+    await formCubit.close();
   }
 }

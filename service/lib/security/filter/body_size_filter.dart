@@ -9,7 +9,7 @@ import 'package:service/feather.dart';
 ///   login): at most [maxRequestBodySize]. Without `Content-Length` (an empty
 ///   or a chunked body) the limit is checked while the body is read.
 class BodySizeFilter extends Filter {
-  static const String objectRouteKey = 's3.put-object';
+  static const String objectRouteKey = Permissions.s3PutObject;
 
   /// Maximum body of the requests that don't upload an object (2 MB: enough for
   /// the XML of a multi-delete of 1000 keys of 1024 bytes).

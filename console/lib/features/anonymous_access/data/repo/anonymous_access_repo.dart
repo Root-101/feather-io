@@ -53,7 +53,7 @@ class AnonymousAccessRepo {
   }
 }
 
-extension AnonymousRuleResponseMapping on AnonymousRuleResponse {
+extension AnonymousRuleResponseToModel on AnonymousRuleResponse {
   AnonymousRuleModel toModel() {
     return AnonymousRuleModel(
       prefix: prefix,

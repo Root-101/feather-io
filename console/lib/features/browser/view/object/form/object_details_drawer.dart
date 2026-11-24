@@ -10,62 +10,8 @@ import '../object_info_helper.dart';
 /// type, size, date and URL, and its actions in the footer. Each action closes
 /// the drawer first
 class ObjectDetailsDrawer extends StatefulWidget {
-  static Future<void> show({
-    required String bucket,
-    required BrowserObjectWrapper object,
-    required VoidCallback onDelete,
-    required VoidCallback onRename,
-    required VoidCallback onMove,
-    required VoidCallback onDownload,
-  }) {
-    final info = ObjectInfoHelper.getFileInfo(object);
-    void closeThen(VoidCallback action) {
-      app.navigator.pop();
-      action();
-    }
-
-    return FormDrawerTemplate.showAsDialog(
-      title: object.name,
-      description: app.intl.objects.detailsSubtitle(
-        type: info.name,
-        size: app.storageFormatter.formatSize(object.size ?? 0),
-      ),
-      icon: app.assets.icons.storage.object,
-      width: 600,
-      footerLeading: PrimaryButton.secondary(
-        onPressed: () => closeThen(onDelete),
-        title: app.intl.common.delete,
-        icon: app.assets.icons.actions.delete,
-        iconColor: app.colors.primary.error,
-        h: 40,
-        horizontalPadding: app.dimensions.padding.l,
-      ),
-      footerActions: [
-        PrimaryButton.secondary(
-          onPressed: () => closeThen(onRename),
-          title: app.intl.objects.rename,
-          icon: app.assets.icons.actions.edit,
-          h: 40,
-          horizontalPadding: app.dimensions.padding.l,
-        ),
-        PrimaryButton.secondary(
-          onPressed: () => closeThen(onMove),
-          title: app.intl.objects.move,
-          icon: app.assets.icons.storage.folder,
-          h: 40,
-          horizontalPadding: app.dimensions.padding.l,
-        ),
-        PrimaryButton.primary(
-          onPressed: () => closeThen(onDownload),
-          title: app.intl.common.download,
-          icon: app.assets.icons.actions.download,
-          h: 40,
-          w: 140,
-        ),
-      ],
-      child: ObjectDetailsDrawer._(bucket: bucket, object: object),
-    );
-  }
+  static final ObjectDetailsDrawerNavigator navigator =
+      ObjectDetailsDrawerNavigator();
 
   final String bucket;
   final BrowserObjectWrapper object;
@@ -100,7 +46,7 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
       builder: (context, state) {
         if (state is ObjectDetailsLoadingErrorState) {
           return Text(
-            state.exception.message,
+            state.exception.intlMessage,
             style: app.textTheme.bodyMedium?.copyWith(
               color: app.colors.primary.error,
             ),
@@ -175,9 +121,8 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
                             tooltip: app.intl.objects.detailsCopyUrl,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: _url));
-                              app.snack.showSuccess(
-                                message: app.intl.objects.detailsUrlCopied,
-                                context: context,
+                              app.toast.success(
+                                app.intl.objects.detailsUrlCopied,
                               );
                             },
                             icon: app.assets.icons.actions.copy.build(
@@ -264,6 +209,66 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Opens [ObjectDetailsDrawer]
+class ObjectDetailsDrawerNavigator {
+  Future<void> open({
+    required String bucket,
+    required BrowserObjectWrapper object,
+    required VoidCallback onDelete,
+    required VoidCallback onRename,
+    required VoidCallback onMove,
+    required VoidCallback onDownload,
+  }) {
+    final info = ObjectInfoHelper.getFileInfo(object);
+    void closeThen(VoidCallback action) {
+      app.navigator.pop();
+      action();
+    }
+
+    return FormDrawerTemplate.showAsDialog(
+      title: object.name,
+      description: app.intl.objects.detailsSubtitle(
+        type: info.name,
+        size: app.storageFormatter.formatSize(object.size ?? 0),
+      ),
+      icon: app.assets.icons.storage.object,
+      width: 600,
+      footerLeading: PrimaryButton.secondary(
+        onPressed: () => closeThen(onDelete),
+        title: app.intl.common.delete,
+        icon: app.assets.icons.actions.delete,
+        iconColor: app.colors.primary.error,
+        h: 40,
+        horizontalPadding: app.dimensions.padding.l,
+      ),
+      footerActions: [
+        PrimaryButton.secondary(
+          onPressed: () => closeThen(onRename),
+          title: app.intl.objects.rename,
+          icon: app.assets.icons.actions.edit,
+          h: 40,
+          horizontalPadding: app.dimensions.padding.l,
+        ),
+        PrimaryButton.secondary(
+          onPressed: () => closeThen(onMove),
+          title: app.intl.objects.move,
+          icon: app.assets.icons.storage.folder,
+          h: 40,
+          horizontalPadding: app.dimensions.padding.l,
+        ),
+        PrimaryButton.primary(
+          onPressed: () => closeThen(onDownload),
+          title: app.intl.common.download,
+          icon: app.assets.icons.actions.download,
+          h: 40,
+          w: 140,
+        ),
+      ],
+      child: ObjectDetailsDrawer._(bucket: bucket, object: object),
     );
   }
 }

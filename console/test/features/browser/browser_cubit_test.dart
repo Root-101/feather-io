@@ -91,10 +91,10 @@ void main() {
       build: build,
       act: (cubit) => cubit.open(bucket: media, prefix: 'photos/'),
       expect: () => [
-        isA<BrowserLoadingInProgressState>()
+        isA<BrowserSearchingState>()
             .having((s) => s.prefix, 'prefix', 'photos/')
             .having((s) => s.pages, 'pages', isEmpty),
-        isA<BrowserLoadingSuccessState>()
+        isA<BrowserSearchOkState>()
             .having(shown, 'objects', ['a.jpg', 'b.jpg'])
             .having((s) => s.canGoNext, 'canGoNext', isTrue)
             .having((s) => s.canGoPrevious, 'canGoPrevious', isFalse)
@@ -112,30 +112,33 @@ void main() {
       ).called(1),
     );
 
-    test('A slow answer of a folder left behind does not replace the new one', () async {
-      final slow = Completer<ListObjectsModel>();
-      when(
-        () => repo.listObjects(
-          bucket: any(named: 'bucket'),
-          token: any(named: 'token'),
-          prefix: 'big/',
-          delimiter: any(named: 'delimiter'),
-          maxKeys: any(named: 'maxKeys'),
-          continuationToken: null,
-        ),
-      ).thenAnswer((_) => slow.future);
-      final cubit = build();
+    test(
+      'A slow answer of a folder left behind does not replace the new one',
+      () async {
+        final slow = Completer<ListObjectsModel>();
+        when(
+          () => repo.listObjects(
+            bucket: any(named: 'bucket'),
+            token: any(named: 'token'),
+            prefix: 'big/',
+            delimiter: any(named: 'delimiter'),
+            maxKeys: any(named: 'maxKeys'),
+            continuationToken: null,
+          ),
+        ).thenAnswer((_) => slow.future);
+        final cubit = build();
 
-      final opening = cubit.open(bucket: media, prefix: 'big/');
-      await cubit.open(bucket: media, prefix: 'photos/');
-      slow.complete(_page(['huge.bin']));
-      await opening;
+        final opening = cubit.open(bucket: media, prefix: 'big/');
+        await cubit.open(bucket: media, prefix: 'photos/');
+        slow.complete(_page(['huge.bin']));
+        await opening;
 
-      final state = cubit.state as BrowserSearchState;
-      expect(state.prefix, 'photos/');
-      expect(shown(state), ['a.jpg', 'b.jpg']);
-      await cubit.close();
-    });
+        final state = cubit.state as BrowserSearchState;
+        expect(state.prefix, 'photos/');
+        expect(shown(state), ['a.jpg', 'b.jpg']);
+        await cubit.close();
+      },
+    );
 
     blocTest<BrowserCubit, BrowserState>(
       'Opening what is already shown does nothing',
@@ -163,8 +166,8 @@ void main() {
       ).thenThrow(apiError('down')),
       act: (cubit) => cubit.open(bucket: media, prefix: 'photos/'),
       expect: () => [
-        isA<BrowserLoadingInProgressState>(),
-        isA<BrowserLoadingErrorState>()
+        isA<BrowserSearchingState>(),
+        isA<BrowserSearchErrorState>()
             .having((s) => s.exception.message, 'message', 'down')
             .having((s) => s.prefix, 'prefix', 'photos/')
             .having((s) => s.selectedBucket?.name, 'bucket', 'media'),
@@ -182,8 +185,8 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<BrowserLoadingInProgressState>(),
-        isA<BrowserLoadingSuccessState>()
+        isA<BrowserSearchingState>(),
+        isA<BrowserSearchOkState>()
             .having(shown, 'objects', ['c.jpg'])
             .having((s) => s.pageIndex, 'pageIndex', 1)
             .having((s) => s.canGoNext, 'canGoNext', isFalse)
@@ -206,11 +209,11 @@ void main() {
       },
       skip: 4,
       expect: () => [
-        isA<BrowserLoadingSuccessState>().having(shown, 'objects', [
+        isA<BrowserSearchOkState>().having(shown, 'objects', [
           'a.jpg',
           'b.jpg',
         ]),
-        isA<BrowserLoadingSuccessState>().having(shown, 'objects', ['c.jpg']),
+        isA<BrowserSearchOkState>().having(shown, 'objects', ['c.jpg']),
       ],
       verify: (_) => verify(
         () => repo.listObjects(
@@ -234,12 +237,12 @@ void main() {
       },
       skip: 4,
       expect: () => [
-        isA<BrowserLoadingInProgressState>().having(
+        isA<BrowserSearchingState>().having(
           (s) => s.pageIndex,
           'keeps the page while loading',
           1,
         ),
-        isA<BrowserLoadingSuccessState>()
+        isA<BrowserSearchOkState>()
             .having((s) => s.pageIndex, 'pageIndex', 1)
             .having((s) => s.pages.length, 'pages', 2),
       ],
@@ -255,8 +258,8 @@ void main() {
       },
       skip: 4,
       expect: () => [
-        isA<BrowserLoadingInProgressState>(),
-        isA<BrowserLoadingSuccessState>()
+        isA<BrowserSearchingState>(),
+        isA<BrowserSearchOkState>()
             .having((s) => s.pageIndex, 'pageIndex', 0)
             .having((s) => s.pageSize, 'pageSize', 100),
       ],
@@ -332,9 +335,9 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<BrowserProcessInProgressState>(),
-        isA<BrowserLoadingInProgressState>(),
-        isA<BrowserLoadingSuccessState>(),
+        isA<BrowserUpdatingState>(),
+        isA<BrowserSearchingState>(),
+        isA<BrowserSearchOkState>(),
       ],
       verify: (cubit) {
         verify(
@@ -371,8 +374,8 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<BrowserProcessInProgressState>(),
-        isA<BrowserLoadingErrorState>()
+        isA<BrowserUpdatingState>(),
+        isA<BrowserSearchErrorState>()
             .having((s) => s.exception.message, 'message', 'down')
             .having(shown, 'objects', ['a.jpg', 'b.jpg']),
       ],
@@ -405,10 +408,7 @@ void main() {
         await changed(BucketChange.objectsChanged);
       },
       skip: 2,
-      expect: () => [
-        isA<BrowserLoadingInProgressState>(),
-        isA<BrowserLoadingSuccessState>(),
-      ],
+      expect: () => [isA<BrowserSearchingState>(), isA<BrowserSearchOkState>()],
     );
 
     blocTest<BrowserCubit, BrowserState>(
@@ -429,7 +429,7 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<BrowserLoadingSuccessState>().having(
+        isA<BrowserSearchOkState>().having(
           (s) => s.selectedBucket?.description,
           'description',
           'Photos',

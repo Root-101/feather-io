@@ -6,20 +6,9 @@ import 'package:service/feather.dart';
 /// request to the operation of [BucketController], [ObjectController] or
 /// [MultipartController] it is.
 class S3Controller {
-  final BucketController buckets;
-  final ObjectController objects;
-  final MultipartController multipart;
-
-  S3Controller._(this.buckets, this.objects, this.multipart);
-
-  factory S3Controller() {
-    final objects = ObjectController();
-    return S3Controller._(
-      BucketController(),
-      objects,
-      MultipartController(objects),
-    );
-  }
+  final BucketController buckets = di.find();
+  final ObjectController objects = di.find();
+  final MultipartController multipart = di.find();
 
   /// Like S3, no response gets a `Cache-Control` it wasn't stored with:
   /// `AuthFilter(cacheControl: null)` (Winter adds `private` by default). An
@@ -38,69 +27,73 @@ class S3Controller {
       ]),
       routes: [
         Route.get(
-          key: 's3.list-buckets',
+          key: Permissions.s3ListBuckets,
           path: '/',
           handler: buckets.listBuckets,
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rule: hasPermission('s3.list-buckets'),
+              rule: hasPermission(Permissions.s3ListBuckets),
             ),
           ]),
         ),
         Route.put(
-          key: 's3.create-bucket',
+          key: Permissions.s3CreateBucket,
           path: '/{bucket}',
           handler: buckets.createBucket,
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rule: hasPermission('s3.create-bucket'),
+              rule: hasPermission(Permissions.s3CreateBucket),
             ),
             ReservedBucketFilter(),
           ]),
         ),
         Route.delete(
-          key: 's3.delete-bucket',
+          key: Permissions.s3DeleteBucket,
           path: '/{bucket}',
           handler: buckets.deleteBucket,
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rule: hasPermission('s3.delete-bucket'),
+              rule: hasPermission(Permissions.s3DeleteBucket),
             ),
             ReservedBucketFilter(),
           ]),
         ),
         Route.get(
-          key: 's3.list-objects',
+          key: Permissions.s3ListObjects,
           path: '/{bucket}',
           handler: _getBucket,
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
               rule:
-                  hasPermission('s3.list-objects') |
-                  hasPermission('s3.anonymous.list-objects'),
+                  hasPermission(Permissions.s3ListObjects) |
+                  hasPermission(
+                    Permissions.anonymous(Permissions.s3ListObjects),
+                  ),
               shouldFilter: (request) {
                 // Only for this very route, so the child routes don't inherit
                 // it: get-object must not need the list-objects permission
-                return request.route?.key == 's3.list-objects';
+                return request.route?.key == Permissions.s3ListObjects;
               },
             ),
             ReservedBucketFilter(),
           ]),
           routes: [
             Route.put(
-              key: 's3.put-object',
+              key: Permissions.s3PutObject,
               path: '/{key|.*}',
               handler: _putObject,
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
                   rule:
-                      hasPermission('s3.put-object') |
-                      hasPermission('s3.anonymous.put-object'),
+                      hasPermission(Permissions.s3PutObject) |
+                      hasPermission(
+                        Permissions.anonymous(Permissions.s3PutObject),
+                      ),
                 ),
               ]),
             ),
@@ -112,46 +105,50 @@ class S3Controller {
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
-                  rule: hasPermission('s3.put-object'),
+                  rule: hasPermission(Permissions.s3PutObject),
                 ),
               ]),
             ),
             Route.get(
-              key: 's3.get-object',
+              key: Permissions.s3GetObject,
               path: '/{key|.*}',
               handler: _getObject,
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
                   rule:
-                      hasPermission('s3.get-object') |
-                      hasPermission('s3.anonymous.get-object'),
+                      hasPermission(Permissions.s3GetObject) |
+                      hasPermission(
+                        Permissions.anonymous(Permissions.s3GetObject),
+                      ),
                 ),
               ]),
             ),
             Route.delete(
-              key: 's3.delete-object',
+              key: Permissions.s3DeleteObject,
               path: '/{key|.*}',
               handler: _deleteObject,
               filterConfig: FilterConfig([
                 AuthFilter(
                   cacheControl: null,
                   rule:
-                      hasPermission('s3.delete-object') |
-                      hasPermission('s3.anonymous.delete-object'),
+                      hasPermission(Permissions.s3DeleteObject) |
+                      hasPermission(
+                        Permissions.anonymous(Permissions.s3DeleteObject),
+                      ),
                 ),
               ]),
             ),
           ],
         ),
         Route.post(
-          key: 's3.multi-delete-objects',
+          key: Permissions.s3MultiDeleteObjects,
           path: '/{bucket}',
           handler: objects.deleteObjects,
           filterConfig: FilterConfig([
             AuthFilter(
               cacheControl: null,
-              rule: hasPermission('s3.multi-delete-objects'),
+              rule: hasPermission(Permissions.s3MultiDeleteObjects),
             ),
             ReservedBucketFilter(),
           ]),

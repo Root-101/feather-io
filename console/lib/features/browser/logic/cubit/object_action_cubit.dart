@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Actions of the browser dialogs: create folder, rename and move.
 /// It lives while the dialog is open, so loading and errors show in it. When
 /// done it announces it on the bus: the browser and the bucket lists reload
-class ObjectActionCubit extends Cubit<ObjectActionState> {
+class ObjectActionCubit extends Cubit<ObjectActionState>
+    with GlobalEventBusCommunication<ObjectActionState> {
   final BrowserRepo _repo;
   final AuthCubit _auth;
 
@@ -74,14 +75,13 @@ class ObjectActionCubit extends Cubit<ObjectActionState> {
           await _repo.deleteObjects(bucket: bucket, keys: moved, token: _token);
         }
         final exception = ExceptionConverter.parse(e);
+        if (moved.isEmpty) throw exception;
         throw GlobalException(
           type: exception.type,
-          message: moved.isEmpty
-              ? exception.message
-              : app.intl.objects.movePartial(
-                  moved: moved.length,
-                  total: keys.length,
-                ),
+          message: app.intl.objects.movePartial(
+            moved: moved.length,
+            total: keys.length,
+          ),
           data: exception.data,
         );
       }
@@ -117,20 +117,20 @@ abstract class ObjectActionState {
   const ObjectActionState();
 }
 
-class ObjectActionInitialState extends ObjectActionState {
+final class ObjectActionInitialState extends ObjectActionState {
   const ObjectActionInitialState();
 }
 
 //------------------------- PROCESSING -------------------------\\
-class ObjectActionProcessInProgressState extends ObjectActionState {
+final class ObjectActionProcessInProgressState extends ObjectActionState {
   const ObjectActionProcessInProgressState();
 }
 
-class ObjectActionProcessingOKState extends ObjectActionState {
+final class ObjectActionProcessingOKState extends ObjectActionState {
   const ObjectActionProcessingOKState();
 }
 
-class ObjectActionProcessingErrorState extends ObjectActionState {
+final class ObjectActionProcessingErrorState extends ObjectActionState {
   final GlobalException exception;
 
   const ObjectActionProcessingErrorState(this.exception);

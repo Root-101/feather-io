@@ -3,14 +3,13 @@ library;
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8109, name: 'presign_public_url');
+  final server = TestApp(name: 'presign_public_url');
   const bucket = 'public-url-bucket';
   const publicUrl = 'https://s3.example.com';
 
@@ -22,7 +21,7 @@ void main() {
   tearDownAll(server.stop);
 
   Future<String> presign({Map<String, String> headers = const {}}) async {
-    final response = await http.post(
+    final response = await server.client.post(
       server.url('/${env.adminPrefix}/bucket/$bucket/presign'),
       headers: {
         ...server.auth(json: true),
@@ -36,26 +35,32 @@ void main() {
   }
 
   group('PresignService - PUBLIC_URL', () {
-    test('Should build the URL with PUBLIC_URL, not with the request', () async {
-      final url = await presign();
-      expect(url, startsWith('$publicUrl/$bucket/report.txt?'));
-    });
+    test(
+      'Should build the URL with PUBLIC_URL, not with the request',
+      () async {
+        final url = await presign();
+        expect(url, startsWith('$publicUrl/$bucket/report.txt?'));
+      },
+    );
 
     test('Should ignore a manipulated Host header', () async {
       final url = await presign(headers: {'host': 'attacker.example'});
       expect(Uri.parse(url).host, 's3.example.com');
     });
 
-    test('Should be valid when it arrives through a proxy that keeps the Host', () async {
-      // An HTTPS proxy forwards over HTTP and keeps the public Host
-      final url = Uri.parse(await presign());
-      final response = await http.get(
-        server.url('${url.path}?${url.query}'),
-        headers: {'host': url.host},
-      );
-      expect(response.statusCode, 200, reason: response.body);
-      expect(response.body, 'content');
-    });
+    test(
+      'Should be valid when it arrives through a proxy that keeps the Host',
+      () async {
+        // An HTTPS proxy forwards over HTTP and keeps the public Host
+        final url = Uri.parse(await presign());
+        final response = await server.client.get(
+          server.url('${url.path}?${url.query}'),
+          headers: {'host': url.host},
+        );
+        expect(response.statusCode, 200, reason: response.body);
+        expect(response.body, 'content');
+      },
+    );
   });
 
   group('ExtendedEnv.publicUrl', () {

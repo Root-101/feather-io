@@ -3,11 +3,9 @@ import 'package:service/feather.dart';
 class JwtFilter extends Filter {
   static final JwtFilter _instance = JwtFilter._();
 
-  late final JwtService jwtService;
+  late final JwtService jwtService = di.find();
 
-  JwtFilter._() {
-    jwtService = di.find();
-  }
+  JwtFilter._();
 
   factory JwtFilter() => _instance;
 

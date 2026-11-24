@@ -4,10 +4,8 @@ import 'package:service/feather.dart';
 /// what `GET /{bucket}` answers (ListObjects V1/V2, GetBucketLocation,
 /// GetBucketVersioning).
 class BucketController {
-  final ObjectService objectService;
-  final BucketService bucketService;
-
-  BucketController() : objectService = di.find(), bucketService = di.find();
+  final ObjectService objectService = di.find();
+  final BucketService bucketService = di.find();
 
   Future<ResponseEntity> listBuckets(RequestEntity request) async {
     var buckets = await bucketService.listBuckets();

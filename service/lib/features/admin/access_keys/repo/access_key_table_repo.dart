@@ -94,8 +94,11 @@ class AccessKeyTableRepo {
     required String id,
     required String secretEncrypted,
   }) async {
-    await (_db.update(_db.accessKeyTable)..where((tbl) => tbl.id.equals(id)))
-        .write(AccessKeyTableCompanion(secretEncrypted: Value(secretEncrypted)));
+    await (_db.update(
+      _db.accessKeyTable,
+    )..where((tbl) => tbl.id.equals(id))).write(
+      AccessKeyTableCompanion(secretEncrypted: Value(secretEncrypted)),
+    );
   }
 
   Future<void> updateLastUsed({

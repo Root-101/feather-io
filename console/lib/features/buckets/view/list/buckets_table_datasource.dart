@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class BucketsTableDatasource extends StatefulWidget {
-  final BucketState state;
+  final BucketsState state;
   final TextEditingController searchController;
   final List<BucketModel> filteredBuckets;
   final Function(BucketModel) onSelected;
@@ -59,7 +59,7 @@ class _BucketsTableDatasourceState extends State<BucketsTableDatasource> {
         }
 
         if (widget.filteredBuckets.isEmpty &&
-            widget.state is BucketLoadingSuccessState) {
+            widget.state is BucketsSearchOkState) {
           return NoDataPage(
             title: widget.searchController.text.isEmpty
                 ? app.intl.buckets.empty

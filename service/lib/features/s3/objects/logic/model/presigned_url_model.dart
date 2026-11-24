@@ -1,3 +1,5 @@
+import 'package:service/feather.dart';
+
 /// Presigned URL to download an object without credentials until [expiresAt].
 class PresignedUrlModel {
   final String url;
@@ -12,6 +14,6 @@ class PresignedUrlModel {
   );
 
   Map<String, Object?> toJson() {
-    return {'url': url, 'expires_at': expiresAt.toUtc().toIso8601String()};
+    return {'url': url, 'expires_at': expiresAt.toJsonDate()};
   }
 }

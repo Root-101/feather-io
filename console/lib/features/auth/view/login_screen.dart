@@ -7,6 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 class LoginScreenNavigator {
+  /// Its routes; `route_config.dart` only places them in the tree
+  List<RouteBase> routes({List<RouteBase> children = const []}) => [
+    GoRoute(name: name, path: path, builder: builder, routes: children),
+  ];
+
   String get name => RouteNames.login;
 
   String get path => '/login';
@@ -62,10 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
         // On success the router leaves the login by itself (it listens to
         // AuthCubit), to the page asked for before logging in. Closing the
         // autofill context first lets the browser offer to save the keys
-        if (state is AuthProcessingOKState) {
+        if (state is AuthLoggedInOkState) {
           TextInput.finishAutofillContext();
-        } else if (state is AuthProcessingErrorState) {
-          app.snack.showError(message: state.message, context: context);
+        } else if (state is AuthLoggingInErrorState) {
+          app.toast.error(state.message);
         }
       },
       child: Scaffold(
@@ -86,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: app.dimensions.border.borderRadius.m,
                     child: BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) => LoadingOverlay(
-                        visible: state is AuthProcessInProgressState,
+                        visible: state is AuthLoggingInState,
                         overlayWidgetBuilder: LoadingOverlayStyles.form,
                         child: _buildPanel(),
                       ),
@@ -222,6 +227,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _secretController,
                 label: app.intl.login.secretKey,
                 hint: app.intl.login.secretKeyHint,
+                showLabel: app.intl.login.showSecret,
+                hideLabel: app.intl.login.hideSecret,
                 validator: (v) =>
                     v?.isEmpty == true ? app.intl.common.required : null,
                 autofillHints: const [AutofillHints.password],

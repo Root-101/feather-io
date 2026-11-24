@@ -4,34 +4,8 @@ import 'package:material_ui/material_ui.dart';
 
 /// Drawer to add an anonymous access rule to a bucket
 class AnonymousRuleForm extends StatefulWidget {
-  /// Opens the drawer with its own [AnonymousRuleFormCubit]. On save, it reloads
-  /// the screen's [AnonymousAccessCubit]
-  static Future<void> open(
-    BuildContext context, {
-    required String bucket,
-  }) async {
-    final key = GlobalKey<_AnonymousRuleFormState>();
-    final accessCubit = context.read<AnonymousAccessCubit>();
-    final formCubit = AnonymousRuleFormCubit(app.di.find(), app.di.find());
-
-    await FormDrawerTemplate.showAsDialog(
-      title: app.intl.anonymousAccess.ruleFormTitle,
-      description: app.intl.anonymousAccess.ruleFormDescription(bucket: bucket),
-      icon: app.assets.icons.actions.lock,
-      loadingId: loadingId,
-      footerActions: [
-        _AnonymousRuleFormFooter(onSubmit: () => key.currentState?.submit()),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: accessCubit),
-          BlocProvider.value(value: formCubit),
-        ],
-        child: AnonymousRuleForm(key: key, bucket: bucket),
-      ),
-    );
-    await formCubit.close();
-  }
+  static final AnonymousRuleFormNavigator navigator =
+      AnonymousRuleFormNavigator();
 
   /// Id of the drawer's [LoadingOverlay]
   static const String loadingId = 'anonymous-rule-form';
@@ -117,11 +91,8 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
           final accessCubit = context.read<AnonymousAccessCubit>();
           Navigator.of(context).pop();
           accessCubit.load(bucket: widget.bucket);
-          app.snack.showSuccess(
-            message: app.intl.anonymousAccess.ruleCreatedSuccess(
-              prefix: state.prefix,
-            ),
-            context: app.context,
+          app.toast.success(
+            app.intl.anonymousAccess.ruleCreatedSuccess(prefix: state.prefix),
           );
         } else if (state is AnonymousRuleFormProcessingErrorState) {
           final prefixError = state.fieldErrors[AnonymousRuleFormField.prefix];
@@ -131,7 +102,7 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
           setState(() {
             _serverErrors = {AnonymousRuleFormField.prefix: ?prefixError};
             _formError = state.fieldErrors.isEmpty
-                ? state.exception.message
+                ? state.exception.intlMessage
                 : others.isEmpty
                 ? null
                 : others.join('\n');
@@ -374,5 +345,34 @@ class _AnonymousRuleFormFooter extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Opens [AnonymousRuleForm]
+class AnonymousRuleFormNavigator {
+  /// Opens the drawer with its own [AnonymousRuleFormCubit]. On save, it reloads
+  /// the screen's [AnonymousAccessCubit]
+  Future<void> create(BuildContext context, {required String bucket}) async {
+    final key = GlobalKey<_AnonymousRuleFormState>();
+    final accessCubit = context.read<AnonymousAccessCubit>();
+    final formCubit = AnonymousRuleFormCubit(app.di.find(), app.di.find());
+
+    await FormDrawerTemplate.showAsDialog(
+      title: app.intl.anonymousAccess.ruleFormTitle,
+      description: app.intl.anonymousAccess.ruleFormDescription(bucket: bucket),
+      icon: app.assets.icons.actions.lock,
+      loadingId: AnonymousRuleForm.loadingId,
+      footerActions: [
+        _AnonymousRuleFormFooter(onSubmit: () => key.currentState?.submit()),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: accessCubit),
+          BlocProvider.value(value: formCubit),
+        ],
+        child: AnonymousRuleForm(key: key, bucket: bucket),
+      ),
+    );
+    await formCubit.close();
   }
 }

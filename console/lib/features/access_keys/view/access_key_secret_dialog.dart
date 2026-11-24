@@ -7,23 +7,11 @@ import 'package:material_ui/material_ui.dart';
 /// dialog doesn't close by tapping outside or with Esc, and *Close* only works
 /// after checking that the secret was saved
 class AccessKeySecretDialog extends StatefulWidget {
-  static void show({
-    required AccessKeyModel key,
-    required AccessKeyCubit cubit,
-    required bool created,
-  }) {
-    app.dialog.open(
-      barrierDismissible: false,
-      dialog: AccessKeySecretDialog._(
-        keyModel: key,
-        cubit: cubit,
-        created: created,
-      ),
-    );
-  }
+  static final AccessKeySecretDialogNavigator navigator =
+      AccessKeySecretDialogNavigator();
 
   final AccessKeyModel keyModel;
-  final AccessKeyCubit cubit;
+  final AccessKeysCubit cubit;
   final bool created;
 
   const AccessKeySecretDialog._({
@@ -211,10 +199,7 @@ class _CopyField extends StatelessWidget {
                 tooltip: copyTooltip,
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: value));
-                  app.snack.showSuccess(
-                    message: copiedMessage,
-                    context: context,
-                  );
+                  app.toast.success(copiedMessage);
                 },
                 icon: app.assets.icons.actions.copy.build(
                   size: 18,
@@ -225,6 +210,24 @@ class _CopyField extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Opens [AccessKeySecretDialog]
+class AccessKeySecretDialogNavigator {
+  void open({
+    required AccessKeyModel key,
+    required AccessKeysCubit cubit,
+    required bool created,
+  }) {
+    app.dialog.open(
+      barrierDismissible: false,
+      dialog: AccessKeySecretDialog._(
+        keyModel: key,
+        cubit: cubit,
+        created: created,
+      ),
     );
   }
 }

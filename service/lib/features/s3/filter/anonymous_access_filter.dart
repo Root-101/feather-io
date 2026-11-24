@@ -12,15 +12,19 @@ import 'package:service/feather.dart';
 class AnonymousAccessFilter extends Filter {
   static final AnonymousAccessFilter _instance = AnonymousAccessFilter._();
 
-  late final AnonymousAccessService _service = AnonymousAccessService();
+  late final AnonymousAccessService _service = di.find();
 
   AnonymousAccessFilter._();
 
   factory AnonymousAccessFilter() => _instance;
 
-  static const _readKeys = {'s3.list-objects', 's3.get-object'};
+  static const _readKeys = Permissions.s3Read;
 
-  static const _writeKeys = {'s3.put-object', 's3.delete-object'};
+  // Never the multi-delete: its keys come in the body
+  static const _writeKeys = {
+    Permissions.s3PutObject,
+    Permissions.s3DeleteObject,
+  };
 
   @override
   Future<ResponseEntity> doFilter(
@@ -42,7 +46,7 @@ class AnonymousAccessFilter extends Filter {
       // For list-objects the query's prefix is checked; for an object, the key
       // the handler acts on (with its trailing '/', which Winter drops from the
       // path param: 'photos/*.jpg' must not open the folder 'photos/a.jpg/')
-      final listing = routeKey == 's3.list-objects';
+      final listing = routeKey == Permissions.s3ListObjects;
       final key = listing
           ? request.queryParams['prefix'] ?? ''
           : request.pathParams['key'] == null
@@ -57,7 +61,7 @@ class AnonymousAccessFilter extends Filter {
       if (rule != null && _allowedKeys(rule.access).contains(routeKey)) {
         final anonymous = {
           for (final allowed in _allowedKeys(rule.access))
-            allowed.replaceFirst('s3.', 's3.anonymous.'),
+            Permissions.anonymous(allowed),
         };
         request.securityContext.setAuthentication(
           current?.principal is AccessKeyModel

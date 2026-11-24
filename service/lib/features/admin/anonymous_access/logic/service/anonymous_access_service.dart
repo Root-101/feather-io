@@ -1,12 +1,8 @@
 import 'package:service/feather.dart';
 
 class AnonymousAccessService {
-  final AccessRuleTableRepo accessRuleRepo;
-  final BucketService buckets;
-
-  AnonymousAccessService()
-    : accessRuleRepo = AccessRuleTableRepo(di.find()),
-      buckets = di.find();
+  final AnonymousRuleTableRepo ruleRepo = di.find();
+  final BucketService buckets = di.find();
 
   Future<List<AnonymousRuleModel>> getRules({required String bucket}) async {
     await _checkBucket(bucket);
@@ -18,7 +14,7 @@ class AnonymousAccessService {
     required AnonymousRuleModel model,
   }) async {
     await _checkBucket(bucket);
-    await accessRuleRepo.save(bucketName: bucket, model: model);
+    await ruleRepo.save(bucketName: bucket, model: model);
     logger.info(
       'Anonymous access rule saved',
       fields: {
@@ -34,7 +30,7 @@ class AnonymousAccessService {
     required String prefix,
   }) async {
     await _checkBucket(bucket);
-    await accessRuleRepo.deleteRule(bucketName: bucket, prefix: prefix);
+    await ruleRepo.deleteRule(bucketName: bucket, prefix: prefix);
     logger.info(
       'Anonymous access rule deleted',
       fields: {'bucket': bucket, 'prefix': prefix},
@@ -76,7 +72,7 @@ class AnonymousAccessService {
   }
 
   Future<List<AnonymousRuleModel>> _rules(String bucket) async {
-    final rules = await accessRuleRepo.getRulesByBucket(bucket: bucket);
+    final rules = await ruleRepo.getRulesByBucket(bucket: bucket);
     return rules.map((e) => AnonymousRuleModel(e.prefix, e.access)).toList();
   }
 

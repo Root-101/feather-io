@@ -5,24 +5,8 @@ import 'package:material_ui/material_ui.dart';
 /// Dialog to move one or more objects: pick the bucket and navigate to the
 /// target folder. *Move here* is disabled in the source folder
 class MoveObjectsDialog extends StatefulWidget {
-  static void show({
-    required String bucket,
-    required String prefix,
-    required List<String> keys,
-    required List<String> buckets,
-  }) {
-    DialogTemplate.open(
-      title: app.intl.objects.moveTitle(count: keys.length),
-      w: 560,
-      h: 620,
-      child: MoveObjectsDialog._(
-        bucket: bucket,
-        prefix: prefix,
-        keys: keys,
-        buckets: buckets,
-      ),
-    );
-  }
+  static final MoveObjectsDialogNavigator navigator =
+      MoveObjectsDialogNavigator();
 
   /// Source bucket and folder
   final String bucket;
@@ -80,10 +64,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
       listener: (context, state) {
         if (state is ObjectActionProcessingOKState) {
           app.navigator.pop();
-          app.snack.showSuccess(
-            message: app.intl.objects.moved(count: widget.keys.length),
-            context: app.context,
-          );
+          app.toast.success(app.intl.objects.moved(count: widget.keys.length));
         }
       },
       builder: (context, actionState) {
@@ -116,7 +97,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                       app.dimensions.padding.m.gap(),
                       AppFormAlert(
                         title: app.intl.objects.actionErrorTitle,
-                        message: actionState.exception.message,
+                        message: actionState.exception.intlMessage,
                       ),
                     ],
                     app.dimensions.padding.l.gap(),
@@ -156,8 +137,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                         Expanded(
                           child: PrimaryButton.primary(
                             onPressed:
-                                isSource ||
-                                    target is! MoveTargetLoadingSuccessState
+                                isSource || target is! MoveTargetSearchOkState
                                 ? null
                                 : () => actionCubit.move(
                                     bucket: widget.bucket,
@@ -270,18 +250,17 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
 
   Widget _buildFolders(MoveTargetState target, String bucket) {
     Widget body;
-    if (target is MoveTargetLoadingErrorState) {
+    if (target is MoveTargetSearchErrorState) {
       body = Center(
         child: Text(
-          target.exception.message,
+          target.exception.intlMessage,
           textAlign: TextAlign.center,
           style: app.textTheme.bodyMedium?.copyWith(
             color: app.colors.primary.error,
           ),
         ),
       );
-    } else if (target.folders.isEmpty &&
-        target is MoveTargetLoadingSuccessState) {
+    } else if (target.folders.isEmpty && target is MoveTargetSearchOkState) {
       body = Center(
         child: Text(
           app.intl.objects.moveNoFolders,
@@ -339,10 +318,32 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
         border: Border.all(color: app.colors.neutral.grey5),
       ),
       child: LoadingOverlay(
-        visible: target is MoveTargetLoadingInProgressState,
+        visible: target is MoveTargetSearchingState,
         overlayWidgetBuilder: LoadingOverlayStyles.table,
         disableBackButton: false,
         child: body,
+      ),
+    );
+  }
+}
+
+/// Opens [MoveObjectsDialog]
+class MoveObjectsDialogNavigator {
+  void open({
+    required String bucket,
+    required String prefix,
+    required List<String> keys,
+    required List<String> buckets,
+  }) {
+    DialogTemplate.open(
+      title: app.intl.objects.moveTitle(count: keys.length),
+      w: 560,
+      h: 620,
+      child: MoveObjectsDialog._(
+        bucket: bucket,
+        prefix: prefix,
+        keys: keys,
+        buckets: buckets,
       ),
     );
   }

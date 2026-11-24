@@ -5,14 +5,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8088, name: 's3_error');
+  final server = TestApp(name: 's3_error');
 
   setUpAll(() async {
     env.put('RESERVED_BUCKET_NAMES', 'reserved-bucket');
@@ -22,7 +21,7 @@ void main() {
 
   group('S3Exception - Content negotiation', () {
     test('Should answer the S3 <Error> in XML by default', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/missing-bucket'),
         headers: server.auth(),
       );
@@ -35,7 +34,7 @@ void main() {
     });
 
     test('Should escape the XML special chars of the message', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/missing-bucket'),
         headers: server.auth(),
       );
@@ -44,7 +43,7 @@ void main() {
     });
 
     test('Should answer JSON when the client accepts it', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/missing-bucket'),
         headers: server.auth(json: true),
       );
@@ -58,7 +57,7 @@ void main() {
     });
 
     test('Should use the S3 format for errors thrown in filters', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/Bad_Bucket'),
         headers: server.auth(),
       );
@@ -67,7 +66,7 @@ void main() {
     });
 
     test('Should deny a reserved bucket with AccessDenied (403)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/reserved-bucket'),
         headers: server.auth(json: true),
       );
@@ -78,7 +77,7 @@ void main() {
 
   group('S3Exception - Admin API', () {
     test('Should always answer JSON, even without Accept', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/${env.adminPrefix}/bucket/Bad_Bucket/anonymous-access'),
         headers: server.auth(),
       );
@@ -91,7 +90,7 @@ void main() {
     test('Should answer JSON for errors of the download', () async {
       await server.putObject('zip-bucket', 'file.txt', 'data');
 
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/${env.adminPrefix}/bucket/zip-bucket/download'),
         headers: {...server.auth(), 'content-type': 'application/json'},
         body: jsonEncode({
@@ -107,7 +106,7 @@ void main() {
     final now = DateTime.now().toUtc();
 
     test('Should reject a SigV4 request with a wrong access key (403)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: {
           'authorization':
@@ -121,7 +120,7 @@ void main() {
     });
 
     test('Should reject a SigV4 request with a wrong signature (403)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: {
           'authorization':
@@ -142,7 +141,10 @@ void main() {
           ', ',
           ',',
         );
-        final response = await http.get(server.url('/'), headers: headers);
+        final response = await server.client.get(
+          server.url('/'),
+          headers: headers,
+        );
         expect(response.statusCode, 200, reason: response.body);
       },
     );
@@ -150,7 +152,7 @@ void main() {
 
   group('S3SigV4Filter - replay and body', () {
     test('Should reject a signature older than 15 minutes (replay)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: server.sigV4(
           'GET',
@@ -163,7 +165,7 @@ void main() {
     });
 
     test('Should reject a signature dated in the future', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: server.sigV4(
           'GET',
@@ -176,7 +178,7 @@ void main() {
     });
 
     test('Should accept a small clock skew', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: server.sigV4(
           'GET',
@@ -193,7 +195,10 @@ void main() {
         RegExp(r'/\d{8}/'),
         '/20200101/',
       );
-      final response = await http.get(server.url('/'), headers: headers);
+      final response = await server.client.get(
+        server.url('/'),
+        headers: headers,
+      );
       expect(response.statusCode, 403);
       expect(response.body, contains('<Code>SignatureDoesNotMatch</Code>'));
     });
@@ -201,7 +206,7 @@ void main() {
     test('Should store a body that matches the signed sha256', () async {
       await server.createBucket('signed-body');
       final body = utf8.encode('original');
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/signed-body/ok.txt'),
         headers: server.sigV4(
           'PUT',
@@ -217,7 +222,7 @@ void main() {
       'Should reject a body that does not match the signed sha256',
       () async {
         await server.putObject('signed-body', 'changed.txt', 'previous');
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/signed-body/changed.txt'),
           headers: server.sigV4(
             'PUT',
@@ -259,7 +264,7 @@ void main() {
           method: 'GET',
           path: '/',
           query: query,
-          headers: {'host': 'localhost:${server.port}'},
+          headers: {'host': server.host},
           signedHeaders: 'host',
           payloadHash: SigV4Signer.unsignedPayload,
         ),
@@ -268,7 +273,7 @@ void main() {
         ...query,
         SigV4Signer.signatureParam: signature,
       });
-      final response = await http.get(server.url('/?$signedQuery'));
+      final response = await server.client.get(server.url('/?$signedQuery'));
       expect(response.statusCode, 403);
     });
   });
@@ -301,7 +306,7 @@ void main() {
           method: method,
           path: path,
           query: query,
-          headers: {'host': 'localhost:${server.port}'},
+          headers: {'host': server.host},
           signedHeaders: 'host',
           payloadHash: SigV4Signer.unsignedPayload,
         ),
@@ -316,7 +321,7 @@ void main() {
     File stored(String key) => File('${server.storagePath}/$bucket/$key');
 
     test('Should upload with a presigned PUT URL', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         presigned('PUT', '/$bucket/upload.txt'),
         body: 'mine',
       );
@@ -325,7 +330,7 @@ void main() {
     });
 
     test('Should not turn a presigned PUT into a copy with an unsigned x-amz-copy-source (403)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         presigned('PUT', '/$bucket/copied.txt'),
         headers: {'x-amz-copy-source': '/unsigned-vault/secret.txt'},
       );
@@ -335,18 +340,21 @@ void main() {
       expect(stored('copied.txt').existsSync(), isFalse);
     });
 
-    test('Should reject unsigned x-amz-meta-* on a presigned PUT (403)', () async {
-      final response = await http.put(
-        presigned('PUT', '/$bucket/meta.txt'),
-        headers: {'x-amz-meta-injected': 'yes'},
-        body: 'x',
-      );
-      expect(response.statusCode, 403);
-      expect(stored('meta.txt').existsSync(), isFalse);
-    });
+    test(
+      'Should reject unsigned x-amz-meta-* on a presigned PUT (403)',
+      () async {
+        final response = await server.client.put(
+          presigned('PUT', '/$bucket/meta.txt'),
+          headers: {'x-amz-meta-injected': 'yes'},
+          body: 'x',
+        );
+        expect(response.statusCode, 403);
+        expect(stored('meta.txt').existsSync(), isFalse);
+      },
+    );
 
     test('Should accept an unsigned x-amz-content-sha256 (bound by the payload hash)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         presigned('PUT', '/$bucket/sha.txt'),
         headers: {'x-amz-content-sha256': SigV4Signer.unsignedPayload},
         body: 'x',
@@ -354,17 +362,20 @@ void main() {
       expect(response.statusCode, 200, reason: response.body);
     });
 
-    test('Should accept an unsigned x-amz-acl, which is ignored (minio-java)', () async {
-      final response = await http.put(
-        presigned('PUT', '/$bucket/acl.txt'),
-        headers: {'x-amz-acl': 'public-read'},
-        body: 'x',
-      );
-      expect(response.statusCode, 200, reason: response.body);
-    });
+    test(
+      'Should accept an unsigned x-amz-acl, which is ignored (minio-java)',
+      () async {
+        final response = await server.client.put(
+          presigned('PUT', '/$bucket/acl.txt'),
+          headers: {'x-amz-acl': 'public-read'},
+          body: 'x',
+        );
+        expect(response.statusCode, 200, reason: response.body);
+      },
+    );
 
     test('Should reject an unsigned x-amz-copy-source added to a header-signed PUT (403)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/replayed.txt'),
         headers: {
           ...server.sigV4('PUT', '/$bucket/replayed.txt'),
@@ -381,7 +392,7 @@ void main() {
         '/$bucket/signed-copy.txt',
         extraHeaders: {'x-amz-copy-source': '/unsigned-vault/secret.txt'},
       );
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/signed-copy.txt'),
         headers: headers,
       );

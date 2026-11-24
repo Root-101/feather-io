@@ -3,17 +3,8 @@ import 'package:material_ui/material_ui.dart';
 
 /// Confirmation to empty a bucket: the button is only enabled after typing its name
 class BucketEmptyDialog extends StatefulWidget {
-  static void show({
-    required BucketModel bucket,
-    required VoidCallback onConfirm,
-  }) {
-    DialogTemplate.open(
-      title: app.intl.bucketAdmin.emptyTitle,
-      w: 480,
-      h: 380,
-      child: BucketEmptyDialog(bucket: bucket, onConfirm: onConfirm),
-    );
-  }
+  static final BucketEmptyDialogNavigator navigator =
+      BucketEmptyDialogNavigator();
 
   final BucketModel bucket;
   final VoidCallback onConfirm;
@@ -101,6 +92,18 @@ class _BucketEmptyDialogState extends State<BucketEmptyDialog> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Opens [BucketEmptyDialog]
+class BucketEmptyDialogNavigator {
+  void open({required BucketModel bucket, required VoidCallback onConfirm}) {
+    DialogTemplate.open(
+      title: app.intl.bucketAdmin.emptyTitle,
+      w: 480,
+      h: 380,
+      child: BucketEmptyDialog(bucket: bucket, onConfirm: onConfirm),
     );
   }
 }

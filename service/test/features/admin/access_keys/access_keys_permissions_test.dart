@@ -9,13 +9,13 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 /// What each access key can and can't do: every S3 operation for each level,
 /// on its bucket and on another one, keys on every bucket, multipart,
 /// presigned URLs, changes of state and the edge cases of the admin API.
 void main() {
-  final server = TestServer(port: 8112, name: 'access_keys_permissions');
+  final server = TestApp(name: 'access_keys_permissions');
   const other = 'pm-other';
 
   String keysPath([String suffix = '']) =>
@@ -27,7 +27,7 @@ void main() {
   };
 
   Future<Map<String, dynamic>> newKey(Map<String, dynamic> body) async {
-    final response = await http.post(
+    final response = await server.client.post(
       server.url(keysPath()),
       headers: jsonAuth(),
       body: jsonEncode(body),
@@ -44,14 +44,14 @@ void main() {
   });
 
   Future<http.Response> updateKey(String id, Map<String, dynamic> body) =>
-      http.put(
+      server.client.put(
         server.url(keysPath('/$id')),
         headers: jsonAuth(),
         body: jsonEncode(body),
       );
 
   Future<Map<String, dynamic>> listedKey(String id) async {
-    final response = await http.get(
+    final response = await server.client.get(
       server.url(keysPath()),
       headers: server.auth(),
     );
@@ -87,7 +87,7 @@ void main() {
             ),
           );
     if (body != null) request.bodyBytes = body;
-    return request.send().then(http.Response.fromStream);
+    return server.client.send(request).then(http.Response.fromStream);
   }
 
   /// A presigned GET URL signed with [key], like the ones S3 SDKs build.
@@ -111,7 +111,7 @@ void main() {
         method: 'GET',
         path: path,
         query: query,
-        headers: {'host': 'localhost:${server.port}'},
+        headers: {'host': server.host},
         signedHeaders: 'host',
         payloadHash: SigV4Signer.unsignedPayload,
       ),
@@ -356,7 +356,7 @@ void main() {
       );
       expect(completed.statusCode, 200, reason: completed.body);
 
-      final download = await http.get(
+      final download = await server.client.get(
         server.url('/$bucket/big.bin'),
         headers: server.auth(),
       );
@@ -447,27 +447,33 @@ void main() {
 
     test('A URL signed with a read key downloads the object', () async {
       final key = await keyOn(bucket, 'readOnly');
-      final response = await http.get(presigned(key, bucket, 'doc.txt'));
+      final response = await server.client.get(
+        presigned(key, bucket, 'doc.txt'),
+      );
       expect(response.statusCode, 200, reason: response.body);
       expect(response.body, 'presigned');
     });
 
     test('A URL for a bucket outside the key answers 403', () async {
       final key = await keyOn(bucket, 'readOnly');
-      final response = await http.get(presigned(key, other, 'seed.txt'));
+      final response = await server.client.get(
+        presigned(key, other, 'seed.txt'),
+      );
       expect(response.statusCode, 403);
     });
 
     test('A URL signed with a write-only key answers 403', () async {
       final key = await keyOn(bucket, 'writeOnly');
-      final response = await http.get(presigned(key, bucket, 'doc.txt'));
+      final response = await server.client.get(
+        presigned(key, bucket, 'doc.txt'),
+      );
       expect(response.statusCode, 403);
     });
 
     test('A URL stops working when its key is disabled', () async {
       final key = await keyOn(bucket, 'readOnly');
       final url = presigned(key, bucket, 'doc.txt');
-      expect((await http.get(url)).statusCode, 200);
+      expect((await server.client.get(url)).statusCode, 200);
 
       final update = await updateKey(key['access_key_id'], {
         'name': key['name'],
@@ -476,7 +482,7 @@ void main() {
       });
       expect(update.statusCode, 200);
 
-      final response = await http.get(url);
+      final response = await server.client.get(url);
       expect(response.statusCode, 403);
       expect(response.body, contains('InvalidAccessKeyId'));
     });
@@ -622,7 +628,7 @@ void main() {
       const bucket = 'pm-reborn';
       await server.putObject(bucket, 'a.txt', 'old');
       final key = await keyOn(bucket, 'readOnly');
-      final rule = await http.post(
+      final rule = await server.client.post(
         server.url('/${env.adminPrefix}/bucket/$bucket/anonymous-access'),
         headers: jsonAuth(),
         body: jsonEncode({'prefix': 'a', 'access': 'readOnly'}),
@@ -634,18 +640,21 @@ void main() {
 
       await server.putObject(bucket, 'a.txt', 'new');
       expect((await signed('GET', '/$bucket/a.txt', key)).statusCode, 403);
-      expect((await http.get(server.url('/$bucket/a.txt'))).statusCode, 401);
+      expect(
+        (await server.client.get(server.url('/$bucket/a.txt'))).statusCode,
+        401,
+      );
     });
   });
 
   group('Access keys - edge cases', () {
     test('Every admin endpoint requires the JWT (401)', () async {
       final requests = [
-        http.get(server.url(keysPath())),
-        http.post(server.url(keysPath()), body: '{}'),
-        http.put(server.url(keysPath('/FIOKX')), body: '{}'),
-        http.post(server.url(keysPath('/FIOKX/secret'))),
-        http.delete(server.url(keysPath('/FIOKX'))),
+        server.client.get(server.url(keysPath())),
+        server.client.post(server.url(keysPath()), body: '{}'),
+        server.client.put(server.url(keysPath('/FIOKX')), body: '{}'),
+        server.client.post(server.url(keysPath('/FIOKX/secret'))),
+        server.client.delete(server.url(keysPath('/FIOKX'))),
       ];
       for (final response in await Future.wait(requests)) {
         expect(response.statusCode, 401, reason: response.request?.url.path);
@@ -653,12 +662,12 @@ void main() {
     });
 
     test('Regenerating or deleting an unknown key answers 404', () async {
-      final regenerate = await http.post(
+      final regenerate = await server.client.post(
         server.url(keysPath('/FIOKNOPE/secret')),
         headers: server.auth(),
       );
       expect(regenerate.statusCode, 404);
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url(keysPath('/FIOKNOPE')),
         headers: server.auth(),
       );
@@ -681,7 +690,7 @@ void main() {
     });
 
     test('A bucket name that is not valid is rejected (422)', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url(keysPath()),
         headers: jsonAuth(),
         body: jsonEncode({
@@ -761,7 +770,7 @@ void main() {
         final key = await keyOn(bucket, 'readWrite');
         expect((await signed('GET', '/$bucket', key)).statusCode, 200);
 
-        final delete = await http.delete(
+        final delete = await server.client.delete(
           server.url('/$bucket'),
           headers: server.auth(),
         );
@@ -778,7 +787,7 @@ void main() {
         'name': 'No console',
         'all_buckets': 'readWrite',
       });
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/${env.adminPrefix}/login'),
         headers: {'content-type': 'application/json'},
         body: jsonEncode({
@@ -792,12 +801,12 @@ void main() {
     test('The root key still reaches everything with SigV4', () async {
       await newKey({'name': 'Irrelevant', 'all_buckets': 'readOnly'});
       final bucket = unique('pm-root');
-      final create = await http.put(
+      final create = await server.client.put(
         server.url('/$bucket'),
         headers: server.sigV4('PUT', '/$bucket'),
       );
       expect(create.statusCode, 200);
-      final list = await http.get(
+      final list = await server.client.get(
         server.url('/'),
         headers: server.sigV4('GET', '/'),
       );
@@ -830,7 +839,7 @@ void main() {
         ('public/', 'readOnly'),
         ('inbox/', 'writeOnly'),
       ]) {
-        final rule = await http.post(
+        final rule = await server.client.post(
           server.url('/${env.adminPrefix}/bucket/$bucket/anonymous-access'),
           headers: jsonAuth(),
           body: jsonEncode({'prefix': prefix, 'access': access}),

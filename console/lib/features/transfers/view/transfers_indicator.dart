@@ -10,17 +10,17 @@ class TransfersIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransferCubit, TransferState>(
-      bloc: app.di.find<TransferCubit>(),
+    return BlocBuilder<TransfersCubit, TransfersState>(
+      bloc: app.di.find<TransfersCubit>(),
       builder: (context, state) {
-        final active = state is TransferProcessInProgressState;
+        final active = state is TransfersRunningState;
         final failed = state.failedCount > 0;
         final badge = active
             ? state.activeCount
             : (failed ? state.failedCount : 0);
         return RailButton(
           tooltip: TransfersPanel.summary(state) ?? app.intl.transfers.title,
-          onPressed: TransfersPanel.show,
+          onPressed: TransfersPanel.navigator.open,
           badge: badge > 0 ? _Badge(count: badge, error: !active) : null,
           child: Stack(
             alignment: Alignment.center,
@@ -44,16 +44,16 @@ class TransfersIndicator extends StatelessWidget {
     );
   }
 
-  Widget _icon(TransferState state) {
+  Widget _icon(TransfersState state) {
     final icon = app.assets.icons.actions.transfer;
     return switch (state) {
-      TransferProcessInProgressState() => icon.build(
+      TransfersRunningState() => icon.build(
         size: 14,
         color: app.colors.neutral.white,
       ),
-      TransferProcessingOKState(:final failedCount) when failedCount > 0 =>
+      TransfersFinishedOkState(:final failedCount) when failedCount > 0 =>
         icon.build(size: 18, color: app.colors.primary.error),
-      TransferProcessingOKState() => Icon(
+      TransfersFinishedOkState() => Icon(
         Icons.check_rounded,
         size: 20,
         color: app.colors.primary.green,

@@ -4,7 +4,7 @@ import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Navigation through the objects of a bucket.
-/// Listing, creating and deleting buckets is [BucketCubit]'s job.
+/// Listing, creating and deleting buckets is [BucketsCubit]'s job.
 ///
 /// The open bucket and folder come from the URL: the screen calls [open] when
 /// it changes, and [goUp]/[goForward] only work out where to navigate
@@ -70,7 +70,7 @@ class BrowserCubit extends Cubit<BrowserState>
   /// State without a selected bucket (the bucket list is shown)
   void init() {
     _forwardPrefixes.clear();
-    emit(BrowserLoadingSuccessState(viewType: _viewType));
+    emit(BrowserSearchOkState(viewType: _viewType));
   }
 
   /// Folder *up one level* leads to, or null at the bucket root (it goes back
@@ -205,7 +205,7 @@ class BrowserCubit extends Cubit<BrowserState>
 
     try {
       emit(
-        BrowserLoadingInProgressState(
+        BrowserSearchingState(
           selectedBucket: targetBucket,
           prefix: targetPrefix,
           pages: previousPages,
@@ -233,7 +233,7 @@ class BrowserCubit extends Cubit<BrowserState>
       } while (pages.length <= pageIndex && continuationToken != null);
 
       emit(
-        BrowserLoadingSuccessState(
+        BrowserSearchOkState(
           selectedBucket: targetBucket,
           prefix: targetPrefix,
           pages: pages,
@@ -246,7 +246,7 @@ class BrowserCubit extends Cubit<BrowserState>
     } catch (exc) {
       if (listing != _listing) return;
       emit(
-        BrowserLoadingErrorState(
+        BrowserSearchErrorState(
           ExceptionConverter.parse(exc),
           selectedBucket: targetBucket,
           prefix: targetPrefix,
@@ -299,8 +299,8 @@ class BrowserCubit extends Cubit<BrowserState>
     });
   }
 
-  /// Emits [BrowserProcessInProgressState], runs the action and, if it fails,
-  /// emits [BrowserLoadingErrorState] keeping the current context.
+  /// Emits [BrowserUpdatingState], runs the action and, if it fails,
+  /// emits [BrowserSearchErrorState] keeping the current context.
   /// If the action uploads or deletes objects of [changedBucket], it notifies the
   /// others when done, even on failure: an upload of several files can fail halfway
   Future<void> _process(
@@ -312,7 +312,7 @@ class BrowserCubit extends Cubit<BrowserState>
 
     try {
       emit(
-        BrowserProcessInProgressState(
+        BrowserUpdatingState(
           selectedBucket: currentState.selectedBucket,
           prefix: currentState.prefix,
           pages: currentState.pages,
@@ -338,11 +338,11 @@ class BrowserCubit extends Cubit<BrowserState>
     }
   }
 
-  BrowserLoadingSuccessState _loadingSuccessFrom(
+  BrowserSearchOkState _loadingSuccessFrom(
     BrowserSearchState state, {
     List<ListObjectsModel>? pages,
     int? pageIndex,
-  }) => BrowserLoadingSuccessState(
+  }) => BrowserSearchOkState(
     selectedBucket: state.selectedBucket,
     prefix: state.prefix,
     pages: pages ?? state.pages,
@@ -352,22 +352,21 @@ class BrowserCubit extends Cubit<BrowserState>
     canGoForward: state.canGoForward,
   );
 
-  BrowserLoadingInProgressState _loadingInProgressFrom(
-    BrowserSearchState state,
-  ) => BrowserLoadingInProgressState(
-    selectedBucket: state.selectedBucket,
-    prefix: state.prefix,
-    pages: state.pages,
-    pageIndex: state.pageIndex,
-    pageSize: state.pageSize,
-    viewType: state.viewType,
-    canGoForward: state.canGoForward,
-  );
+  BrowserSearchingState _loadingInProgressFrom(BrowserSearchState state) =>
+      BrowserSearchingState(
+        selectedBucket: state.selectedBucket,
+        prefix: state.prefix,
+        pages: state.pages,
+        pageIndex: state.pageIndex,
+        pageSize: state.pageSize,
+        viewType: state.viewType,
+        canGoForward: state.canGoForward,
+      );
 
-  BrowserLoadingErrorState _loadingErrorFrom(
+  BrowserSearchErrorState _loadingErrorFrom(
     BrowserSearchState state,
     Object exc,
-  ) => BrowserLoadingErrorState(
+  ) => BrowserSearchErrorState(
     ExceptionConverter.parse(exc),
     selectedBucket: state.selectedBucket,
     prefix: state.prefix,
@@ -383,7 +382,7 @@ abstract class BrowserState {
   const BrowserState();
 }
 
-class BrowserInitialState extends BrowserState {
+final class BrowserInitialState extends BrowserState {
   final ViewType? viewType;
 
   const BrowserInitialState({this.viewType});
@@ -454,8 +453,8 @@ abstract class BrowserSearchState extends BrowserState {
   });
 }
 
-class BrowserLoadingInProgressState extends BrowserSearchState {
-  BrowserLoadingInProgressState({
+final class BrowserSearchingState extends BrowserSearchState {
+  BrowserSearchingState({
     super.selectedBucket,
     super.prefix = '',
     super.pages,
@@ -466,7 +465,7 @@ class BrowserLoadingInProgressState extends BrowserSearchState {
   });
 
   @override
-  BrowserLoadingInProgressState copyWith({
+  BrowserSearchingState copyWith({
     BucketModel? selectedBucket,
     String? prefix,
     List<ListObjectsModel>? pages,
@@ -475,7 +474,7 @@ class BrowserLoadingInProgressState extends BrowserSearchState {
     ViewType? viewType,
     bool? canGoForward,
   }) {
-    return BrowserLoadingInProgressState(
+    return BrowserSearchingState(
       selectedBucket: selectedBucket ?? this.selectedBucket,
       prefix: prefix ?? this.prefix,
       pages: pages ?? this.pages,
@@ -487,8 +486,8 @@ class BrowserLoadingInProgressState extends BrowserSearchState {
   }
 }
 
-class BrowserLoadingSuccessState extends BrowserSearchState {
-  BrowserLoadingSuccessState({
+final class BrowserSearchOkState extends BrowserSearchState {
+  BrowserSearchOkState({
     super.selectedBucket,
     super.prefix = '',
     super.pages,
@@ -499,7 +498,7 @@ class BrowserLoadingSuccessState extends BrowserSearchState {
   });
 
   @override
-  BrowserLoadingSuccessState copyWith({
+  BrowserSearchOkState copyWith({
     BucketModel? selectedBucket,
     String? prefix,
     List<ListObjectsModel>? pages,
@@ -508,7 +507,7 @@ class BrowserLoadingSuccessState extends BrowserSearchState {
     ViewType? viewType,
     bool? canGoForward,
   }) {
-    return BrowserLoadingSuccessState(
+    return BrowserSearchOkState(
       selectedBucket: selectedBucket ?? this.selectedBucket,
       prefix: prefix ?? this.prefix,
       pages: pages ?? this.pages,
@@ -520,8 +519,8 @@ class BrowserLoadingSuccessState extends BrowserSearchState {
   }
 }
 
-class BrowserProcessInProgressState extends BrowserSearchState {
-  BrowserProcessInProgressState({
+final class BrowserUpdatingState extends BrowserSearchState {
+  BrowserUpdatingState({
     super.selectedBucket,
     super.prefix = '',
     super.pages,
@@ -532,7 +531,7 @@ class BrowserProcessInProgressState extends BrowserSearchState {
   });
 
   @override
-  BrowserProcessInProgressState copyWith({
+  BrowserUpdatingState copyWith({
     BucketModel? selectedBucket,
     String? prefix,
     List<ListObjectsModel>? pages,
@@ -541,7 +540,7 @@ class BrowserProcessInProgressState extends BrowserSearchState {
     ViewType? viewType,
     bool? canGoForward,
   }) {
-    return BrowserProcessInProgressState(
+    return BrowserUpdatingState(
       selectedBucket: selectedBucket ?? this.selectedBucket,
       prefix: prefix ?? this.prefix,
       pages: pages ?? this.pages,
@@ -553,10 +552,10 @@ class BrowserProcessInProgressState extends BrowserSearchState {
   }
 }
 
-class BrowserLoadingErrorState extends BrowserSearchState {
+final class BrowserSearchErrorState extends BrowserSearchState {
   final GlobalException exception;
 
-  BrowserLoadingErrorState(
+  BrowserSearchErrorState(
     this.exception, {
     super.selectedBucket,
     super.prefix = '',
@@ -568,7 +567,7 @@ class BrowserLoadingErrorState extends BrowserSearchState {
   });
 
   @override
-  BrowserLoadingErrorState copyWith({
+  BrowserSearchErrorState copyWith({
     BucketModel? selectedBucket,
     String? prefix,
     List<ListObjectsModel>? pages,
@@ -578,7 +577,7 @@ class BrowserLoadingErrorState extends BrowserSearchState {
     bool? canGoForward,
     GlobalException? exception,
   }) {
-    return BrowserLoadingErrorState(
+    return BrowserSearchErrorState(
       exception ?? this.exception,
       selectedBucket: selectedBucket ?? this.selectedBucket,
       prefix: prefix ?? this.prefix,

@@ -8,15 +8,15 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8089, name: 'login');
+  final server = TestApp(name: 'login');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
 
-  Future<http.Response> login(Object body) => http.post(
+  Future<http.Response> login(Object body) => server.client.post(
     server.url('/${env.adminPrefix}/login'),
     headers: {'content-type': 'application/json'},
     body: jsonEncode(body),
@@ -32,9 +32,15 @@ void main() {
       final body = jsonDecode(response.body);
       expect(body['access_token'], isNotEmpty);
       expect(body['expires_in'], greaterThan(0));
+      // A date like every other of the API: ISO 8601 in UTC, in 12 hours
+      final expireAt = body['expire_at'] as String;
       expect(
-        body['expire_at'],
-        greaterThan(DateTime.now().millisecondsSinceEpoch),
+        expireAt,
+        matches(RegExp(r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$')),
+      );
+      expect(
+        DateTime.parse(expireAt).difference(DateTime.now()).inMinutes,
+        inInclusiveRange(12 * 60 - 1, 12 * 60),
       );
     });
 
@@ -51,15 +57,18 @@ void main() {
       },
     );
 
-    test('Should reject a malformed body (400) naming the field', () async {
+    test('Should reject a missing field (422) naming it', () async {
       final missing = await login({'access': testAccess});
-      expect(missing.statusCode, 400);
+      expect(missing.statusCode, 422);
       expect(
         missing.headers['content-type'],
         startsWith('application/problem+json'),
       );
-      expect(jsonDecode(missing.body)['detail'], r'$.secret: missing');
+      final violations = jsonDecode(missing.body)['violations'] as List;
+      expect(violations.map((v) => v['fieldName']), ['secret']);
+    });
 
+    test('Should reject a field of the wrong type (400) naming it', () async {
       final wrongType = await login({'access': testAccess, 'secret': 7});
       expect(wrongType.statusCode, 400);
       expect(
@@ -75,7 +84,7 @@ void main() {
       });
       final token = jsonDecode(response.body)['access_token'];
 
-      final list = await http.get(
+      final list = await server.client.get(
         server.url('/'),
         headers: {'authorization': 'Bearer $token'},
       );
@@ -89,20 +98,19 @@ void main() {
       'roles': ['admin'],
       'permissions': ['s3.list-buckets'],
     };
-    Future<int> listWith(String token) async => (await http.get(
+    Future<int> listWith(String token) async => (await server.client.get(
       server.url('/'),
       headers: {'authorization': 'Bearer $token'},
     )).statusCode;
 
     test('Should reject a token without exp (it would never expire)', () async {
-      final token = JWT(claims)
-          .sign(SecretKey(testJwtSecret(server.port)));
+      final token = JWT(claims).sign(SecretKey(server.jwtSecret));
       expect(await listWith(token), 401);
     });
 
     test('Should reject an expired token', () async {
       final token = JWT({...claims, 'exp': 1000})
-          .sign(SecretKey(testJwtSecret(server.port)));
+          .sign(SecretKey(server.jwtSecret));
       expect(await listWith(token), 401);
     });
 

@@ -20,19 +20,14 @@ class AccessKeyService {
   static const String _secretAlphabet =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-  final AccessKeyTableRepo repo;
-  final BucketService buckets;
-  final SecretCipher cipher;
+  final AccessKeyTableRepo repo = di.find();
+  final BucketService buckets = di.find();
+  final SecretCipher cipher = di.find();
 
   final Random _random = Random.secure();
 
   /// Last `lastUsedAt` saved per key, so a burst of requests writes once.
   static final Map<String, DateTime> _lastTouched = {};
-
-  AccessKeyService()
-    : repo = AccessKeyTableRepo(di.find()),
-      buckets = di.find(),
-      cipher = di.find();
 
   Future<AccessKeyListModel> list() async {
     final rows = await repo.getAll();
@@ -123,7 +118,7 @@ class AccessKeyService {
 
   /// Records that the key signed a request, at most every [lastUsedPrecision].
   Future<void> touch(String id) async {
-    final now = DateTime.now();
+    final now = utcNow();
     final last = _lastTouched[id];
     if (last != null && now.difference(last) < lastUsedPrecision) return;
     _lastTouched[id] = now;
@@ -133,10 +128,9 @@ class AccessKeyService {
   Future<AccessKeyModel> _get(String id) async {
     final row = await repo.get(id);
     if (row == null) {
-      throw S3Exception(
-        S3ErrorCode.noSuchAccessKey,
-        message: intl.errors.admin.accessKeyNotFound,
-        resource: id,
+      throw AppException(
+        ErrorCode.accessKeysNotFound,
+        intl.errors.accessKeys.notFound,
       );
     }
     return _toModel(row);
@@ -159,7 +153,7 @@ class AccessKeyService {
   }
 
   void _checkFutureExpiry(DateTime? expiresAt) {
-    if (expiresAt != null && !expiresAt.isAfter(DateTime.now())) {
+    if (expiresAt != null && !expiresAt.isAfter(utcNow())) {
       throw ValidationException(
         violations: [
           ConstraintViolation(

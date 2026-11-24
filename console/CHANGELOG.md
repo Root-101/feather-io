@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 (2026-11-24)
+
+- Flutter 3.50.1 and every dependency on its latest version, pinned exactly; uploads read files
+  through `UploadFile` (`cross_file` 0.4 and `desktop_drop` 0.9 changed their API).
+- The rail opens and closes with a notch on its edge, under the Feather IO icon, which shows the
+  name too when the rail is open (instead of the hamburger button).
+- Dialogs close when the location changes; the eye button of a secret and the key of an object are
+  labeled for screen readers.
+- Errors show in the chosen language (network errors included) with the service's `detail`, and
+  carry the service's `code`; the language goes to the service in `Accept-Language`.
+- If the console can't start (no service, a broken `env.js`), it shows what happened and a button to
+  try again instead of staying on the splash.
+- The login reads `expire_at` as an ISO 8601 date (service 1.2.0).
+- Internal, following the Flutter app standard (as Maple and Dumpling): `i18n/` with `AppIntl`,
+  `design_system/` in `tokens/`, `theme/`, `icons/` and `components/`, the state names of the
+  standard with every cubit on the event bus, a navigator for every screen, drawer and dialog,
+  `app.toast`, one model per file.
+
 ## 1.1.1 (2026-11-06)
 
 - The success notices of the dialogs that close themselves (rename, move, create bucket, anonymous

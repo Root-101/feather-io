@@ -13,8 +13,27 @@ void main() async {
 }
 
 class FeatherIO {
-  /// [database] lets the tests use an in-memory database instead of the SQLite file.
+  /// Serves the S3 and admin APIs on [port].
   static Future<void> start({int port = 8080, AppDatabase? database}) async {
+    final app = await setUp(database: database);
+    await Winter.start(
+      config: ServerConfig(
+        host: env.host,
+        port: port,
+        maxBodySize: app.maxBodySize,
+        trustedProxies: app.trustedProxies,
+      ),
+      globalFilterConfig: app.filters,
+      securityConfig: app.security,
+      router: app.router,
+      scheduler: app.scheduler,
+    );
+  }
+
+  /// The context, the dependencies and the pieces of the server, without
+  /// opening a port: the tests serve them in memory (`WinterTestClient`).
+  /// [database] lets them use an in-memory database instead of the file.
+  static Future<FeatherApp> setUp({AppDatabase? database}) async {
     // Every missing variable in one error, before anything is created
     env.requireAll(requiredEnvVariables);
 
@@ -81,10 +100,6 @@ class FeatherIO {
     // Their secrets are stored encrypted with KEYS_ENCRYPTION_SECRET
     di.put(SecretCipher(env.keysEncryptionSecret));
 
-    //--------------- File ---------------\\
-    di.put(ObjectService());
-    di.put(BucketService());
-
     //--------------- JWT ---------------\\
     di.put(JwtService());
     di.put(
@@ -95,27 +110,26 @@ class FeatherIO {
       ),
     );
 
+    //--------------- Repos, services, controllers ---------------\\
+    registerDependencies();
+
     //--------------- Routes ---------------\\
-    final adminController = AdminController();
     final router = WinterRouter(
       config: RouterConfig(onLoadedRoutes: DefaultOnLoadedRoutes.log()),
-      routes: [adminController.routing, S3Controller().routing],
+      routes: [AdminController().routing, S3Controller().routing],
     );
 
-    await Winter.start(
+    return (
+      router: router,
       // The global limit is an object's, which goes to disk as a stream;
       // BodySizeFilter narrows it for every other request
-      config: ServerConfig(
-        host: env.host,
-        port: port,
-        maxBodySize: env.maxObjectSize,
-        // Behind your own proxies, clientIp and the scheme of requestedUri
-        // come from their X-Forwarded-* (ignored without them)
-        trustedProxies: env.trustedProxies > 0
-            ? TrustedProxies(env.trustedProxies)
-            : null,
-      ),
-      globalFilterConfig: FilterConfig([
+      maxBodySize: env.maxObjectSize,
+      // Behind your own proxies, clientIp and the scheme of requestedUri
+      // come from their X-Forwarded-* (ignored without them)
+      trustedProxies: env.trustedProxies > 0
+          ? TrustedProxies(env.trustedProxies)
+          : null,
+      filters: FilterConfig([
         // First: stops a flood before reading bodies or checking signatures
         // (503 SlowDown on S3, 429 on admin: see S3ExceptionHandler)
         if (env.rateLimitRequests > 0)
@@ -141,10 +155,9 @@ class FeatherIO {
         JwtFilter(),
       ]),
       // The console reads the ETag of each part of a multipart upload
-      securityConfig: SecurityConfig(
+      security: SecurityConfig(
         cors: const CorsConfig(exposedHeaders: ['ETag']),
       ),
-      router: router,
       // What an interrupted upload leaves in the volume: once a day, and once
       // when it starts (after a crash or a restart)
       scheduler: Scheduler()
@@ -159,7 +172,7 @@ class FeatherIO {
 
   static Future<void> _cleanStorage() async {
     final temps = await di.find<ObjectService>().deleteStaleTemps();
-    final uploads = await MultipartService().abortStale();
+    final uploads = await di.find<MultipartService>().abortStale();
     if (temps + uploads > 0) {
       logger.info(
         'Storage cleaned',
@@ -171,3 +184,14 @@ class FeatherIO {
 
 bool _isHealth(RequestEntity request) =>
     request.route?.key == AdminController.healthKey;
+
+/// The pieces of the server that [FeatherIO.setUp] builds: what
+/// `Winter.start` (or a `WinterTestClient`) needs.
+typedef FeatherApp = ({
+  WinterRouter router,
+  int maxBodySize,
+  FilterConfig filters,
+  SecurityConfig security,
+  TrustedProxies? trustedProxies,
+  Scheduler scheduler,
+});

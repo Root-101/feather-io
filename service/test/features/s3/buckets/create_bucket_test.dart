@@ -4,14 +4,13 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8087, name: 'create_bucket');
+  final server = TestApp(name: 'create_bucket', port: 8087);
 
   setUpAll(() async {
     env.put('RESERVED_BUCKET_NAMES', 'reserved-bucket');
@@ -30,7 +29,7 @@ void main() {
 
   group('S3Controller - Create Bucket', () {
     test('PUT /{bucket} - Should fail without token (401)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-no-token'),
         headers: jsonHeaders(auth: false),
         body: jsonEncode({}),
@@ -40,7 +39,7 @@ void main() {
     });
 
     test('PUT /{bucket} - Should fail with a wrong token (401)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-wrong-token'),
         headers: {
           ...jsonHeaders(auth: false),
@@ -52,7 +51,7 @@ void main() {
     });
 
     test('PUT /{bucket} - Should create a bucket signed with SigV4', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-sigv4'),
         headers: server.sigV4('PUT', '/create-test-sigv4'),
       );
@@ -68,10 +67,10 @@ void main() {
       () async {
         // Like aws-sdk-java-v2's CreateBucket; package:http always sends the
         // header, so this goes through a raw socket
-        final socket = await Socket.connect('localhost', server.port);
+        final socket = await Socket.connect('localhost', server.port!);
         socket.write(
           'PUT /create-test-no-length HTTP/1.1\r\n'
-          'Host: localhost:${server.port}\r\n'
+          'Host: localhost:${server.port!}\r\n'
           'Authorization: Bearer ${server.token}\r\n'
           'Connection: close\r\n\r\n',
         );
@@ -86,7 +85,7 @@ void main() {
       'PUT /{bucket} - Should create a bucket with description and color',
       () async {
         const color = 0xFFC0156E;
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/create-test-colored'),
           headers: jsonHeaders(),
           body: jsonEncode({
@@ -97,7 +96,10 @@ void main() {
         expect(response.statusCode, 200);
         expect(await bucketExists('create-test-colored'), isTrue);
 
-        final list = await http.get(server.url('/'), headers: jsonHeaders());
+        final list = await server.client.get(
+          server.url('/'),
+          headers: jsonHeaders(),
+        );
         expect(list.statusCode, 200);
         final bucket = (jsonDecode(list.body) as List).firstWhere(
           (b) => b['name'] == 'create-test-colored',
@@ -108,7 +110,7 @@ void main() {
     );
 
     test('PUT /{bucket} - Should create a bucket without body', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-no-body'),
         headers: server.auth(),
       );
@@ -117,7 +119,7 @@ void main() {
     });
 
     test('PUT /{bucket} - Should reject an existing bucket (409)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-colored'),
         headers: jsonHeaders(),
         body: jsonEncode({}),
@@ -128,7 +130,7 @@ void main() {
 
     test('PUT /{bucket} - Should reject an invalid name (400)', () async {
       for (final name in ['Media_Assets', 'ab', '-media']) {
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/$name'),
           headers: jsonHeaders(),
           body: jsonEncode({}),
@@ -143,7 +145,7 @@ void main() {
     });
 
     test('PUT /{bucket} - Should reject a reserved name (403)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/reserved-bucket'),
         headers: jsonHeaders(),
         body: jsonEncode({}),
@@ -156,7 +158,7 @@ void main() {
     test(
       'PUT /{bucket} - Should reject a description that is too long (422)',
       () async {
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/create-test-long-desc'),
           headers: jsonHeaders(),
           body: jsonEncode({
@@ -172,7 +174,7 @@ void main() {
     );
 
     test('PUT /{bucket} - Should reject an out of range color (422)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/create-test-bad-color'),
         headers: jsonHeaders(),
         body: jsonEncode({'color': -1}),

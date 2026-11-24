@@ -22,17 +22,25 @@ void main() {
   );
 
   group('ObjectMetaTableRepo.deleteByPrefix', () {
-    test('Should delete the rows of a folder whose name has an emoji', () async {
-      for (final key in ['📷/a.jpg', '📷/sub/b.jpg', '📸/c.jpg', 'other.txt']) {
-        await save(key);
-      }
+    test(
+      'Should delete the rows of a folder whose name has an emoji',
+      () async {
+        for (final key in [
+          '📷/a.jpg',
+          '📷/sub/b.jpg',
+          '📸/c.jpg',
+          'other.txt',
+        ]) {
+          await save(key);
+        }
 
-      await repo.deleteByPrefix('b', '📷/');
+        await repo.deleteByPrefix('b', '📷/');
 
-      expect(await repo.find('b', '📷/a.jpg'), isNull);
-      expect(await repo.find('b', '📷/sub/b.jpg'), isNull);
-      expect(await repo.find('b', '📸/c.jpg'), isNotNull);
-      expect(await repo.find('b', 'other.txt'), isNotNull);
-    });
+        expect(await repo.find('b', '📷/a.jpg'), isNull);
+        expect(await repo.find('b', '📷/sub/b.jpg'), isNull);
+        expect(await repo.find('b', '📸/c.jpg'), isNotNull);
+        expect(await repo.find('b', 'other.txt'), isNotNull);
+      },
+    );
   });
 }

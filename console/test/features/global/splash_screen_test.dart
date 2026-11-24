@@ -8,7 +8,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const SplashScreen());
     await tester.pump(const Duration(milliseconds: 600));
-    final intl = messagesOf(const Locale('en'));
+    final intl = AppIntl.of(AppLocale.en);
     expect(find.text(intl.app.splashText), findsOneWidget);
     expect(find.text(intl.app.credit), findsNothing);
     expect(tester.takeException(), isNull);
@@ -19,7 +19,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearLocaleTestValue);
     await tester.pumpWidget(const SplashScreen());
     await tester.pump(const Duration(milliseconds: 600));
-    final intl = messagesOf(const Locale('es'));
+    final intl = AppIntl.of(AppLocale.es);
     expect(find.text(intl.app.splashText), findsOneWidget);
   });
 }
