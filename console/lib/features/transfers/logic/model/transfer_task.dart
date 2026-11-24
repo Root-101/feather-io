@@ -1,5 +1,4 @@
 import 'package:console/app_exporter.dart';
-import 'package:cross_file/cross_file.dart';
 
 enum TransferDirection { upload, download }
 
@@ -29,7 +28,7 @@ class TransferTask {
 
   /// Upload: the target key and the file, kept to retry
   final String? key;
-  final XFile? file;
+  final UploadFile? file;
 
   /// Download: the keys that go in the zip
   final List<String> keys;

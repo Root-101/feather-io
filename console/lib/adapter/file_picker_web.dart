@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 
-import 'package:cross_file/cross_file.dart';
+import 'package:console/app_exporter.dart';
 import 'package:web/web.dart' as web;
 
 // webkitRelativePath is not part of the standard File API,
@@ -11,33 +11,32 @@ extension type _FileWithRelativePath(web.File file) implements web.File {
 }
 
 class FilePicker {
-  static Future<XFile> _webFileToXFile(web.File file) async {
-    final buffer = await file.arrayBuffer().toDart;
-    final bytes = buffer.toDart.asUint8List();
-
+  /// Reads only the range asked for: an upload in parts keeps one part in memory
+  static UploadFile _upload(web.File file) {
     final relativePath = _FileWithRelativePath(file).webkitRelativePath;
     final name = (relativePath != null && relativePath.isNotEmpty)
         ? relativePath
         : file.name;
-
-    return XFile.fromData(
-      bytes,
+    return UploadFile(
       name: name,
-      length: bytes.length,
-      lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),
-      mimeType: file.type,
+      size: file.size,
+      read: (start, end) async* {
+        final slice = file.slice(start ?? 0, end ?? file.size);
+        final buffer = await slice.arrayBuffer().toDart;
+        yield buffer.toDart.asUint8List();
+      },
     );
   }
 
-  static Future<List<XFile>> pickFiles({bool multiple = true}) async {
+  static Future<List<UploadFile>> pickFiles({bool multiple = true}) async {
     return _pickFiles(directory: false, multiple: true);
   }
 
-  static Future<List<XFile>> pickDirectory() async {
+  static Future<List<UploadFile>> pickDirectory() async {
     return _pickFiles(directory: true, multiple: false);
   }
 
-  static Future<List<XFile>> _pickFiles({
+  static Future<List<UploadFile>> _pickFiles({
     bool directory = false,
     bool multiple = true,
   }) async {
@@ -63,12 +62,12 @@ class FilePicker {
     final fileList = input.files;
     if (fileList == null) return [];
 
-    final xFiles = <XFile>[];
+    final files = <UploadFile>[];
     for (var i = 0; i < fileList.length; i++) {
       final file = fileList.item(i);
       if (file == null) continue;
-      xFiles.add(await _webFileToXFile(file));
+      files.add(_upload(file));
     }
-    return xFiles;
+    return files;
   }
 }

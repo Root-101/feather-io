@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:console/app_exporter.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,8 +11,11 @@ class _MockRepo extends Mock implements TransferRepo {}
 
 class _MockAuth extends Mock implements AuthCubit {}
 
-XFile _file(String name, int size) =>
-    XFile.fromData(Uint8List(size), name: name, path: name, length: size);
+UploadFile _file(String name, int size) => UploadFile(
+  name: name,
+  size: size,
+  read: (start, end) => Stream.value(Uint8List((end ?? size) - (start ?? 0))),
+);
 
 void main() {
   late _MockRepo repo;

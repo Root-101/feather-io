@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:console/app_exporter.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Background transfer queue (uploads and downloads). It lives across the whole
@@ -44,7 +43,7 @@ class TransferCubit extends Cubit<TransferState> {
   Future<void> upload({
     required String bucket,
     required String prefix,
-    required List<XFile> files,
+    required List<UploadFile> files,
   }) async {
     for (final file in files) {
       // a folder prefix already ends in '/' (e.g. 'photos/')
@@ -60,7 +59,7 @@ class TransferCubit extends Cubit<TransferState> {
           folder: TransferTask.parentFolder(key),
           key: key,
           file: file,
-          size: await file.length(),
+          size: file.size,
         ),
       );
     }

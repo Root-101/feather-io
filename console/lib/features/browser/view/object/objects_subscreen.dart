@@ -1,5 +1,4 @@
 import 'package:console/app_exporter.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -18,7 +17,7 @@ class ObjectsSubscreen extends StatefulWidget {
   final VoidCallback onForward;
   final Function(ViewType) onViewTypeChanged;
   final Function(List<String> keys) onDelete;
-  final Function(List<XFile> files) onUpload;
+  final Function(List<UploadFile> files) onUpload;
   final Function(List<String> keys, {String? zipName}) onDownload;
   final Function(String key) onView;
   final void Function() onExit;
@@ -424,7 +423,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
           onTap: () async {
             final xFiles = await FilePicker.pickFiles(multiple: true);
             if (xFiles.isNotEmpty) {
-              widget.onUpload(_flattenDropItems(xFiles));
+              widget.onUpload(xFiles);
             }
           },
           child: Row(
@@ -447,7 +446,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
           onTap: () async {
             final xFiles = await FilePicker.pickDirectory();
             if (xFiles.isNotEmpty) {
-              widget.onUpload(_flattenDropItems(xFiles));
+              widget.onUpload(xFiles);
             }
           },
           child: Row(
@@ -656,12 +655,12 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
         ),
         Expanded(
           child: DropTarget(
-            onDragEntered: (details) => setState(() => _isDragging = true),
-            onDragExited: (details) => setState(() => _isDragging = false),
-            onDragDone: (details) async {
-              setState(() => _isDragging = false);
-
-              widget.onUpload(_flattenDropItems(details.files));
+            onEnter: (details) => setState(() => _isDragging = true),
+            onLeave: () => setState(() => _isDragging = false),
+            // the folders can only be listed while onDrop runs
+            onDrop: (details) async {
+              final files = await _dropFiles(details.items);
+              if (files.isNotEmpty) widget.onUpload(files);
             },
             child: ClipRect(
               child: Stack(
@@ -818,28 +817,43 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   }
 }
 
-List<XFile> _flattenDropItems(List<XFile> items) {
-  final result = <XFile>[];
+/// The dropped files, those inside the dropped folders with their path
+Future<List<UploadFile>> _dropFiles(List<DropItem> items) async {
+  final result = <UploadFile>[];
 
-  void walkDrop(DropItem item, String prefix) {
-    if (item is DropItemDirectory) {
-      final path = prefix.isEmpty ? item.name : '$prefix/${item.name}';
-      for (final child in item.children) {
-        walkDrop(child, path);
+  Future<void> addFile(XFile file, String name) async {
+    result.add(
+      UploadFile(
+        name: name,
+        size: await file.length() ?? 0,
+        read: (start, end) => file.openRead(start, end),
+      ),
+    );
+  }
+
+  Future<void> walk(XDirectory directory, String path) async {
+    await for (final entity in directory.list()) {
+      if (entity is XFile) {
+        await addFile(entity, '$path/${await entity.name() ?? ''}');
+      } else if (entity is XDirectory) {
+        // a listed folder has no name of its own: it is the last segment of its uri
+        await walk(
+          entity,
+          '$path/${Uri.decodeComponent(entity.uri.split('/').last)}',
+        );
       }
-    } else if (item is DropItemFile) {
-      final path = prefix.isEmpty ? item.name : '$prefix/${item.name}';
-      result.add(XFile(item.path, name: path, mimeType: item.mimeType));
     }
   }
 
   for (final item in items) {
-    if (item is DropItem) {
-      walkDrop(item, '');
-    } else {
-      result.add(item);
+    switch (item) {
+      case DropFileItem(:final file, :final name):
+        await addFile(file, name);
+      case DropDirectoryItem(:final directory, :final name):
+        await walk(directory, name);
+      case DropStringItem():
+        break;
     }
   }
-
   return result;
 }
