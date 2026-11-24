@@ -4,6 +4,18 @@ What changed in each version of Feather IO, in broad strokes. The service and th
 released together with the same version; the details of each are in their own changelogs:
 [`service/CHANGELOG.md`](service/CHANGELOG.md) and [`console/CHANGELOG.md`](console/CHANGELOG.md).
 
+## 1.2.0 (2026-11-24)
+
+- Flutter 3.50.1 / Dart 3.14 and every dependency on its latest version, in development and in the
+  images.
+- Service: follows the Winter service standard (as Dumpling). Admin API clients may notice it: the
+  errors only the admin API raises have codes `<feature>.<rule>` (`auth.invalidCredentials`,
+  `auth.tooManyLoginAttempts`, `accessKeys.notFound`, `buckets.missingFolderPrefix`), the login's
+  `expire_at` is an ISO 8601 date and a login without a field is a `422`. The S3 API doesn't change.
+- Console: the rail opens and closes with a notch on its edge, under the Feather IO icon (and its
+  name when it is open); errors show in the chosen language; if the console can't start it says so
+  with a way to retry, instead of staying on the splash.
+
 ## 1.1.1 (2026-11-06)
 
 - Console: the success notices of renaming, moving, creating a bucket, an anonymous rule or an
