@@ -2300,10 +2300,11 @@ class $$AccessKeyTableTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (accessKeyGrantTableRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       AccessKeyTableData,
                       $AccessKeyTableTable,
-                      AccessKeyGrantTableData
+                      AccessKeyGrantTableData,
+                      $AccessKeyGrantTableTable
                     >(
                       currentTable: table,
                       referencedTable: $$AccessKeyTableTableReferences
@@ -2314,8 +2315,8 @@ class $$AccessKeyTableTableTableManager
                             table,
                             p0,
                           ).accessKeyGrantTableRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.keyId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'key_id',
                       typedResults: items,
                     ),
                 ];
@@ -2768,10 +2769,11 @@ class $$BucketTableTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (accessKeyGrantTableRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           BucketTableData,
                           $BucketTableTable,
-                          AccessKeyGrantTableData
+                          AccessKeyGrantTableData,
+                          $AccessKeyGrantTableTable
                         >(
                           currentTable: table,
                           referencedTable: $$BucketTableTableReferences
@@ -2782,17 +2784,16 @@ class $$BucketTableTableTableManager
                                 table,
                                 p0,
                               ).accessKeyGrantTableRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.bucketName == item.name,
-                              ),
+                          currentColumn: 'name',
+                          referencedColumn: 'bucket_name',
                           typedResults: items,
                         ),
                       if (anonymousRuleTableRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           BucketTableData,
                           $BucketTableTable,
-                          AnonymousRuleTableData
+                          AnonymousRuleTableData,
+                          $AnonymousRuleTableTable
                         >(
                           currentTable: table,
                           referencedTable: $$BucketTableTableReferences
@@ -2803,17 +2804,16 @@ class $$BucketTableTableTableManager
                                 table,
                                 p0,
                               ).anonymousRuleTableRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.bucketName == item.name,
-                              ),
+                          currentColumn: 'name',
+                          referencedColumn: 'bucket_name',
                           typedResults: items,
                         ),
                       if (objectMetaTableRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           BucketTableData,
                           $BucketTableTable,
-                          ObjectMetaTableData
+                          ObjectMetaTableData,
+                          $ObjectMetaTableTable
                         >(
                           currentTable: table,
                           referencedTable: $$BucketTableTableReferences
@@ -2824,10 +2824,8 @@ class $$BucketTableTableTableManager
                                 table,
                                 p0,
                               ).objectMetaTableRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.bucketName == item.name,
-                              ),
+                          currentColumn: 'name',
+                          referencedColumn: 'bucket_name',
                           typedResults: items,
                         ),
                     ];

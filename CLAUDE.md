@@ -47,8 +47,8 @@ cell, and the separator row with dashes across the whole width (`|------|`), nev
 
 ## Commands
 
-The project pins Flutter via FVM (`.fvmrc` in both packages, Flutter 3.47.1 / Dart 3.13). Both
-packages need Dart SDK ^3.13.0. The system `dart` on PATH may be older, so prefix commands with
+The project pins Flutter via FVM (`.fvmrc` in both packages, Flutter 3.50.1 / Dart 3.14). Both
+packages need Dart SDK ^3.14.0. The system `dart` on PATH may be older, so prefix commands with
 `fvm` (`fvm dart …`, `fvm flutter …`).
 
 ### Service (run from `service/`)
@@ -85,7 +85,7 @@ local `.env` works too. See `service/README.md` (its endpoint table lists only s
 controllers as the source of truth).
 
 `service/Dockerfile` builds with `docker build -t feather-io .` from `service/` (each release
-publishes it as `ghcr.io/root-101/feather-io`). It compiles AOT on `dart:3.13.1` with `dart build cli` (the build hook of the `sqlite3`
+publishes it as `ghcr.io/root-101/feather-io`). It compiles AOT on `dart:3.14.0` with `dart build cli` (the build hook of the `sqlite3`
 package bundles SQLite next to the binary, so no system SQLite is needed anywhere) and runs on
 `scratch` with the Dart runtime, that bundle and a `/tmp` (zip downloads); `STORAGE_VOLUME_PATH=/data` is a volume. Bump the image tag with `.fvmrc`. The orchestrator
 probes the public `GET /{admin}/health` (Winter's `Route.health`: database and a write to the

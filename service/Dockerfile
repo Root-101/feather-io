@@ -5,7 +5,7 @@
 #   docker run -p 8080:8080 -v feather-data:/data \
 #     -e FEATHER_ACCESS=… -e FEATHER_SECRET=… -e JWT_SECRET=… -e KEYS_ENCRYPTION_SECRET=… feather-io
 
-FROM dart:3.13.1 AS build
+FROM dart:3.14.0 AS build
 
 WORKDIR /src
 
