@@ -142,7 +142,10 @@ fvm flutter test                                                # on the VM, no 
 ## Service architecture
 
 The service follows the Winter service standard (the `winter-service-standard` skill, as Dumpling),
-with the S3 API as the protocol imposed from outside that the standard describes.
+with the S3 API as the protocol imposed from outside that the standard describes. Exceptions, on
+purpose: the admin API keeps its paths and keys (`/bucket/{bucket}` in the singular,
+`/access-keys/{id}`, `admin.bucket.get`): renaming them would break every client for no new
+behaviour.
 
 **Bootstrap.** `FeatherIO.setUp()` in `lib/main.dart` registers deserializers on the ObjectMapper (
 `om`), puts the infrastructure into Winter's `di` (`AppDatabase`, `SecretCipher`, `JwtService`,
