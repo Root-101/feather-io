@@ -86,7 +86,7 @@ class AdminController {
         ),
         response: LoginResponse.example,
         responses: {
-          403: 'Wrong credentials (`InvalidCredentials`)',
+          403: 'Wrong credentials (`auth.invalidCredentials`)',
           429: 'Too many failed logins from this IP (`Retry-After`)',
         },
       ),

@@ -33,7 +33,10 @@ Dates are ISO 8601 in UTC (`2026-10-11T02:37:29.000Z`), JSON keys `snake_case`.
 ## Errors
 
 Every JSON error is a Problem Details (RFC 9457, `application/problem+json`). Errors of the service
-add the S3 error `code`, which clients decide on, and the `resource` it refers to. The `detail` is
+add a `code`, which clients decide on: the S3 error code (`NoSuchKey`) for anything about buckets and
+objects, on both APIs, with the `resource` it refers to; and `<feature>.<rule>` for what only the
+admin API does (`auth.invalidCredentials`, `auth.tooManyLoginAttempts`, `accessKeys.notFound`,
+`buckets.missingFolderPrefix`). The `detail` is
 in English, or in Spanish with `Accept-Language: es`, and the `instance` is the path of the request
 (never its query).
 
@@ -123,10 +126,11 @@ log in). The token lasts 12 hours (`expires_in` in milliseconds, `expire_at` as 
 Wrong credentials:
 
 ```json
-{"code": "InvalidCredentials", "type": "about:blank", "title": "Forbidden", "status": 403, "detail": "Invalid credentials"}
+{"code": "auth.invalidCredentials", "type": "about:blank", "title": "Forbidden", "status": 403, "detail": "Invalid credentials"}
 ```
 
-Every failure waits a second, and 10 in a row lock the IP for 15 minutes (`429` with `Retry-After`).
+Every failure waits a second, and 10 in a row lock the IP for 15 minutes (`429`
+`auth.tooManyLoginAttempts`, with `Retry-After`).
 
 ## Buckets
 

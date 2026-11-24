@@ -25,9 +25,7 @@ errors:
     objectNotDeleted: 'El objeto no se pudo borrar; vuelve a intentarlo.'
     incompleteChunkedBody: 'El cuerpo aws-chunked está incompleto o mal formado.'
     nothingToDownload: 'No se encontraron objetos para descargar.'
-    missingFolderPrefix: 'Falta la carpeta a eliminar (prefix).'
     slowDown: 'Reduce el ritmo de peticiones.'
-    presignExpiration: 'La caducidad debe estar entre 1 segundo y 7 días.'
   copy:
     needsReadPermission: 'Copiar un objeto requiere permiso de lectura sobre el origen.'
     sourceFormat: 'x-amz-copy-source debe tener la forma /bucket/key.'
@@ -66,11 +64,16 @@ errors:
     invalidDateOrExpires: 'X-Amz-Date o X-Amz-Expires no válidos'
     presignNotYetValid: 'La URL prefirmada todavía no es válida.'
     expired: 'La petición ha caducado'
-  admin:
+  # The admin API's own errors: `code` is the key without `errors.`
+  auth:
     invalidCredentials: 'Credenciales no válidas'
     tooManyLoginAttempts: 'Demasiados intentos de inicio de sesión fallidos'
+  accessKeys:
+    notFound: 'No se encontró la clave de acceso'
+  buckets:
+    missingFolderPrefix: 'Falta la carpeta a eliminar (prefix).'
+  admin:
     tooManyRequests: 'Demasiadas peticiones'
-    accessKeyNotFound: 'No se encontró la clave de acceso'
   validations:
     bucketName: 'No es un nombre de bucket válido'
     isoDate: 'No es una fecha ISO 8601 válida'

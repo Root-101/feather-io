@@ -83,6 +83,15 @@ class ServiceMessages$errors$es implements ServiceMessages$errors$en {
   late final ServiceMessages$errors$signature$es signature =
       ServiceMessages$errors$signature$es._(_root);
   @override
+  late final ServiceMessages$errors$auth$es auth =
+      ServiceMessages$errors$auth$es._(_root);
+  @override
+  late final ServiceMessages$errors$accessKeys$es accessKeys =
+      ServiceMessages$errors$accessKeys$es._(_root);
+  @override
+  late final ServiceMessages$errors$buckets$es buckets =
+      ServiceMessages$errors$buckets$es._(_root);
+  @override
   late final ServiceMessages$errors$admin$es admin =
       ServiceMessages$errors$admin$es._(_root);
   @override
@@ -162,12 +171,7 @@ class ServiceMessages$errors$s3$es implements ServiceMessages$errors$s3$en {
   @override
   String get nothingToDownload => 'No se encontraron objetos para descargar.';
   @override
-  String get missingFolderPrefix => 'Falta la carpeta a eliminar (prefix).';
-  @override
   String get slowDown => 'Reduce el ritmo de peticiones.';
-  @override
-  String get presignExpiration =>
-      'La caducidad debe estar entre 1 segundo y 7 días.';
 }
 
 // Path: errors.copy
@@ -303,10 +307,9 @@ class ServiceMessages$errors$signature$es
   String get expired => 'La petición ha caducado';
 }
 
-// Path: errors.admin
-class ServiceMessages$errors$admin$es
-    implements ServiceMessages$errors$admin$en {
-  ServiceMessages$errors$admin$es._(this._root);
+// Path: errors.auth
+class ServiceMessages$errors$auth$es implements ServiceMessages$errors$auth$en {
+  ServiceMessages$errors$auth$es._(this._root);
 
   final ServiceMessagesEs _root; // ignore: unused_field
 
@@ -316,10 +319,42 @@ class ServiceMessages$errors$admin$es
   @override
   String get tooManyLoginAttempts =>
       'Demasiados intentos de inicio de sesión fallidos';
+}
+
+// Path: errors.accessKeys
+class ServiceMessages$errors$accessKeys$es
+    implements ServiceMessages$errors$accessKeys$en {
+  ServiceMessages$errors$accessKeys$es._(this._root);
+
+  final ServiceMessagesEs _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get notFound => 'No se encontró la clave de acceso';
+}
+
+// Path: errors.buckets
+class ServiceMessages$errors$buckets$es
+    implements ServiceMessages$errors$buckets$en {
+  ServiceMessages$errors$buckets$es._(this._root);
+
+  final ServiceMessagesEs _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get missingFolderPrefix => 'Falta la carpeta a eliminar (prefix).';
+}
+
+// Path: errors.admin
+class ServiceMessages$errors$admin$es
+    implements ServiceMessages$errors$admin$en {
+  ServiceMessages$errors$admin$es._(this._root);
+
+  final ServiceMessagesEs _root; // ignore: unused_field
+
+  // Translations
   @override
   String get tooManyRequests => 'Demasiadas peticiones';
-  @override
-  String get accessKeyNotFound => 'No se encontró la clave de acceso';
 }
 
 // Path: errors.validations
@@ -417,11 +452,7 @@ extension on ServiceMessagesEs {
         'El cuerpo aws-chunked está incompleto o mal formado.',
       'errors.s3.nothingToDownload' =>
         'No se encontraron objetos para descargar.',
-      'errors.s3.missingFolderPrefix' =>
-        'Falta la carpeta a eliminar (prefix).',
       'errors.s3.slowDown' => 'Reduce el ritmo de peticiones.',
-      'errors.s3.presignExpiration' =>
-        'La caducidad debe estar entre 1 segundo y 7 días.',
       'errors.copy.needsReadPermission' =>
         'Copiar un objeto requiere permiso de lectura sobre el origen.',
       'errors.copy.sourceFormat' =>
@@ -495,11 +526,13 @@ extension on ServiceMessagesEs {
       'errors.signature.presignNotYetValid' =>
         'La URL prefirmada todavía no es válida.',
       'errors.signature.expired' => 'La petición ha caducado',
-      'errors.admin.invalidCredentials' => 'Credenciales no válidas',
-      'errors.admin.tooManyLoginAttempts' =>
+      'errors.auth.invalidCredentials' => 'Credenciales no válidas',
+      'errors.auth.tooManyLoginAttempts' =>
         'Demasiados intentos de inicio de sesión fallidos',
+      'errors.accessKeys.notFound' => 'No se encontró la clave de acceso',
+      'errors.buckets.missingFolderPrefix' =>
+        'Falta la carpeta a eliminar (prefix).',
       'errors.admin.tooManyRequests' => 'Demasiadas peticiones',
-      'errors.admin.accessKeyNotFound' => 'No se encontró la clave de acceso',
       'errors.validations.bucketName' => 'No es un nombre de bucket válido',
       'errors.validations.isoDate' => 'No es una fecha ISO 8601 válida',
       'errors.validations.futureExpiry' =>

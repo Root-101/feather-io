@@ -47,10 +47,9 @@ class BucketAdminController {
     final bucketName = request.pathParams['bucket']!;
     final prefix = request.queryParam<String>('prefix');
     if (prefix == null || prefix.isEmpty) {
-      throw S3Exception(
-        S3ErrorCode.invalidArgument,
-        message: intl.errors.s3.missingFolderPrefix,
-        resource: bucketName,
+      throw AppException(
+        ErrorCode.bucketsMissingFolderPrefix,
+        intl.errors.buckets.missingFolderPrefix,
       );
     }
     await objectService.deleteFolder(bucketName: bucketName, prefix: prefix);

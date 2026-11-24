@@ -13,9 +13,10 @@ class AuthService {
   void checkLock(String client) {
     final locked = rateLimiter.lockedFor(client);
     if (locked != null) {
-      throw TooManyRequestsException(
-        detail: intl.errors.admin.tooManyLoginAttempts,
-        retryAfter: (locked.inMilliseconds / 1000).ceil(),
+      throw AppException(
+        ErrorCode.authTooManyLoginAttempts,
+        intl.errors.auth.tooManyLoginAttempts,
+        headers: {'Retry-After': '${(locked.inMilliseconds / 1000).ceil()}'},
       );
     }
   }
@@ -35,9 +36,9 @@ class AuthService {
       // The IP, never what was typed
       logger.warning('Failed login', fields: {'client': client});
       await rateLimiter.failed(client);
-      throw S3Exception(
-        S3ErrorCode.invalidCredentials,
-        message: intl.errors.admin.invalidCredentials,
+      throw AppException(
+        ErrorCode.authInvalidCredentials,
+        intl.errors.auth.invalidCredentials,
       );
     }
     rateLimiter.succeeded(client);

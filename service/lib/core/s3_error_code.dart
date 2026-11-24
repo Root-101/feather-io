@@ -10,8 +10,6 @@ enum S3ErrorCode {
   invalidAccessKeyId('InvalidAccessKeyId', 403),
   invalidArgument('InvalidArgument', 400),
   // Admin API only (not AWS codes)
-  invalidCredentials('InvalidCredentials', 403),
-  noSuchAccessKey('NoSuchAccessKey', 404),
   // Not an AWS code: there a key and a "folder" can share a name, on disk they can't
   keyConflict('KeyConflict', 409),
   invalidBucketName('InvalidBucketName', 400),

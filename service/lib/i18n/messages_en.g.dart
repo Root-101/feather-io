@@ -72,6 +72,12 @@ class ServiceMessages$errors$en {
       ServiceMessages$errors$multipart$en._(_root);
   late final ServiceMessages$errors$signature$en signature =
       ServiceMessages$errors$signature$en._(_root);
+  late final ServiceMessages$errors$auth$en auth =
+      ServiceMessages$errors$auth$en._(_root);
+  late final ServiceMessages$errors$accessKeys$en accessKeys =
+      ServiceMessages$errors$accessKeys$en._(_root);
+  late final ServiceMessages$errors$buckets$en buckets =
+      ServiceMessages$errors$buckets$en._(_root);
   late final ServiceMessages$errors$admin$en admin =
       ServiceMessages$errors$admin$en._(_root);
   late final ServiceMessages$errors$validations$en validations =
@@ -173,15 +179,8 @@ class ServiceMessages$errors$s3$en {
   /// en: 'No objects found to download.'
   String get nothingToDownload => 'No objects found to download.';
 
-  /// en: 'Missing the folder to delete (prefix).'
-  String get missingFolderPrefix => 'Missing the folder to delete (prefix).';
-
   /// en: 'Please reduce your request rate.'
   String get slowDown => 'Please reduce your request rate.';
-
-  /// en: 'The expiration must be between 1 second and 7 days.'
-  String get presignExpiration =>
-      'The expiration must be between 1 second and 7 days.';
 }
 
 // Path: errors.copy
@@ -347,9 +346,9 @@ class ServiceMessages$errors$signature$en {
   String get expired => 'Request has expired';
 }
 
-// Path: errors.admin
-class ServiceMessages$errors$admin$en {
-  ServiceMessages$errors$admin$en._(this._root);
+// Path: errors.auth
+class ServiceMessages$errors$auth$en {
+  ServiceMessages$errors$auth$en._(this._root);
 
   final ServiceMessages _root; // ignore: unused_field
 
@@ -360,12 +359,42 @@ class ServiceMessages$errors$admin$en {
 
   /// en: 'Too many failed login attempts'
   String get tooManyLoginAttempts => 'Too many failed login attempts';
+}
+
+// Path: errors.accessKeys
+class ServiceMessages$errors$accessKeys$en {
+  ServiceMessages$errors$accessKeys$en._(this._root);
+
+  final ServiceMessages _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Access key not found'
+  String get notFound => 'Access key not found';
+}
+
+// Path: errors.buckets
+class ServiceMessages$errors$buckets$en {
+  ServiceMessages$errors$buckets$en._(this._root);
+
+  final ServiceMessages _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Missing the folder to delete (prefix).'
+  String get missingFolderPrefix => 'Missing the folder to delete (prefix).';
+}
+
+// Path: errors.admin
+class ServiceMessages$errors$admin$en {
+  ServiceMessages$errors$admin$en._(this._root);
+
+  final ServiceMessages _root; // ignore: unused_field
+
+  // Translations
 
   /// en: 'Too many requests'
   String get tooManyRequests => 'Too many requests';
-
-  /// en: 'Access key not found'
-  String get accessKeyNotFound => 'Access key not found';
 }
 
 // Path: errors.validations
@@ -466,11 +495,7 @@ extension on ServiceMessages {
       'errors.s3.incompleteChunkedBody' =>
         'The aws-chunked body is incomplete or malformed.',
       'errors.s3.nothingToDownload' => 'No objects found to download.',
-      'errors.s3.missingFolderPrefix' =>
-        'Missing the folder to delete (prefix).',
       'errors.s3.slowDown' => 'Please reduce your request rate.',
-      'errors.s3.presignExpiration' =>
-        'The expiration must be between 1 second and 7 days.',
       'errors.copy.needsReadPermission' =>
         'Copying an object requires read permission on the source.',
       'errors.copy.sourceFormat' =>
@@ -541,10 +566,12 @@ extension on ServiceMessages {
       'errors.signature.presignNotYetValid' =>
         'The presigned URL is not valid yet.',
       'errors.signature.expired' => 'Request has expired',
-      'errors.admin.invalidCredentials' => 'Invalid credentials',
-      'errors.admin.tooManyLoginAttempts' => 'Too many failed login attempts',
+      'errors.auth.invalidCredentials' => 'Invalid credentials',
+      'errors.auth.tooManyLoginAttempts' => 'Too many failed login attempts',
+      'errors.accessKeys.notFound' => 'Access key not found',
+      'errors.buckets.missingFolderPrefix' =>
+        'Missing the folder to delete (prefix).',
       'errors.admin.tooManyRequests' => 'Too many requests',
-      'errors.admin.accessKeyNotFound' => 'Access key not found',
       'errors.validations.bucketName' => 'Not a valid bucket name',
       'errors.validations.isoDate' => 'Not a valid ISO 8601 date',
       'errors.validations.futureExpiry' =>

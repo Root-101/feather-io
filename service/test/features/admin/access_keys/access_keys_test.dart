@@ -248,6 +248,7 @@ void main() {
         'all_buckets': 'readOnly',
       });
       expect(update.statusCode, 404);
+      expect(jsonDecode(update.body)['code'], 'accessKeys.notFound');
       final delete = await http.delete(
         server.url(keysPath('/FIOKNOPE')),
         headers: server.auth(),

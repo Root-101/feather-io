@@ -163,7 +163,7 @@ void main() {
       );
       expect(response.statusCode, 403);
       final body = jsonDecode(response.body);
-      expect(body['code'], 'InvalidCredentials');
+      expect(body['code'], 'auth.invalidCredentials');
       expect(body['detail'], 'Credenciales no válidas');
     });
   });

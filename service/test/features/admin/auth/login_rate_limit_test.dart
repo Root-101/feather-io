@@ -41,6 +41,7 @@ void main() {
 
         final locked = await login(testSecret);
         expect(locked.statusCode, 429);
+        expect(jsonDecode(locked.body)['code'], 'auth.tooManyLoginAttempts');
         expect(
           int.parse(locked.headers['retry-after']!),
           inInclusiveRange(1, 2),

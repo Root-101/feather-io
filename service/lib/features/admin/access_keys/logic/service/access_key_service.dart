@@ -128,10 +128,9 @@ class AccessKeyService {
   Future<AccessKeyModel> _get(String id) async {
     final row = await repo.get(id);
     if (row == null) {
-      throw S3Exception(
-        S3ErrorCode.noSuchAccessKey,
-        message: intl.errors.admin.accessKeyNotFound,
-        resource: id,
+      throw AppException(
+        ErrorCode.accessKeysNotFound,
+        intl.errors.accessKeys.notFound,
       );
     }
     return _toModel(row);

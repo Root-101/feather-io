@@ -1,6 +1,8 @@
 @TestOn('vm')
 library;
 
+import 'dart:convert';
+
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -79,6 +81,7 @@ void main() {
         headers: server.auth(),
       );
       expect(missing.statusCode, 400);
+      expect(jsonDecode(missing.body)['code'], 'buckets.missingFolderPrefix');
       expect((await deleteFolder('../')).statusCode, 400);
     });
 

@@ -14,13 +14,6 @@ class PresignService {
     required String key,
     required Duration expiresIn,
   }) async {
-    if (expiresIn.inSeconds < 1 || expiresIn > SigV4Signer.maxExpiration) {
-      throw S3Exception(
-        S3ErrorCode.invalidArgument,
-        message: intl.errors.s3.presignExpiration,
-        resource: key,
-      );
-    }
     // Validates the bucket and the key and checks that the object exists
     await objectService.getFile(bucketName: bucketName, key: key);
 
