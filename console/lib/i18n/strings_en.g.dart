@@ -85,6 +85,13 @@ class AppTexts$app$en {
 
   /// en: 'With ♥ from Root101'
   String get credit => 'With ♥ from Root101';
+
+  /// en: 'Couldn't start the console'
+  String get initErrorTitle => 'Couldn\'t start the console';
+
+  /// en: 'Check that the service is running and reachable, then try again.'
+  String get initErrorHint =>
+      'Check that the service is running and reachable, then try again.';
 }
 
 // Path: common
@@ -1435,6 +1442,9 @@ extension on AppTexts {
       'app.needMoreSpace' => 'Need more space',
       'app.splashText' => 'Connecting to the storage service…',
       'app.credit' => 'With ♥ from Root101',
+      'app.initErrorTitle' => 'Couldn\'t start the console',
+      'app.initErrorHint' =>
+        'Check that the service is running and reachable, then try again.',
       'common.loading' => 'Loading',
       'common.error' => 'Error',
       'common.tryAgain' => 'Try again',

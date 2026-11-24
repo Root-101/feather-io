@@ -194,7 +194,7 @@ class _TransferRow extends StatelessWidget {
         app.colors.primary.green,
       ),
       TransferStatus.failed => (
-        app.intl.transfers.statusFailed(message: task.error?.message ?? ''),
+        app.intl.transfers.statusFailed(message: task.error?.intlMessage ?? ''),
         app.colors.primary.error,
       ),
       TransferStatus.cancelled => (

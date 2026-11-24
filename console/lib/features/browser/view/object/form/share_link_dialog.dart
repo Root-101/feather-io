@@ -120,7 +120,7 @@ class _ShareLinkDialogState extends State<ShareLinkDialog> {
                         child: Text(
                           switch (state) {
                             ShareLinkLoadingErrorState(:final exception) =>
-                              exception.message,
+                              exception.intlMessage,
                             _ => link?.url ?? '',
                           },
                           maxLines: 1,

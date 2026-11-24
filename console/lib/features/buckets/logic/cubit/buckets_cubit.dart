@@ -85,7 +85,7 @@ class BucketsCubit extends Cubit<BucketState>
     } catch (e) {
       emit(
         BucketProcessingErrorState(
-          ExceptionConverter.parse(e).message,
+          ExceptionConverter.parse(e).intlMessage,
           buckets: state.buckets,
         ),
       );

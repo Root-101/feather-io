@@ -260,7 +260,7 @@ class _BucketsViewState extends State<_BucketsView> {
                     child: ErrorPage(
                       message: (widget.state as BucketLoadingErrorState)
                           .exception
-                          .message,
+                          .intlMessage,
                       onRetry: widget.onRetry,
                     ),
                   ),

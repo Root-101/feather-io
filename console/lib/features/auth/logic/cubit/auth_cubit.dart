@@ -24,7 +24,7 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       _auth = null;
       final exc = ExceptionConverter.parse(e);
-      emit(AuthProcessingErrorState(exc.message));
+      emit(AuthProcessingErrorState(exc.intlMessage));
     }
   }
 

@@ -190,7 +190,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
           setState(() {
             _serverErrors = {AccessKeyFormField.name: ?nameError};
             _formError = state.fieldErrors.isEmpty
-                ? state.exception.message
+                ? state.exception.intlMessage
                 : others.isEmpty
                 ? null
                 : others.join('\n');
@@ -354,7 +354,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
         final buckets = state.buckets;
         if (state is BucketLoadingErrorState && buckets.isEmpty) {
           return _message(
-            state.exception.message,
+            state.exception.intlMessage,
             color: app.colors.primary.error,
             action: TextButton(
               onPressed: context.read<BucketsCubit>().load,

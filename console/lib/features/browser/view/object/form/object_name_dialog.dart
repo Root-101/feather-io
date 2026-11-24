@@ -178,7 +178,7 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
                 if (state is ObjectActionProcessingErrorState) ...[
                   AppFormAlert(
                     title: app.intl.objects.actionErrorTitle,
-                    message: state.exception.message,
+                    message: state.exception.intlMessage,
                   ),
                   app.dimensions.padding.l.gap(),
                 ],

@@ -51,7 +51,7 @@ class AnonymousAccessCubit extends Cubit<AnonymousAccessState> {
     } catch (e) {
       emit(
         AnonymousAccessProcessingErrorState(
-          ExceptionConverter.parse(e).message,
+          ExceptionConverter.parse(e).intlMessage,
           bucket: bucket,
           rules: state.rules,
         ),

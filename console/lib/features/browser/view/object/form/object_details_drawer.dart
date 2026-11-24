@@ -100,7 +100,7 @@ class _ObjectDetailsDrawerState extends State<ObjectDetailsDrawer> {
       builder: (context, state) {
         if (state is ObjectDetailsLoadingErrorState) {
           return Text(
-            state.exception.message,
+            state.exception.intlMessage,
             style: app.textTheme.bodyMedium?.copyWith(
               color: app.colors.primary.error,
             ),

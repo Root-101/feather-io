@@ -123,8 +123,12 @@ fvm flutter test                                                # on the VM, no 
   `connectTimeout`/`receiveTimeout` = `Duration.zero` (no limit) and rely on a `CancelToken`.
 - On web, Dio reports 401/403 as `connectionError` rather than `badResponse`.
   `ApiExceptionConverter` therefore maps web connection errors to `GlobalExceptionType.auth`.
-- Errors of the service are Problem Details: `ApiExceptionConverter` shows their `detail`, and a
-  422 becomes `ValidationError`s from its `violations` (`fieldName` = the form field).
+- Errors of the service are Problem Details: `ApiExceptionConverter` keeps their `detail`, their
+  status and their `code` (`GlobalException.errorCode`, compared with `hasCode`), and a 422
+  becomes `ValidationError`s from its `violations` (`fieldName` = the form field). Network errors
+  carry a `GlobalExceptionCode`, and views show any error with `exception.intlMessage` (translated
+  by its code), never `exception.message`. The language goes in `Accept-Language`
+  (`LanguageHeaderInterceptor`).
 
 ## HTTP contract (both sides)
 
@@ -626,7 +630,7 @@ Views only call cubit methods to run actions; everything a view needs to know co
 cubit never exposes public getters for views (e.g. `canGoForward` is a field of
 `BrowserSearchState`, filled on every emit, not `cubit.canGoForward`).
 
-Error states carry the `GlobalException` or its `message`; cubits get it via
+Error states carry the `GlobalException` or its `intlMessage`; cubits get it via
 `ExceptionConverter.parse(e)`, never `e.toString()`. Cubits read the token from `AuthCubit` (
 `auth.auth?.accessToken`) and pass it as `token:` to the repo.
 

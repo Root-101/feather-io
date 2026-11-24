@@ -102,7 +102,7 @@ class AccessKeysCubit extends Cubit<AccessKeyState>
     } catch (e) {
       emit(
         AccessKeyProcessingErrorState(
-          ExceptionConverter.parse(e).message,
+          ExceptionConverter.parse(e).intlMessage,
           data: state.data,
         ),
       );

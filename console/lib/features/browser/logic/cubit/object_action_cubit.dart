@@ -74,14 +74,13 @@ class ObjectActionCubit extends Cubit<ObjectActionState> {
           await _repo.deleteObjects(bucket: bucket, keys: moved, token: _token);
         }
         final exception = ExceptionConverter.parse(e);
+        if (moved.isEmpty) throw exception;
         throw GlobalException(
           type: exception.type,
-          message: moved.isEmpty
-              ? exception.message
-              : app.intl.objects.movePartial(
-                  moved: moved.length,
-                  total: keys.length,
-                ),
+          message: app.intl.objects.movePartial(
+            moved: moved.length,
+            total: keys.length,
+          ),
           data: exception.data,
         );
       }

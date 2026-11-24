@@ -218,7 +218,7 @@ class _BucketFormState extends State<BucketForm> {
                 if (fields.contains(e.key)) e.key: e.value,
             };
             _formError = state.fieldErrors.isEmpty
-                ? state.exception.message
+                ? state.exception.intlMessage
                 : unmatched.isEmpty
                 ? null
                 : unmatched.join('\n');

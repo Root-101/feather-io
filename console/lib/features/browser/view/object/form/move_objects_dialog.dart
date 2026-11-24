@@ -116,7 +116,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
                       app.dimensions.padding.m.gap(),
                       AppFormAlert(
                         title: app.intl.objects.actionErrorTitle,
-                        message: actionState.exception.message,
+                        message: actionState.exception.intlMessage,
                       ),
                     ],
                     app.dimensions.padding.l.gap(),
@@ -273,7 +273,7 @@ class _MoveObjectsDialogState extends State<MoveObjectsDialog> {
     if (target is MoveTargetLoadingErrorState) {
       body = Center(
         child: Text(
-          target.exception.message,
+          target.exception.intlMessage,
           textAlign: TextAlign.center,
           style: app.textTheme.bodyMedium?.copyWith(
             color: app.colors.primary.error,

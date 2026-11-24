@@ -723,7 +723,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                       child: ErrorPage(
                         message: (widget.state as BrowserLoadingErrorState)
                             .exception
-                            .message,
+                            .intlMessage,
                         onRetry: widget.onRefresh,
                       ),
                     ),

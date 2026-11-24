@@ -30,11 +30,13 @@ class Init {
 
   static final instance = Init._();
 
-  Future initialize() async {
-    // so the splash shows instead of flashing by
-    await Future.delayed(const Duration(seconds: 1));
-
-    await FeaturesInit.init();
+  /// The splash shows at least a second (instead of flashing by), while the
+  /// app loads
+  Future<void> initialize() async {
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 1)),
+      FeaturesInit.init(),
+    ]);
   }
 }
 
@@ -47,33 +49,50 @@ void main() {
   // a right click opens the app's menus, not the browser's
   if (kIsWeb) BrowserContextMenu.disableContextMenu();
 
-  // error handling
-  /*FlutterError.onError = (errorDetails) {
-    app.logger.e('------------------- error 1 -------------------');
-    app.logger.e(errorDetails.exception);
-  };
+  // errors nobody caught go to the log
+  FlutterError.onError = (details) =>
+      app.logger.e(details.exception, stackTrace: details.stack);
   PlatformDispatcher.instance.onError = (error, stack) {
-    app.logger.e('------------------- error 2 -------------------');
-    app.logger.e(error);
-    app.logger.e(stack);
+    app.logger.e(error, stackTrace: stack);
     return true;
-  };*/
+  };
 
-  runApp(
-    FutureBuilder(
-      future: Init.instance.initialize(),
+  runApp(const Startup());
+}
+
+/// The splash while [Init] runs, the app when it is done, and
+/// [InitErrorScreen] when it fails (its «Try again» runs it again)
+class Startup extends StatefulWidget {
+  const Startup({super.key});
+
+  @override
+  State<Startup> createState() => _StartupState();
+}
+
+class _StartupState extends State<Startup> {
+  late Future<void> _init = Init.instance.initialize();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _init,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return MultiBlocProvider(
-            providers: [...FeaturesInit.blocProviders],
-            child: const App(),
-          );
-        } else {
+        if (snapshot.connectionState != ConnectionState.done) {
           return const SplashScreen();
         }
+        if (snapshot.hasError) {
+          app.logger.e(snapshot.error, stackTrace: snapshot.stackTrace);
+          return InitErrorScreen(
+            onRetry: () => setState(() => _init = Init.instance.initialize()),
+          );
+        }
+        return MultiBlocProvider(
+          providers: [...FeaturesInit.blocProviders],
+          child: const App(),
+        );
       },
-    ),
-  );
+    );
+  }
 }
 
 class App extends StatelessWidget {

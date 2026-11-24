@@ -203,7 +203,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
           }
           if (bucketState is BucketLoadingErrorState) {
             return ErrorPage(
-              message: bucketState.exception.message,
+              message: bucketState.exception.intlMessage,
               onRetry: bucketCubit.load,
             );
           }

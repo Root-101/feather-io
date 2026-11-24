@@ -131,7 +131,7 @@ class _AnonymousRuleFormState extends State<AnonymousRuleForm> {
           setState(() {
             _serverErrors = {AnonymousRuleFormField.prefix: ?prefixError};
             _formError = state.fieldErrors.isEmpty
-                ? state.exception.message
+                ? state.exception.intlMessage
                 : others.isEmpty
                 ? null
                 : others.join('\n');

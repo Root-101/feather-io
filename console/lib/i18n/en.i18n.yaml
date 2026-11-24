@@ -6,6 +6,8 @@ app:
   needMoreSpace: 'Need more space'
   splashText: 'Connecting to the storage service…'
   credit: 'With ♥ from Root101'
+  initErrorTitle: "Couldn't start the console"
+  initErrorHint: 'Check that the service is running and reachable, then try again.'
 common:
   loading: 'Loading'
   error: 'Error'

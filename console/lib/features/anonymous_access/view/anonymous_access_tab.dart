@@ -91,7 +91,7 @@ class _AnonymousAccessTabState extends State<AnonymousAccessTab> {
   Widget _buildContent(AnonymousAccessState state) {
     if (state is AnonymousAccessLoadingErrorState) {
       return ErrorPage(
-        message: state.exception.message,
+        message: state.exception.intlMessage,
         onRetry: () => cubit.load(bucket: widget.bucket),
       );
     }

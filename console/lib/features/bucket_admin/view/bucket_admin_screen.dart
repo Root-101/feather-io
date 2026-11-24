@@ -150,7 +150,10 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
       );
     }
     if (state is BucketLoadingErrorState) {
-      return ErrorPage(message: state.exception.message, onRetry: cubit.load);
+      return ErrorPage(
+        message: state.exception.intlMessage,
+        onRetry: cubit.load,
+      );
     }
     if (state is BucketLoadingSuccessState && widget.bucket != null) {
       return BrowserNotFoundPage(

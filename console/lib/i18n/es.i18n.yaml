@@ -4,6 +4,8 @@ app:
   needMoreSpace: 'Se necesita más espacio'
   splashText: 'Conectando al servicio de almacenamiento…'
   credit: 'Con ♥ desde Root101'
+  initErrorTitle: "No se pudo iniciar la consola"
+  initErrorHint: 'Comprueba que el servicio esté en marcha y accesible, y vuelve a intentarlo.'
 common:
   loading: 'Cargando'
   error: 'Error'

@@ -99,6 +99,11 @@ class AppTexts$app$es implements AppTexts$app$en {
   String get splashText => 'Conectando al servicio de almacenamiento…';
   @override
   String get credit => 'Con ♥ desde Root101';
+  @override
+  String get initErrorTitle => 'No se pudo iniciar la consola';
+  @override
+  String get initErrorHint =>
+      'Comprueba que el servicio esté en marcha y accesible, y vuelve a intentarlo.';
 }
 
 // Path: common
@@ -1090,6 +1095,8 @@ extension on AppTextsEs {
       'app.needMoreSpace' => 'Se necesita más espacio',
       'app.splashText' => 'Conectando al servicio de almacenamiento…',
       'app.credit' => 'Con ♥ desde Root101',
+      'app.initErrorTitle' => 'No se pudo iniciar la consola',
+      'app.initErrorHint' => 'Comprueba que el servicio esté en marcha y accesible, y vuelve a intentarlo.',
       'common.loading' => 'Cargando',
       'common.error' => 'Error',
       'common.tryAgain' => 'Reintentar',

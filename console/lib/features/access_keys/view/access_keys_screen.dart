@@ -175,7 +175,10 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
   Widget _buildContent(AccessKeyState state) {
     final data = state.data;
     if (state is AccessKeyLoadingErrorState && !data.loaded) {
-      return ErrorPage(message: state.exception.message, onRetry: cubit.load);
+      return ErrorPage(
+        message: state.exception.intlMessage,
+        onRetry: cubit.load,
+      );
     }
     return LoadingOverlay(
       visible: !data.loaded,
