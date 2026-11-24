@@ -67,4 +67,17 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('Should name the eye button of the secret by what it does', (
+    tester,
+  ) async {
+    await pump(tester, const Size(1536, 720));
+    final intl = messagesOf(const Locale('en'));
+    expect(find.byTooltip(intl.login.showSecret), findsOneWidget);
+
+    await tester.tap(find.byTooltip(intl.login.showSecret));
+    await tester.pump();
+    expect(find.byTooltip(intl.login.hideSecret), findsOneWidget);
+    expect(find.byTooltip(intl.login.showSecret), findsNothing);
+  });
 }

@@ -222,6 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _secretController,
                 label: app.intl.login.secretKey,
                 hint: app.intl.login.secretKeyHint,
+                showLabel: app.intl.login.showSecret,
+                hideLabel: app.intl.login.hideSecret,
                 validator: (v) =>
                     v?.isEmpty == true ? app.intl.common.required : null,
                 autofillHints: const [AutofillHints.password],

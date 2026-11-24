@@ -220,6 +220,10 @@ class AppMessages$login$es implements AppMessages$login$en {
   @override
   String get secretKeyHint => 'Introduce tu clave secreta';
   @override
+  String get showSecret => 'Mostrar clave secreta';
+  @override
+  String get hideSecret => 'Ocultar clave secreta';
+  @override
   String get button => 'Iniciar sesión';
   @override
   String get title => 'Inicia sesión';
@@ -489,7 +493,7 @@ class AppMessages$objects$es implements AppMessages$objects$en {
   String detailsSubtitle({required Object type, required Object size}) =>
       '${type} · ${size}';
   @override
-  String get detailsKey => 'Key';
+  String get detailsKey => 'Clave';
   @override
   String get detailsType => 'Tipo';
   @override
@@ -1126,6 +1130,8 @@ extension on AppMessagesEs {
       'login.accessKeyHint' => 'Introduce tu clave de acceso',
       'login.secretKey' => 'Clave secreta',
       'login.secretKeyHint' => 'Introduce tu clave secreta',
+      'login.showSecret' => 'Mostrar clave secreta',
+      'login.hideSecret' => 'Ocultar clave secreta',
       'login.button' => 'Iniciar sesión',
       'login.title' => 'Inicia sesión',
       'login.description' => 'Gestiona tus buckets y tus claves de acceso.',
@@ -1287,7 +1293,7 @@ extension on AppMessagesEs {
         required Object type,
         required Object size,
       }) => '${type} · ${size}',
-      'objects.detailsKey' => 'Key',
+      'objects.detailsKey' => 'Clave',
       'objects.detailsType' => 'Tipo',
       'objects.detailsSize' => 'Tamaño',
       'objects.detailsSizeBytes' => ({

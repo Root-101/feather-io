@@ -10,8 +10,14 @@ class AppFormPasswordInput extends StatefulWidget {
   final ValueChanged<String>? onSubmitted;
   final Iterable<String>? autofillHints;
 
+  /// Tooltip (and screen reader label) of the eye button, per state
+  final String showLabel;
+  final String hideLabel;
+
   const AppFormPasswordInput({
     required this.controller,
+    required this.showLabel,
+    required this.hideLabel,
     this.label,
     this.hint,
     this.validator,
@@ -41,6 +47,7 @@ class _AppFormPasswordInputState extends State<AppFormPasswordInput> {
       textInputAction: TextInputAction.done,
       obscureText: _obscureText,
       suffix: IconButton(
+        tooltip: _obscureText ? widget.showLabel : widget.hideLabel,
         onPressed: () {
           setState(() {
             _obscureText = !_obscureText;

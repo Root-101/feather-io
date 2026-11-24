@@ -243,6 +243,12 @@ class AppMessages$login$en {
   /// en: 'Enter your secret key'
   String get secretKeyHint => 'Enter your secret key';
 
+  /// en: 'Show secret key'
+  String get showSecret => 'Show secret key';
+
+  /// en: 'Hide secret key'
+  String get hideSecret => 'Hide secret key';
+
   /// en: 'Login'
   String get button => 'Login';
 
@@ -1467,6 +1473,8 @@ extension on AppMessages {
       'login.accessKeyHint' => 'Enter your access key',
       'login.secretKey' => 'Secret Key',
       'login.secretKeyHint' => 'Enter your secret key',
+      'login.showSecret' => 'Show secret key',
+      'login.hideSecret' => 'Hide secret key',
       'login.button' => 'Login',
       'login.title' => 'Sign in',
       'login.description' => 'Manage your buckets and access keys.',

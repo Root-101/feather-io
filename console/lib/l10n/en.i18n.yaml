@@ -49,6 +49,8 @@ login:
   accessKeyHint: 'Enter your access key'
   secretKey: 'Secret Key'
   secretKeyHint: 'Enter your secret key'
+  showSecret: 'Show secret key'
+  hideSecret: 'Hide secret key'
   button: 'Login'
   title: 'Sign in'
   description: 'Manage your buckets and access keys.'
