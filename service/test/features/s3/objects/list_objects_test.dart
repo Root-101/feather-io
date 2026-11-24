@@ -5,13 +5,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8085, name: 'list_objects');
+  final server = TestApp(name: 'list_objects');
   const bucket = 'list-bucket';
 
   setUpAll(() async {
@@ -23,7 +22,7 @@ void main() {
 
   group('S3Controller - LIST Objects', () {
     test('Should list objects in JSON', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket'),
         headers: server.auth(json: true),
       );
@@ -40,7 +39,7 @@ void main() {
     });
 
     test('Should group folders with prefix and delimiter', () async {
-      final root = await http.get(
+      final root = await server.client.get(
         server.url('/$bucket?delimiter=/'),
         headers: server.auth(json: true),
       );
@@ -48,7 +47,7 @@ void main() {
       expect((rootBody['contents'] as List).map((e) => e['key']), ['f1.txt']);
       expect(rootBody['common_prefixes'], ['folder/']);
 
-      final folder = await http.get(
+      final folder = await server.client.get(
         server.url('/$bucket?prefix=folder/&delimiter=/'),
         headers: server.auth(json: true),
       );
@@ -60,7 +59,7 @@ void main() {
     });
 
     test('Should list objects in XML by default', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket'),
         headers: server.auth(),
       );
@@ -72,7 +71,7 @@ void main() {
     });
 
     test('Should send the ETag and a UTC LastModified in the XML', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?prefix=f1'),
         headers: server.auth(),
       );
@@ -94,7 +93,7 @@ void main() {
     });
 
     test('Should send a UTC last_modified in JSON', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?prefix=f1'),
         headers: server.auth(json: true),
       );
@@ -105,7 +104,7 @@ void main() {
     });
 
     test('Should send the ETag in JSON', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?prefix=folder/'),
         headers: server.auth(json: true),
       );
@@ -118,7 +117,7 @@ void main() {
 
     test('Should escape the XML special chars of the keys', () async {
       await server.putObject(bucket, 'a&b.txt', 'x');
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?prefix=a'),
         headers: server.auth(),
       );
@@ -126,7 +125,7 @@ void main() {
     });
 
     test('Should return an empty list for an empty prefix', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?prefix=nothing/'),
         headers: server.auth(json: true),
       );
@@ -135,12 +134,12 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await http.get(server.url('/$bucket'));
+      final response = await server.client.get(server.url('/$bucket'));
       expect(response.statusCode, 401);
     });
 
     test('Should fail with an invalid token (401)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket'),
         headers: {'authorization': 'Bearer not-a-jwt'},
       );
@@ -148,7 +147,7 @@ void main() {
     });
 
     test('Should return 404 if bucket does not exist', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/no-bucket'),
         headers: server.auth(),
       );
@@ -170,7 +169,7 @@ void main() {
       ]) {
         await server.putObject(tree, key, key);
       }
-      final folder = await http.put(
+      final folder = await server.client.put(
         server.url('/$tree/photos/'),
         headers: server.auth(),
       );
@@ -181,7 +180,7 @@ void main() {
     });
 
     Future<Map<String, dynamic>> list(String query) async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$tree?$query'),
         headers: server.auth(json: true),
       );
@@ -268,7 +267,7 @@ void main() {
     });
 
     Future<Map<String, dynamic>> page(String query) async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$pageBucket?$query'),
         headers: server.auth(json: true),
       );
@@ -316,7 +315,7 @@ void main() {
     });
 
     test('Should report the V2 pagination in the XML', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$pageBucket?list-type=2&max-keys=1'),
         headers: server.auth(),
       );
@@ -328,7 +327,7 @@ void main() {
     });
 
     Future<String> xmlPage(String query) async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$pageBucket?$query'),
         headers: server.auth(),
       );
@@ -368,7 +367,7 @@ void main() {
 
     test('Should reject an invalid max-keys (400)', () async {
       for (final value in ['-1', 'abc']) {
-        final response = await http.get(
+        final response = await server.client.get(
           server.url('/$pageBucket?max-keys=$value'),
           headers: server.auth(json: true),
         );
@@ -378,7 +377,7 @@ void main() {
     });
 
     test('Should reject an invalid continuation-token (400)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$pageBucket?continuation-token=%%%'),
         headers: server.auth(json: true),
       );
@@ -394,7 +393,7 @@ void main() {
     });
 
     test('Should URL-encode the keys, keeping the slashes', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$encBucket?list-type=2&encoding-type=url'),
         headers: server.auth(),
       );
@@ -406,7 +405,7 @@ void main() {
     });
 
     test('Should URL-encode the common prefixes', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$encBucket?delimiter=/&encoding-type=url'),
         headers: server.auth(),
       );
@@ -417,7 +416,7 @@ void main() {
     });
 
     test('Should not encode without encoding-type', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$encBucket?list-type=2'),
         headers: server.auth(),
       );

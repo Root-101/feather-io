@@ -523,7 +523,7 @@ and almost every incompatibility so far was found by them, not by `dart test`:
 
 | When                                                                | Run                                                       | Time     |
 |---------------------------------------------------------------------|-----------------------------------------------------------|----------|
-| Every change                                                        | `fvm dart test` (from `service/`)                         | ~11 s    |
+| Every change                                                        | `fvm dart test` (from `service/`)                         | ~35 s    |
 | Touching the S3 API (controller, filters, signatures, XML, headers) | also `service/tool/s3_compat/run.sh` (AWS CLI and rclone) | ~1–2 min |
 | Before a release or after big protocol changes                      | also `run.sh mint`, i.e. the *Full test run* below        | ~5 min   |
 
@@ -568,18 +568,22 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `security/`, `xml/`, `i18n/`), and `support/` holds the helpers. `s3_controller_test.dart`
   (in `features/s3/`) holds the happy path (upload → list → get → delete); each endpoint gets its
   own file (`put_object_test.dart`, `list_buckets_test.dart`…).
-- Use `TestServer` (`test/support/test_server.dart`): `TestServer(port: …, name: …)`, then
-  `setUpAll(server.start)` / `tearDownAll(server.stop)`. It sets the env, starts the real server
-  with an in-memory SQLite (`FeatherIO.start(database: …)`), logs in to get `server.token`, and
-  creates and deletes `./uploads_test/<name>` (gitignored); `fileDatabase: true` uses the real
-  SQLite file inside that folder instead. It sets `LOG_LEVEL=warning`, so only problems are
-  printed. Helpers: `server.url(path)`,
+- Use `TestApp` (`test/support/test_app.dart`): `TestApp(name: …)`, then
+  `setUpAll(server.start)` / `tearDownAll(server.stop)`. It sets the env, builds the real service
+  with an in-memory SQLite (`FeatherIO.setUp(database: …)`) and serves it in memory
+  (`WinterTestClient`: the same filters, routing and security, no port, so files run in parallel),
+  logs in to get `server.token`, and creates and deletes `./uploads_test/<name>` (gitignored);
+  `fileDatabase: true` uses the real SQLite file inside that folder instead. It sets
+  `LOG_LEVEL=warning`, so only problems are printed. Requests go through `server.client` (a
+  `package:http` client: `server.client.get(server.url(path))`, `server.client.send(request)`),
+  which sends `Host: localhost` (`server.host`, what SigV4 signs). Helpers:
   `server.auth(json: …)`, `server.createBucket(…)` (tolerates an existing one),
   `server.putObject(…, headers: …)` (creates the bucket first and sends bytes without
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
-  in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8118.
+  in the test). Uploading with `server.client.put` needs the bucket created.
+- Only what needs a real socket passes a `port:` (a raw `Socket`, a body that never ends, the
+  address it listens on), one distinct port per file. Ports in use: 8087, 8100, 8107, 8117.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error

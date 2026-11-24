@@ -78,6 +78,9 @@ TEST_DESC = {
     'unsupported_subresource_test.dart': '`501 NotImplemented` for subresources and the reads that are answered anyway (tagging, versioning).',
     'xml_test.dart': 'XML mapper (unit): writing with escaping and indentation, reading S3 bodies with prefixes, CDATA and entities, malformed XML, the nesting limit.',
     'update_bucket_test.dart': 'Editing the description and color of a bucket (admin).',
+    'routes_test.dart': 'Scan of every route: unique keys, the `hasPermission` of each one in `Permissions`, every permission used, 401 without a token on the admin API.',
+    'error_code_test.dart': 'Scan of the admin API error codes: each one unique, with its message in every language.',
+    'time_test.dart': 'Dates of the JSON (unit): ISO 8601 in UTC with milliseconds.',
 }
 
 CONSOLE_TEST_DESC = {

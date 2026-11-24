@@ -3,20 +3,19 @@ library;
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8114, name: 'openapi');
+  final server = TestApp(name: 'openapi');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
 
   Future<Map<String, dynamic>> document() async {
-    final response = await http.get(
+    final response = await server.client.get(
       server.url('/${env.adminPrefix}/openapi.json'),
     );
     expect(response.statusCode, 200);
@@ -79,7 +78,9 @@ void main() {
     });
 
     test('Should serve Swagger UI', () async {
-      final response = await http.get(server.url('/${env.adminPrefix}/docs'));
+      final response = await server.client.get(
+        server.url('/${env.adminPrefix}/docs'),
+      );
       expect(response.statusCode, 200);
       expect(response.headers['content-type'], startsWith('text/html'));
       expect(response.body, contains('/${env.adminPrefix}/openapi.json'));

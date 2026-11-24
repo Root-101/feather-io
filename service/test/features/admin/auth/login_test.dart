@@ -8,15 +8,15 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8089, name: 'login');
+  final server = TestApp(name: 'login');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
 
-  Future<http.Response> login(Object body) => http.post(
+  Future<http.Response> login(Object body) => server.client.post(
     server.url('/${env.adminPrefix}/login'),
     headers: {'content-type': 'application/json'},
     body: jsonEncode(body),
@@ -84,7 +84,7 @@ void main() {
       });
       final token = jsonDecode(response.body)['access_token'];
 
-      final list = await http.get(
+      final list = await server.client.get(
         server.url('/'),
         headers: {'authorization': 'Bearer $token'},
       );
@@ -98,19 +98,19 @@ void main() {
       'roles': ['admin'],
       'permissions': ['s3.list-buckets'],
     };
-    Future<int> listWith(String token) async => (await http.get(
+    Future<int> listWith(String token) async => (await server.client.get(
       server.url('/'),
       headers: {'authorization': 'Bearer $token'},
     )).statusCode;
 
     test('Should reject a token without exp (it would never expire)', () async {
-      final token = JWT(claims).sign(SecretKey(testJwtSecret(server.port)));
+      final token = JWT(claims).sign(SecretKey(server.jwtSecret));
       expect(await listWith(token), 401);
     });
 
     test('Should reject an expired token', () async {
       final token = JWT({...claims, 'exp': 1000})
-          .sign(SecretKey(testJwtSecret(server.port)));
+          .sign(SecretKey(server.jwtSecret));
       expect(await listWith(token), 401);
     });
 

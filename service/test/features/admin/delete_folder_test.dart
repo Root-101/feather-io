@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8105, name: 'delete_folder');
+  final server = TestApp(name: 'delete_folder');
   const bucket = 'folder-delete';
 
   setUpAll(() async {
@@ -25,7 +25,7 @@ void main() {
     String prefix, {
     String target = bucket,
     bool auth = true,
-  }) => http.delete(
+  }) => server.client.delete(
     server.url(
       '/${env.adminPrefix}/bucket/$target/folder'
       '?prefix=${Uri.encodeQueryComponent(prefix)}',
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('Should reject a missing prefix and a path traversal (400)', () async {
-      final missing = await http.delete(
+      final missing = await server.client.delete(
         server.url('/${env.adminPrefix}/bucket/$bucket/folder'),
         headers: server.auth(),
       );

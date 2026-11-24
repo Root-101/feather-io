@@ -10,10 +10,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8104, name: 'object_metadata');
+  final server = TestApp(name: 'object_metadata');
   const bucket = 'meta-bucket';
 
   setUpAll(() async {
@@ -23,7 +23,7 @@ void main() {
   tearDownAll(server.stop);
 
   Future<http.Response> head(String key) =>
-      http.head(server.url('/$bucket/$key'), headers: server.auth());
+      server.client.head(server.url('/$bucket/$key'), headers: server.auth());
 
   const uploadHeaders = {
     'content-type': 'image/jpeg',
@@ -51,7 +51,7 @@ void main() {
       // Names are stored lowercased, as S3 returns them
       expect(response.headers['x-amz-meta-project'], 'feather');
 
-      final get = await http.get(
+      final get = await server.client.get(
         server.url('/$bucket/photo.bin'),
         headers: server.auth(),
       );
@@ -66,7 +66,7 @@ void main() {
       ];
       final responses = await Future.wait([
         for (final (i, body) in bodies.indexed)
-          http.put(
+          server.client.put(
             server.url('/$bucket/race.txt'),
             headers: {...server.auth(), 'x-amz-meta-index': '$i'},
             body: body,
@@ -76,7 +76,7 @@ void main() {
         expect(response.statusCode, 200, reason: response.body);
       }
 
-      final object = await http.get(
+      final object = await server.client.get(
         server.url('/$bucket/race.txt'),
         headers: server.auth(),
       );
@@ -144,7 +144,7 @@ void main() {
 
   group('S3Controller - Object metadata on copy', () {
     Future<http.Response> copy(String target, Map<String, String> headers) =>
-        http.put(
+        server.client.put(
           server.url('/$bucket/$target'),
           headers: {
             ...server.auth(),
@@ -183,18 +183,18 @@ void main() {
 
   group('S3Controller - Object metadata on multipart', () {
     test('Should apply the metadata of CreateMultipartUpload', () async {
-      final created = await http.post(
+      final created = await server.client.post(
         server.url('/$bucket/parts.bin?uploads'),
         headers: {...server.auth(json: true), ...uploadHeaders},
       );
       final uploadId = jsonDecode(created.body)['upload_id'] as String;
 
-      final part = await http.put(
+      final part = await server.client.put(
         server.url('/$bucket/parts.bin?partNumber=1&uploadId=$uploadId'),
         headers: server.auth(),
         body: [1, 2, 3],
       );
-      final completed = await http.post(
+      final completed = await server.client.post(
         server.url('/$bucket/parts.bin?uploadId=$uploadId'),
         headers: {
           ...server.auth(json: true),
@@ -237,7 +237,7 @@ void main() {
     });
 
     test('Should reject an unknown storage class (400)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/bad.bin'),
         headers: {...server.auth(), 'x-amz-storage-class': 'DE_PLATA'},
         body: [1],
@@ -263,7 +263,7 @@ void main() {
           },
         );
         Future<http.Response> copy(String target, [String? storageClass]) =>
-            http.put(
+            server.client.put(
               server.url('/$bucket/$target'),
               headers: {
                 ...server.auth(),

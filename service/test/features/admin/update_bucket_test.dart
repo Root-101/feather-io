@@ -7,16 +7,16 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8093, name: 'update_bucket');
+  final server = TestApp(name: 'update_bucket');
 
   setUpAll(() async {
     env.put('RESERVED_BUCKET_NAMES', 'reserved-bucket');
     await server.start();
 
-    final create = await http.put(
+    final create = await server.client.put(
       server.url('/edit-bucket'),
       headers: {...server.auth(), 'content-type': 'application/json'},
       body: jsonEncode({'description': 'Original', 'color': 0xFF112233}),
@@ -26,7 +26,7 @@ void main() {
   tearDownAll(server.stop);
 
   Future<http.Response> update(String bucket, Object body, {bool auth = true}) {
-    return http.put(
+    return server.client.put(
       server.url('/${env.adminPrefix}/bucket/$bucket'),
       headers: {if (auth) ...server.auth(), 'content-type': 'application/json'},
       body: jsonEncode(body),
@@ -34,7 +34,7 @@ void main() {
   }
 
   Future<Map<String, dynamic>> findBucket(String name) async {
-    final list = await http.get(
+    final list = await server.client.get(
       server.url('/'),
       headers: server.auth(json: true),
     );
@@ -130,7 +130,7 @@ void main() {
     });
 
     test('Should reject a body that is not JSON (400)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/${env.adminPrefix}/bucket/edit-bucket'),
         headers: {...server.auth(), 'content-type': 'application/json'},
         body: 'not json',

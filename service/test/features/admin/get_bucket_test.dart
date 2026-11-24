@@ -7,16 +7,16 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8094, name: 'get_bucket');
+  final server = TestApp(name: 'get_bucket');
 
   setUpAll(() async {
     env.put('RESERVED_BUCKET_NAMES', 'reserved-bucket');
     await server.start();
 
-    final create = await http.put(
+    final create = await server.client.put(
       server.url('/detail-bucket'),
       headers: {...server.auth(), 'content-type': 'application/json'},
       body: jsonEncode({'description': 'Detail', 'color': 0xFF112233}),
@@ -24,7 +24,7 @@ void main() {
     expect(create.statusCode, 200);
     await server.putObject('detail-bucket', 'a.txt', 'abc');
     await server.putObject('detail-bucket', 'folder/b.txt', 'xy');
-    final empty = await http.put(
+    final empty = await server.client.put(
       server.url('/empty-bucket'),
       headers: server.auth(),
     );
@@ -32,10 +32,11 @@ void main() {
   });
   tearDownAll(server.stop);
 
-  Future<http.Response> getBucket(String name, {bool auth = true}) => http.get(
-    server.url('/${env.adminPrefix}/bucket/$name'),
-    headers: auth ? server.auth() : {},
-  );
+  Future<http.Response> getBucket(String name, {bool auth = true}) =>
+      server.client.get(
+        server.url('/${env.adminPrefix}/bucket/$name'),
+        headers: auth ? server.auth() : {},
+      );
 
   group('AdminController - Get Bucket', () {
     test('Should return the metadata and stats of the bucket', () async {

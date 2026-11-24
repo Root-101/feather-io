@@ -5,19 +5,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull;
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 void main() {
-  final server = TestServer(
-    port: 8110,
-    name: 'database_path',
-    fileDatabase: true,
-  );
+  final server = TestApp(name: 'database_path', fileDatabase: true);
   const bucket = 'db-bucket';
 
   setUpAll(server.start);
@@ -32,7 +27,7 @@ void main() {
     });
 
     test('Should store the bucket metadata in that file', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket'),
         headers: {...server.auth(), 'content-type': 'application/json'},
         body: jsonEncode({'description': 'In the volume'}),
@@ -53,7 +48,7 @@ void main() {
     });
 
     test('Should not list the database folder as a bucket', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: server.auth(json: true),
       );

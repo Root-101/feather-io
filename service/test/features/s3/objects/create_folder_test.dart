@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8097, name: 'create_folder');
+  final server = TestApp(name: 'create_folder');
   const bucket = 'folder-bucket';
 
   setUpAll(() async {
@@ -19,11 +19,12 @@ void main() {
   });
   tearDownAll(server.stop);
 
-  Future<http.Response> createFolder(String key, {bool auth = true}) =>
-      http.put(server.url('/$bucket/$key'), headers: auth ? server.auth() : {});
+  Future<http.Response> createFolder(String key, {bool auth = true}) => server
+      .client
+      .put(server.url('/$bucket/$key'), headers: auth ? server.auth() : {});
 
   Future<Map<String, dynamic>> list({String prefix = ''}) async {
-    final response = await http.get(
+    final response = await server.client.get(
       server.url('/$bucket?delimiter=/&prefix=$prefix'),
       headers: server.auth(json: true),
     );
@@ -59,7 +60,7 @@ void main() {
 
     test('Should keep the folder after deleting its last object', () async {
       await server.putObject(bucket, 'photos/cat.jpg', 'jpg');
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/$bucket/photos/cat.jpg'),
         headers: server.auth(),
       );
@@ -72,7 +73,7 @@ void main() {
     test(
       'Should not count the folder as an object in the bucket stats',
       () async {
-        final response = await http.get(
+        final response = await server.client.get(
           server.url('/'),
           headers: server.auth(json: true),
         );
@@ -88,7 +89,7 @@ void main() {
       () async {
         await createFolder('delete/');
         await server.putObject(bucket, 'delete/a.txt', 'a');
-        final delete = await http.delete(
+        final delete = await server.client.delete(
           server.url('/$bucket/delete/'),
           headers: server.auth(),
         );
@@ -104,7 +105,7 @@ void main() {
 
     test('Should delete an empty folder', () async {
       await createFolder('empty-delete/');
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/$bucket/empty-delete/'),
         headers: server.auth(),
       );
@@ -117,7 +118,7 @@ void main() {
 
     test('Should not delete a directory addressed without the slash', () async {
       await server.putObject(bucket, 'no-slash/a.txt', 'a');
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/$bucket/no-slash'),
         headers: server.auth(),
       );
@@ -131,7 +132,7 @@ void main() {
     test('Should only delete the marker in a multi-delete too', () async {
       await createFolder('multi/');
       await server.putObject(bucket, 'multi/a.txt', 'a');
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.auth(),
         body: '<Delete><Object><Key>multi/</Key></Object></Delete>',
@@ -144,7 +145,7 @@ void main() {
     });
 
     test('Should reject the folder marker name as a key (400)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/photos/.feather-folder'),
         headers: server.auth(),
         body: 'x',
@@ -161,7 +162,7 @@ void main() {
       () async {
         expect((await createFolder('header/')).statusCode, 200);
 
-        final head = await http.head(
+        final head = await server.client.head(
           server.url('/$bucket/header/'),
           headers: server.auth(),
         );
@@ -169,7 +170,7 @@ void main() {
         expect(head.headers['content-length'], '0');
         expect(head.headers['etag'], '"d41d8cd98f00b204e9800998ecf8427e"');
 
-        final get = await http.get(
+        final get = await server.client.get(
           server.url('/$bucket/header/'),
           headers: server.auth(),
         );
@@ -179,7 +180,7 @@ void main() {
     );
 
     test('Should answer 404 on HEAD of a folder that does not exist', () async {
-      final head = await http.head(
+      final head = await server.client.head(
         server.url('/$bucket/missing/'),
         headers: server.auth(),
       );
@@ -187,18 +188,18 @@ void main() {
     });
 
     test('Should delete a bucket that only has empty folders (204)', () async {
-      final create = await http.put(
+      final create = await server.client.put(
         server.url('/only-folders'),
         headers: server.auth(),
       );
       expect(create.statusCode, 200);
-      final folder = await http.put(
+      final folder = await server.client.put(
         server.url('/only-folders/empty/'),
         headers: server.auth(),
       );
       expect(folder.statusCode, 200);
 
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/only-folders'),
         headers: server.auth(),
       );

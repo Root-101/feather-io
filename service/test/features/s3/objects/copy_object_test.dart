@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8098, name: 'copy_object');
+  final server = TestApp(name: 'copy_object');
   const bucket = 'copy-bucket';
 
   String rulesPath(String name) =>
@@ -24,7 +24,7 @@ void main() {
     String targetBucket = bucket,
     Map<String, String>? headers,
   }) {
-    return http.put(
+    return server.client.put(
       server.url('/$targetBucket/$targetKey'),
       headers: {...(headers ?? server.auth()), 'x-amz-copy-source': source},
     );
@@ -160,7 +160,7 @@ void main() {
       );
       expect(response.statusCode, 200, reason: response.body);
 
-      final head = await http.head(
+      final head = await server.client.head(
         server.url('/$bucket/same.txt'),
         headers: server.auth(),
       );
@@ -181,7 +181,7 @@ void main() {
           headers: {...server.auth(), 'x-amz-storage-class': 'STANDARD_IA'},
         );
         expect(response.statusCode, 200, reason: response.body);
-        final head = await http.head(
+        final head = await server.client.head(
           server.url('/$bucket/same-class.txt'),
           headers: server.auth(),
         );
@@ -225,7 +225,7 @@ void main() {
     test(
       'Should not let an anonymous writer copy a private object (403)',
       () async {
-        final rule = await http.post(
+        final rule = await server.client.post(
           server.url(rulesPath(bucket)),
           headers: {...server.auth(), 'content-type': 'application/json'},
           body: jsonEncode({'prefix': 'inbox/', 'access': 'writeOnly'}),
@@ -255,14 +255,15 @@ void main() {
       etag = md5.convert(utf8.encode('condition')).toString();
     });
 
-    Future<http.Response> copyIf(Map<String, String> conditions) => http.put(
-      server.url('/$bucket/conditions/copy.txt'),
-      headers: {
-        ...server.auth(),
-        'x-amz-copy-source': '/$bucket/conditions/source.txt',
-        ...conditions,
-      },
-    );
+    Future<http.Response> copyIf(Map<String, String> conditions) =>
+        server.client.put(
+          server.url('/$bucket/conditions/copy.txt'),
+          headers: {
+            ...server.auth(),
+            'x-amz-copy-source': '/$bucket/conditions/source.txt',
+            ...conditions,
+          },
+        );
 
     final past = HttpDate.format(DateTime.utc(2010, 3, 26));
     final future = HttpDate.format(

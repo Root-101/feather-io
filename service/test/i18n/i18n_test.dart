@@ -7,10 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8113, name: 'i18n');
+  final server = TestApp(name: 'i18n');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
@@ -20,7 +20,7 @@ void main() {
   Future<http.Response> getMissingBucket({
     String? language,
     bool json = false,
-  }) => http.get(
+  }) => server.client.get(
     server.url('/no-such-bucket'),
     headers: {
       ...server.auth(json: json),
@@ -29,7 +29,7 @@ void main() {
   );
 
   Future<http.Response> createKey(Map<String, dynamic> body, String language) =>
-      http.post(
+      server.client.post(
         server.url(keysPath()),
         headers: {
           ...server.auth(json: true),
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('Should translate the JSON error of the admin API', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/${env.adminPrefix}/bucket/no-such-bucket'),
         headers: {...server.auth(json: true), 'accept-language': 'es'},
       );
@@ -156,7 +156,7 @@ void main() {
     });
 
     test('Should translate a failed login', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/${env.adminPrefix}/login'),
         headers: {'content-type': 'application/json', 'accept-language': 'es'},
         body: jsonEncode({'access': testAccess, 'secret': 'wrong'}),

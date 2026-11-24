@@ -1,14 +1,13 @@
 @TestOn('vm')
 library;
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8108, name: 'rate_limit');
+  final server = TestApp(name: 'rate_limit');
   const window = Duration(seconds: 2);
 
   setUpAll(() async {
@@ -26,7 +25,10 @@ void main() {
   group('RateLimiterFilter (general limit per IP)', () {
     test('Should send the rate limit headers', () async {
       await newWindow();
-      final response = await http.get(server.url('/'), headers: server.auth());
+      final response = await server.client.get(
+        server.url('/'),
+        headers: server.auth(),
+      );
       expect(response.statusCode, 200);
       // IETF draft RateLimit header fields: q = limit, r = remaining
       expect(
@@ -41,13 +43,19 @@ void main() {
       final statuses = <int>[];
       for (var i = 0; i < 6; i++) {
         statuses.add(
-          (await http.get(server.url('/'), headers: server.auth())).statusCode,
+          (await server.client.get(
+            server.url('/'),
+            headers: server.auth(),
+          )).statusCode,
         );
       }
       // S3 clients retry a 503 SlowDown with backoff; they don't retry a 429
       expect(statuses, [200, 200, 200, 200, 200, 503]);
 
-      final limited = await http.get(server.url('/'), headers: server.auth());
+      final limited = await server.client.get(
+        server.url('/'),
+        headers: server.auth(),
+      );
       expect(limited.statusCode, 503);
       expect(limited.headers['content-type'], contains('application/xml'));
       expect(limited.body, contains('<Code>SlowDown</Code>'));
@@ -57,7 +65,7 @@ void main() {
       );
       expect(limited.headers['ratelimit'], startsWith('"default";r=0;t='));
 
-      final json = await http.get(
+      final json = await server.client.get(
         server.url('/'),
         headers: server.auth(json: true),
       );
@@ -68,9 +76,9 @@ void main() {
     test('Should answer 429 on the admin API (the console)', () async {
       await newWindow();
       for (var i = 0; i < 5; i++) {
-        await http.get(server.url('/'), headers: server.auth());
+        await server.client.get(server.url('/'), headers: server.auth());
       }
-      final admin = await http.get(
+      final admin = await server.client.get(
         server.url('/${env.adminPrefix}/bucket/x'),
         headers: server.auth(),
       );
@@ -83,18 +91,19 @@ void main() {
       () async {
         await newWindow();
         for (var i = 0; i < 5; i++) {
-          await http.get(server.url('/'));
+          await server.client.get(server.url('/'));
         }
-        expect((await http.get(server.url('/'))).statusCode, 503);
+        expect((await server.client.get(server.url('/'))).statusCode, 503);
         expect(
-          (await http.get(
+          (await server.client.get(
             server.url('/${env.adminPrefix}/bucket/x'),
             headers: server.auth(),
           )).statusCode,
           429,
         );
         expect(
-          (await http.post(server.url('/${env.adminPrefix}/login'))).statusCode,
+          (await server.client.post(server.url('/${env.adminPrefix}/login')))
+              .statusCode,
           429,
         );
       },
@@ -103,9 +112,9 @@ void main() {
     test('Should not be bypassed with a fake X-Forwarded-For', () async {
       await newWindow();
       for (var i = 0; i < 5; i++) {
-        await http.get(server.url('/'), headers: server.auth());
+        await server.client.get(server.url('/'), headers: server.auth());
       }
-      final spoofed = await http.get(
+      final spoofed = await server.client.get(
         server.url('/'),
         headers: {...server.auth(), 'x-forwarded-for': '203.0.113.7'},
       );
@@ -115,11 +124,14 @@ void main() {
     test('Should allow requests again in the next window', () async {
       await newWindow();
       for (var i = 0; i < 6; i++) {
-        await http.get(server.url('/'), headers: server.auth());
+        await server.client.get(server.url('/'), headers: server.auth());
       }
       await newWindow();
       expect(
-        (await http.get(server.url('/'), headers: server.auth())).statusCode,
+        (await server.client.get(
+          server.url('/'),
+          headers: server.auth(),
+        )).statusCode,
         200,
       );
     });

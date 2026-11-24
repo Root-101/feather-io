@@ -3,14 +3,13 @@ library;
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8109, name: 'presign_public_url');
+  final server = TestApp(name: 'presign_public_url');
   const bucket = 'public-url-bucket';
   const publicUrl = 'https://s3.example.com';
 
@@ -22,7 +21,7 @@ void main() {
   tearDownAll(server.stop);
 
   Future<String> presign({Map<String, String> headers = const {}}) async {
-    final response = await http.post(
+    final response = await server.client.post(
       server.url('/${env.adminPrefix}/bucket/$bucket/presign'),
       headers: {
         ...server.auth(json: true),
@@ -54,7 +53,7 @@ void main() {
       () async {
         // An HTTPS proxy forwards over HTTP and keeps the public Host
         final url = Uri.parse(await presign());
-        final response = await http.get(
+        final response = await server.client.get(
           server.url('${url.path}?${url.query}'),
           headers: {'host': url.host},
         );

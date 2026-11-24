@@ -6,10 +6,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8103, name: 'unsupported_subresource');
+  final server = TestApp(name: 'unsupported_subresource');
   const bucket = 'sub-bucket';
 
   setUpAll(() async {
@@ -33,14 +33,17 @@ void main() {
         'lifecycle',
       ]) {
         expectNotImplemented(
-          await http.get(server.url('/$bucket?$sub'), headers: server.auth()),
+          await server.client.get(
+            server.url('/$bucket?$sub'),
+            headers: server.auth(),
+          ),
         );
       }
     });
 
     test('Should not create a bucket with PUT ?versioning', () async {
       expectNotImplemented(
-        await http.put(
+        await server.client.put(
           server.url('/other-bucket?versioning'),
           headers: server.auth(),
           body: '<VersioningConfiguration/>',
@@ -54,7 +57,7 @@ void main() {
 
     test('Should not overwrite an object with PUT ?legal-hold', () async {
       expectNotImplemented(
-        await http.put(
+        await server.client.put(
           server.url('/$bucket/a.txt?legal-hold'),
           headers: server.auth(),
           body: '<LegalHold/>',
@@ -67,12 +70,12 @@ void main() {
     });
 
     test('Should still serve the supported operations', () async {
-      final list = await http.get(
+      final list = await server.client.get(
         server.url('/$bucket'),
         headers: server.auth(),
       );
       expect(list.statusCode, 200);
-      final create = await http.post(
+      final create = await server.client.post(
         server.url('/$bucket/b.bin?uploads'),
         headers: server.auth(),
       );
@@ -82,7 +85,7 @@ void main() {
 
   group('S3Controller - GetObjectTagging', () {
     test('Should answer an empty TagSet for an existing object', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/a.txt?tagging'),
         headers: server.auth(),
       );
@@ -91,7 +94,7 @@ void main() {
     });
 
     test('Should return 404 for a missing object', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/missing.txt?tagging'),
         headers: server.auth(),
       );
@@ -100,7 +103,7 @@ void main() {
 
     test('Should still answer 501 to writing tags', () async {
       expectNotImplemented(
-        await http.put(
+        await server.client.put(
           server.url('/$bucket/a.txt?tagging'),
           headers: server.auth(),
           body: '<Tagging><TagSet/></Tagging>',
@@ -111,7 +114,7 @@ void main() {
 
   group('S3Controller - GetBucketVersioning', () {
     test('Should answer that versioning was never enabled', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket?versioning'),
         headers: server.auth(),
       );
@@ -121,7 +124,7 @@ void main() {
     });
 
     test('Should return 404 for a missing bucket', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/missing?versioning'),
         headers: server.auth(),
       );

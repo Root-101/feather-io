@@ -4,14 +4,13 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8082, name: 'delete_test');
+  final server = TestApp(name: 'delete_test');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
@@ -23,13 +22,13 @@ void main() {
       const key = 'todelete.txt';
       await server.putObject(bucket, key, 'data');
 
-      final response = await http.delete(
+      final response = await server.client.delete(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
       expect(response.statusCode, 204);
 
-      final getResponse = await http.get(
+      final getResponse = await server.client.get(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
@@ -47,7 +46,7 @@ void main() {
         handle.close,
       );
 
-      final response = await http.delete(
+      final response = await server.client.delete(
         server.url('/$bucket/$key'),
         headers: server.auth(),
       );
@@ -65,12 +64,15 @@ void main() {
       }
       final responses = await Future.wait([
         for (final key in keys)
-          http.delete(server.url('/$bucket/$key'), headers: server.auth()),
+          server.client.delete(
+            server.url('/$bucket/$key'),
+            headers: server.auth(),
+          ),
       ]);
       expect(responses.map((r) => r.statusCode), everyElement(204));
       // Removing empty folders is just cleanup: one may stay, but nothing is
       // listed
-      final list = await http.get(
+      final list = await server.client.get(
         server.url('/$bucket?prefix=parallel/'),
         headers: server.auth(json: true),
       );
@@ -83,13 +85,16 @@ void main() {
       await server.putObject(bucket, key, 'data');
       await server.putObject(bucket, 'keep.txt', 'data');
 
-      await http.delete(server.url('/$bucket/$key'), headers: server.auth());
+      await server.client.delete(
+        server.url('/$bucket/$key'),
+        headers: server.auth(),
+      );
 
       expect(
         await Directory('${server.storagePath}/$bucket/a').exists(),
         isFalse,
       );
-      final listResponse = await http.get(
+      final listResponse = await server.client.get(
         server.url('/$bucket'),
         headers: server.auth(json: true),
       );
@@ -98,7 +103,7 @@ void main() {
     });
 
     test('Should succeed if file does not exist (204, idempotent)', () async {
-      final response = await http.delete(
+      final response = await server.client.delete(
         server.url('/$bucket/non-existent.txt'),
         headers: server.auth(),
       );
@@ -106,7 +111,9 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await http.delete(server.url('/$bucket/keep.txt'));
+      final response = await server.client.delete(
+        server.url('/$bucket/keep.txt'),
+      );
       expect(response.statusCode, 401);
       expect(
         await File('${server.storagePath}/$bucket/keep.txt').exists(),
@@ -115,7 +122,7 @@ void main() {
     });
 
     test('Should fail with invalid key (400)', () async {
-      final response = await http.delete(
+      final response = await server.client.delete(
         server.url('/$bucket/invalid:name'),
         headers: server.auth(),
       );
@@ -130,7 +137,7 @@ void main() {
       await server.putObject(bucket, 'one.txt', '1');
       await server.putObject(bucket, 'two.txt', '2');
 
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.auth(json: true),
         body: jsonEncode({
@@ -150,7 +157,7 @@ void main() {
     });
 
     test('Should report invalid keys with their S3 code', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.auth(json: true),
         body: jsonEncode({
@@ -166,7 +173,7 @@ void main() {
     });
 
     test('Should require the ?delete parameter (400)', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket'),
         headers: server.auth(json: true),
         body: jsonEncode({'objects': []}),
@@ -179,7 +186,7 @@ void main() {
       'Should reject a JSON body without objects, naming the field (400)',
       () async {
         await server.putObject(bucket, 'kept.txt', 'k');
-        final response = await http.post(
+        final response = await server.client.post(
           server.url('/$bucket?delete'),
           headers: server.auth(json: true),
           body: jsonEncode({
@@ -189,7 +196,7 @@ void main() {
         expect(response.statusCode, 400);
         expect(jsonDecode(response.body)['detail'], contains('objects'));
 
-        final kept = await http.get(
+        final kept = await server.client.get(
           server.url('/$bucket/kept.txt'),
           headers: server.auth(),
         );
@@ -198,7 +205,7 @@ void main() {
     );
 
     test('Should reject an invalid JSON body (400)', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: {
           ...server.auth(json: true),
@@ -213,7 +220,7 @@ void main() {
     test(
       'Should reject a body that is neither JSON nor <Delete> (400)',
       () async {
-        final response = await http.post(
+        final response = await server.client.post(
           server.url('/$bucket?delete'),
           headers: server.auth(),
           body: 'not xml',
@@ -238,7 +245,7 @@ void main() {
       await server.putObject(bucket, 'one.txt', '1');
       await server.putObject(bucket, 'a&b.txt', '2');
 
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: {...server.auth(), 'content-type': 'application/xml'},
         body: deleteXml(['one.txt', 'a&amp;b.txt']),
@@ -261,7 +268,7 @@ void main() {
     test('Should only list the errors in quiet mode', () async {
       await server.putObject(bucket, 'quiet.txt', '1');
 
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.auth(),
         body: deleteXml(['quiet.txt', 'invalid:name'], quiet: true),
@@ -279,7 +286,7 @@ void main() {
     test('Should accept a request signed with SigV4', () async {
       await server.putObject(bucket, 'signed.txt', '1');
 
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.sigV4('POST', '/$bucket', query: const {'delete': ''}),
         body: deleteXml(['signed.txt']),
@@ -289,7 +296,7 @@ void main() {
     });
 
     test('Should reject more than 1000 keys (400)', () async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket?delete'),
         headers: server.auth(),
         body: deleteXml([for (var i = 0; i < 1001; i++) 'k$i']),

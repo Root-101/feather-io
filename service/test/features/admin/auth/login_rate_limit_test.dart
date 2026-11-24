@@ -8,10 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8107, name: 'login_rate_limit');
+  final server = TestApp(name: 'login_rate_limit', port: 8107);
 
   setUpAll(() async {
     // Small limits, so the test doesn't wait
@@ -25,7 +25,7 @@ void main() {
   Future<http.Response> login(
     String secret, {
     Map<String, String> headers = const {},
-  }) => http.post(
+  }) => server.client.post(
     server.url('/${env.adminPrefix}/login'),
     headers: {'content-type': 'application/json', ...headers},
     body: jsonEncode({'access': testAccess, 'secret': secret}),
@@ -55,7 +55,10 @@ void main() {
         expect(spoofed.statusCode, 429);
 
         // A token issued before keeps working during the lock
-        final list = await http.get(server.url('/'), headers: server.auth());
+        final list = await server.client.get(
+          server.url('/'),
+          headers: server.auth(),
+        );
         expect(list.statusCode, 200);
 
         // Once the lock ends, the login works again
@@ -82,7 +85,7 @@ void main() {
         // failure is counted, and then the bodies arrive together
         final sockets = [
           for (var i = 0; i < 10; i++)
-            await Socket.connect('localhost', server.port),
+            await Socket.connect('localhost', server.port!),
         ];
         final bodies = <String>[];
         for (final (i, socket) in sockets.indexed) {
@@ -90,7 +93,7 @@ void main() {
           bodies.add(body);
           socket.write(
             'POST /${env.adminPrefix}/login HTTP/1.1\r\n'
-            'Host: localhost:${server.port}\r\n'
+            'Host: localhost:${server.port!}\r\n'
             'Content-Type: application/json\r\n'
             'Content-Length: ${utf8.encode(body).length}\r\n'
             'Connection: close\r\n\r\n',

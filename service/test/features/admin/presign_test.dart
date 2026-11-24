@@ -7,10 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8099, name: 'presign');
+  final server = TestApp(name: 'presign');
   const bucket = 'share-bucket';
 
   setUpAll(() async {
@@ -19,11 +19,15 @@ void main() {
   });
   tearDownAll(server.stop);
 
-  Future<http.Response> presign(Object body, {bool auth = true}) => http.post(
-    server.url('/${env.adminPrefix}/bucket/$bucket/presign'),
-    headers: {if (auth) ...server.auth(), 'content-type': 'application/json'},
-    body: jsonEncode(body),
-  );
+  Future<http.Response> presign(Object body, {bool auth = true}) =>
+      server.client.post(
+        server.url('/${env.adminPrefix}/bucket/$bucket/presign'),
+        headers: {
+          if (auth) ...server.auth(),
+          'content-type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
 
   Future<String> presignedUrl({int expiresIn = 3600}) async {
     final response = await presign({
@@ -46,7 +50,7 @@ void main() {
         final body = jsonDecode(response.body);
         final url = Uri.parse(body['url']);
         expect(url.host, 'localhost');
-        expect(url.port, 8099);
+        expect(url.authority, server.host);
         expect(url.path, '/$bucket/docs/report%20final.pdf');
         expect(url.queryParameters['X-Amz-Expires'], '3600');
         expect(url.queryParameters['X-Amz-Signature'], isNotEmpty);
@@ -85,7 +89,7 @@ void main() {
 
   group('S3SigV4Filter - presigned URLs', () {
     test('Should download the object without credentials', () async {
-      final response = await http.get(Uri.parse(await presignedUrl()));
+      final response = await server.client.get(Uri.parse(await presignedUrl()));
       expect(response.statusCode, 200);
       expect(response.body, 'content');
     });
@@ -95,7 +99,7 @@ void main() {
       final tampered = url.replace(
         queryParameters: {...url.queryParameters, 'X-Amz-Signature': '0' * 64},
       );
-      final response = await http.get(tampered);
+      final response = await server.client.get(tampered);
       expect(response.statusCode, 403);
       expect(response.body, contains('<Code>SignatureDoesNotMatch</Code>'));
     });
@@ -104,7 +108,7 @@ void main() {
       await server.putObject(bucket, 'secret.txt', 'no');
       final url = Uri.parse(await presignedUrl());
       final other = url.replace(path: '/$bucket/secret.txt');
-      final response = await http.get(other);
+      final response = await server.client.get(other);
       expect(response.statusCode, 403);
     });
 
@@ -115,20 +119,20 @@ void main() {
         final longer = url.replace(
           queryParameters: {...url.queryParameters, 'X-Amz-Expires': '600000'},
         );
-        expect((await http.get(longer)).statusCode, 403);
+        expect((await server.client.get(longer)).statusCode, 403);
       },
     );
 
     test('Should not allow another method with the same URL (403)', () async {
       final url = Uri.parse(await presignedUrl());
-      final response = await http.delete(url);
+      final response = await server.client.delete(url);
       expect(response.statusCode, 403);
     });
 
     test('Should reject an expired URL (403)', () async {
       final url = Uri.parse(await presignedUrl(expiresIn: 1));
       await Future<void>.delayed(const Duration(milliseconds: 2100));
-      final response = await http.get(url);
+      final response = await server.client.get(url);
       expect(response.statusCode, 403);
       expect(response.body, contains('Request has expired'));
     });
@@ -159,7 +163,7 @@ void main() {
         ),
       );
 
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/'),
         headers: {
           ...headers,

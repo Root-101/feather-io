@@ -8,26 +8,27 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8095, name: 'empty_bucket');
+  final server = TestApp(name: 'empty_bucket');
 
   setUpAll(server.start);
   tearDownAll(server.stop);
 
   String admin(String path) => '/${env.adminPrefix}$path';
 
-  Future<http.Response> empty(String name, {bool auth = true}) => http.delete(
-    server.url(admin('/bucket/$name/objects')),
-    headers: auth ? server.auth() : {},
-  );
+  Future<http.Response> empty(String name, {bool auth = true}) =>
+      server.client.delete(
+        server.url(admin('/bucket/$name/objects')),
+        headers: auth ? server.auth() : {},
+      );
 
   group('AdminController - Empty Bucket', () {
     test(
       'Should delete every object and keep the bucket, metadata and rules',
       () async {
-        final create = await http.put(
+        final create = await server.client.put(
           server.url('/full-bucket'),
           headers: {...server.auth(), 'content-type': 'application/json'},
           body: jsonEncode({'description': 'Stays'}),
@@ -35,7 +36,7 @@ void main() {
         expect(create.statusCode, 200);
         await server.putObject('full-bucket', 'a.txt', 'a');
         await server.putObject('full-bucket', 'deep/folder/b.txt', 'b');
-        final rule = await http.post(
+        final rule = await server.client.post(
           server.url(admin('/bucket/full-bucket/anonymous-access')),
           headers: {...server.auth(), 'content-type': 'application/json'},
           body: jsonEncode({'prefix': 'public/', 'access': 'readOnly'}),
@@ -49,7 +50,7 @@ void main() {
         expect(await dir.exists(), isTrue);
         expect(await dir.list().isEmpty, isTrue);
 
-        final bucket = await http.get(
+        final bucket = await server.client.get(
           server.url(admin('/bucket/full-bucket')),
           headers: server.auth(),
         );
@@ -57,7 +58,7 @@ void main() {
         expect(body['object_count'], 0);
         expect(body['description'], 'Stays');
 
-        final rules = await http.get(
+        final rules = await server.client.get(
           server.url(admin('/bucket/full-bucket/anonymous-access')),
           headers: server.auth(),
         );
@@ -69,7 +70,7 @@ void main() {
       await server.putObject('then-delete', 'a.txt', 'a');
       expect((await empty('then-delete')).statusCode, 204);
 
-      final delete = await http.delete(
+      final delete = await server.client.delete(
         server.url('/then-delete'),
         headers: server.auth(),
       );
@@ -77,7 +78,7 @@ void main() {
     });
 
     test('Should succeed on an already empty bucket', () async {
-      final create = await http.put(
+      final create = await server.client.put(
         server.url('/nothing-here'),
         headers: server.auth(),
       );

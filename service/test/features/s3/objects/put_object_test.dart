@@ -10,10 +10,10 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8086, name: 'put_test');
+  final server = TestApp(name: 'put_test');
   const bucket = 'put-bucket';
 
   setUpAll(() async {
@@ -24,7 +24,7 @@ void main() {
 
   group('S3Controller - PUT Object', () {
     test('Should upload successfully in root', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/file.txt'),
         headers: server.auth(),
         body: 'data',
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('Should upload successfully in deep folders', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/a/b/c/d/file.txt'),
         headers: server.auth(),
         body: 'data',
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('Should answer the ETag (md5 of the content) without body', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/etag.txt'),
         headers: server.auth(),
         body: 'data',
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('Should not create the bucket if it does not exist (404)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/missing/file.txt'),
         headers: server.auth(),
         body: 'data',
@@ -75,7 +75,7 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/nopass.txt'),
         body: 'data',
       );
@@ -83,7 +83,7 @@ void main() {
     });
 
     test('Should fail with an invalid token (401)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/wrong.txt'),
         headers: {'authorization': 'Bearer not-a-jwt'},
         body: 'data',
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('Should fail with invalid bucket name (400)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/INVALID_BUCKET/file.txt'),
         headers: server.auth(),
         body: 'data',
@@ -103,7 +103,7 @@ void main() {
 
     test('Should fail with path traversal in key (400)', () async {
       // With %2F the client doesn't normalize the '..' and the key reaches the server as is
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/..%2F..%2Fescape.txt'),
         headers: server.auth(),
         body: 'data',
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('Should upload a key with ".." inside a name', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/informe..final.pdf'),
         headers: server.auth(),
         body: 'data',
@@ -131,7 +131,7 @@ void main() {
       'Should not let a key with an empty segment overwrite another (400)',
       () async {
         await server.putObject(bucket, 'alias/file.txt', 'original');
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/$bucket/alias//file.txt'),
           headers: server.auth(),
           body: 'replaced',
@@ -147,7 +147,7 @@ void main() {
     );
 
     test('Should fail with invalid characters in key (400)', () async {
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/invalid:file.txt'),
         headers: server.auth(),
         body: 'data',
@@ -170,7 +170,7 @@ void main() {
       await server.putObject(bucket, 'open.txt', 'before');
       await openFor('open.txt', const Duration(milliseconds: 300));
 
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/open.txt'),
         headers: server.auth(),
         body: 'after',
@@ -187,7 +187,7 @@ void main() {
       await server.putObject(bucket, 'copy-open.txt', 'old');
       await openFor('copy-open.txt', const Duration(milliseconds: 300));
 
-      final response = await http.put(
+      final response = await server.client.put(
         server.url('/$bucket/copy-open.txt'),
         headers: {
           ...server.auth(),
@@ -211,7 +211,7 @@ void main() {
           ObjectService.replaceTimeout + const Duration(seconds: 3),
         );
 
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/$bucket/locked.txt'),
           headers: server.auth(),
           body: 'after',
@@ -239,7 +239,7 @@ void main() {
       // On Windows `a\b` would be another way to write `a/b`, and it would let
       // a client write the folder marker (`x\.feather-folder`)
       for (final key in ['folder%5Cfile.txt', 'other%5C.feather-folder']) {
-        final response = await http.put(
+        final response = await server.client.put(
           server.url('/$bucket/$key'),
           headers: server.auth(),
           body: 'x',
@@ -265,7 +265,7 @@ void main() {
     Future<http.Response> put(
       String key, {
       Map<String, String> headers = const {},
-    }) => http.put(
+    }) => server.client.put(
       server.url('/$bucket/$key'),
       headers: {...server.auth(), ...headers},
       body: 'data',

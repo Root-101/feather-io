@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../support/test_server.dart';
+import '../support/test_app.dart';
 
 /// Every route of [route], with its full path and method.
 List<(String, HttpMethod, Route)> allRoutes(Route route, [String prefix = '']) {
@@ -28,7 +28,7 @@ Set<String> permissionsOf(Route route) => {
 };
 
 void main() {
-  final server = TestServer(port: 8118, name: 'routes');
+  final server = TestApp(name: 'routes');
   setUpAll(server.start);
   tearDownAll(server.stop);
 
@@ -100,7 +100,7 @@ void main() {
           http.Request(method.name.toUpperCase(), server.url(concrete))
             ..headers['content-type'] = 'application/json'
             ..body = '{}';
-      final response = await request.send();
+      final response = await server.client.send(request);
       expect(response.statusCode, 401, reason: '$method $path (${route.key})');
     }
   });

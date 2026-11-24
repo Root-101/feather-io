@@ -4,14 +4,13 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8116, name: 'storage_cleanup');
+  final server = TestApp(name: 'storage_cleanup');
   const bucket = 'cleanup-bucket';
 
   setUpAll(() async {
@@ -43,7 +42,7 @@ void main() {
 
   group('MultipartService.abortStale', () {
     Future<String> start(String key) async {
-      final response = await http.post(
+      final response = await server.client.post(
         server.url('/$bucket/$key?uploads'),
         headers: server.auth(json: true),
       );
@@ -66,7 +65,7 @@ void main() {
 
       expect(await MultipartService().abortStale(), 1);
 
-      final listed = await http.get(
+      final listed = await server.client.get(
         server.url('/$bucket?uploads'),
         headers: server.auth(json: true),
       );

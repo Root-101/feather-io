@@ -8,10 +8,10 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../../support/test_server.dart';
+import '../../../support/test_app.dart';
 
 void main() {
-  final server = TestServer(port: 8083, name: 'get_test');
+  final server = TestApp(name: 'get_test');
   const bucket = 'get-bucket';
 
   setUpAll(() async {
@@ -23,7 +23,7 @@ void main() {
 
   String md5Of(String content) => md5.convert(utf8.encode(content)).toString();
 
-  Future<http.Response> getRange(String key, String range) => http.get(
+  Future<http.Response> getRange(String key, String range) => server.client.get(
     server.url('/$bucket/$key'),
     headers: {...server.auth(), 'range': range},
   );
@@ -31,7 +31,7 @@ void main() {
 
   group('S3Controller - GET Object', () {
     test('Should download successfully with auth', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/test.txt'),
         headers: server.auth(),
       );
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('Should send the content type of the file', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/image.png'),
         headers: server.auth(),
       );
@@ -51,12 +51,12 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await http.get(server.url('/$bucket/test.txt'));
+      final response = await server.client.get(server.url('/$bucket/test.txt'));
       expect(response.statusCode, 401);
     });
 
     test('Should return 404 for non-existent file', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/notfound.txt'),
         headers: server.auth(),
       );
@@ -65,7 +65,7 @@ void main() {
     });
 
     test('Should return 404 for non-existent bucket', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/other-bucket/test.txt'),
         headers: server.auth(),
       );
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('Should return 400 for invalid bucket name', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/INVALID_BUCKET/test.txt'),
         headers: server.auth(),
       );
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('Should return 400 for invalid key', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/invalid:name'),
         headers: server.auth(),
       );
@@ -91,7 +91,7 @@ void main() {
 
   group('S3Controller - HEAD Object', () {
     test('Should answer the headers without the body', () async {
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/test.txt'),
         headers: server.auth(),
       );
@@ -106,7 +106,7 @@ void main() {
     });
 
     test('Should send Last-Modified on GET too', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/test.txt'),
         headers: server.auth(),
       );
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('Should answer an object without extension as octet-stream', () async {
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/no-extension'),
         headers: server.auth(),
       );
@@ -124,7 +124,7 @@ void main() {
     });
 
     test('Should send the ETag (md5 of the content)', () async {
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/test.txt'),
         headers: server.auth(),
       );
@@ -133,7 +133,7 @@ void main() {
     });
 
     test('Should return 404 for a missing object', () async {
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/notfound.txt'),
         headers: server.auth(),
       );
@@ -141,7 +141,9 @@ void main() {
     });
 
     test('Should fail without auth (401)', () async {
-      final response = await http.head(server.url('/$bucket/test.txt'));
+      final response = await server.client.head(
+        server.url('/$bucket/test.txt'),
+      );
       expect(response.statusCode, 401);
     });
   });
@@ -150,7 +152,7 @@ void main() {
     test(
       'Should download an object without extension as octet-stream',
       () async {
-        final response = await http.get(
+        final response = await server.client.get(
           server.url('/$bucket/no-extension'),
           headers: server.auth(),
         );
@@ -161,7 +163,7 @@ void main() {
     );
 
     test('Should send the ETag (md5 of the content)', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/test.txt'),
         headers: server.auth(),
       );
@@ -174,7 +176,7 @@ void main() {
       await File('${server.storagePath}/$bucket/changes.txt')
           .writeAsString('after');
 
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/changes.txt'),
         headers: server.auth(),
       );
@@ -238,7 +240,7 @@ void main() {
     });
 
     test('Should send only the headers of the range on HEAD', () async {
-      final response = await http.head(
+      final response = await server.client.head(
         server.url('/$bucket/no-extension'),
         headers: {...server.auth(), 'range': 'bytes=0-1'},
       );
@@ -250,7 +252,7 @@ void main() {
 
   group('S3Controller - GET Object (response-* overrides)', () {
     test('Should override the response headers from the query', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url(
           '/$bucket/test.txt?response-content-type=application/pdf'
           '&response-content-disposition=attachment%3B%20filename%3D%22a.pdf%22'
@@ -269,7 +271,7 @@ void main() {
     });
 
     test('Should ignore the overrides of an anonymous request', () async {
-      final rule = await http.post(
+      final rule = await server.client.post(
         server.url('/_admin/bucket/$bucket/anonymous-access'),
         headers: {
           ...server.auth(json: true),
@@ -279,7 +281,7 @@ void main() {
       );
       expect(rule.statusCode, anyOf(200, 201), reason: rule.body);
 
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/test.txt?response-content-type=application/pdf'),
       );
       expect(response.statusCode, 200);
@@ -291,12 +293,12 @@ void main() {
     test(
       'Should send only the Cache-Control stored with the object, as S3',
       () async {
-        final plain = await http.get(
+        final plain = await server.client.get(
           server.url('/$bucket/test.txt'),
           headers: server.auth(),
         );
         expect(plain.headers['cache-control'], isNull);
-        final listing = await http.get(
+        final listing = await server.client.get(
           server.url('/$bucket'),
           headers: server.auth(),
         );
@@ -308,7 +310,7 @@ void main() {
           'x',
           headers: {'cache-control': 'max-age=60'},
         );
-        final cached = await http.get(
+        final cached = await server.client.get(
           server.url('/$bucket/cached.txt'),
           headers: server.auth(),
         );
@@ -317,7 +319,7 @@ void main() {
     );
 
     test('Should keep the admin API private', () async {
-      final keys = await http.get(
+      final keys = await server.client.get(
         server.url('/_admin/access-keys'),
         headers: server.auth(),
       );
@@ -342,7 +344,7 @@ void main() {
             '<script>alert(1)</script>',
             headers: {'content-type': ?type},
           );
-          final response = await http.get(
+          final response = await server.client.get(
             server.url('/$bucket/$key'),
             headers: server.auth(),
           );
@@ -357,7 +359,7 @@ void main() {
     );
 
     test('Should sandbox a page made by response-content-type', () async {
-      final response = await http.get(
+      final response = await server.client.get(
         server.url('/$bucket/test.txt?response-content-type=text/html'),
         headers: server.auth(),
       );
@@ -368,7 +370,7 @@ void main() {
       'Should not sandbox other types (a PDF is not shown in a sandbox)',
       () async {
         for (final key in ['test.txt', 'image.png']) {
-          final response = await http.get(
+          final response = await server.client.get(
             server.url('/$bucket/$key'),
             headers: server.auth(),
           );
@@ -378,7 +380,7 @@ void main() {
             reason: key,
           );
         }
-        final pdf = await http.get(
+        final pdf = await server.client.get(
           server.url('/$bucket/test.txt?response-content-type=application/pdf'),
           headers: server.auth(),
         );
@@ -388,10 +390,11 @@ void main() {
   });
 
   group('S3Controller - GET Object (conditional requests)', () {
-    Future<http.Response> getIf(Map<String, String> conditions) => http.get(
-      server.url('/$bucket/test.txt'),
-      headers: {...server.auth(), ...conditions},
-    );
+    Future<http.Response> getIf(Map<String, String> conditions) =>
+        server.client.get(
+          server.url('/$bucket/test.txt'),
+          headers: {...server.auth(), ...conditions},
+        );
     final etag = '"${md5Of('content')}"';
     final future = HttpDate.format(DateTime.now().add(const Duration(days: 1)));
     final past = HttpDate.format(DateTime.utc(2000));
