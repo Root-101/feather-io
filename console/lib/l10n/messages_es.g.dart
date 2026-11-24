@@ -193,6 +193,10 @@ class AppMessages$nav$es implements AppMessages$nav$en {
 
   // Translations
   @override
+  String get expand => 'Expandir menú';
+  @override
+  String get collapse => 'Contraer menú';
+  @override
   String get browser => 'Explorador';
   @override
   String get buckets => 'Buckets';
@@ -1121,6 +1125,8 @@ extension on AppMessagesEs {
       'errors.validation' => 'Error de validación',
       'errors.server' => 'Error del servidor',
       'errors.unknown' => 'Error desconocido',
+      'nav.expand' => 'Expandir menú',
+      'nav.collapse' => 'Contraer menú',
       'nav.browser' => 'Explorador',
       'nav.buckets' => 'Buckets',
       'nav.language' => ({required Object name}) => 'Idioma: ${name}',

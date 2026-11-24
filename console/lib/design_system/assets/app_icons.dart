@@ -21,8 +21,6 @@ class NavigationIcons {
   SvgAsset get right => const SvgAsset('$_navigation/right.svg');
 
   SvgAsset get next => const SvgAsset('$_navigation/next.svg');
-
-  SvgAsset get menu => const SvgAsset('$_navigation/menu.svg');
 }
 
 class StorageIcons {

@@ -39,6 +39,8 @@ errors:
   server: 'Server error'
   unknown: 'Unknown error'
 nav:
+  expand: 'Expand menu'
+  collapse: 'Collapse menu'
   browser: 'Browser'
   buckets: 'Buckets'
   language: 'Language: {name: String}'

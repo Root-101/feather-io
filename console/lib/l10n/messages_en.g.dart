@@ -207,6 +207,12 @@ class AppMessages$nav$en {
 
   // Translations
 
+  /// en: 'Expand menu'
+  String get expand => 'Expand menu';
+
+  /// en: 'Collapse menu'
+  String get collapse => 'Collapse menu';
+
   /// en: 'Browser'
   String get browser => 'Browser';
 
@@ -1464,6 +1470,8 @@ extension on AppMessages {
       'errors.validation' => 'Validation error',
       'errors.server' => 'Server error',
       'errors.unknown' => 'Unknown error',
+      'nav.expand' => 'Expand menu',
+      'nav.collapse' => 'Collapse menu',
       'nav.browser' => 'Browser',
       'nav.buckets' => 'Buckets',
       'nav.language' => ({required String name}) => 'Language: ${name}',

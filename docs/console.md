@@ -58,8 +58,9 @@ While it starts, the console shows a splash:
 
 The rail on the left opens the three sections: **Browser** (`/#/browser`), **Buckets**
 (`/#/buckets`) and **Access keys** (`/#/keys`). At its foot: the **transfers** indicator (with
-the progress of the uploads and downloads in course), the **language** and **log out**. The menu
-button expands it to show the names.
+the progress of the uploads and downloads in course), the **language** and **log out**. At its top,
+the Feather IO icon; the notch on its edge, next to the icon, expands it to show the names (and the
+name of the app) and collapses it again.
 
 **Behind it:** the transfers are the uploads and downloads described in each section; the language
 is also sent to the service (`Accept-Language`), so its error messages come in the same language.

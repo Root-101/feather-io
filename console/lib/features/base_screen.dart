@@ -29,63 +29,79 @@ class _BaseScreenState extends State<BaseScreen> {
     return Scaffold(
       body: Row(
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: NavigationRail(
-              extended: _isRailExpanded,
-              minWidth: _RailFooter.collapsedWidth,
-              minExtendedWidth: _RailFooter.expandedWidth,
-              selectedIndex: widget.navigationShell.currentIndex,
-              onDestinationSelected: _onTap,
-              leading: _RailMenuButton(
-                expanded: _isRailExpanded,
-                onPressed: _toggleRail,
+          // the notch sits on the divider, so the rail and the divider go together
+          Stack(
+            children: [
+              Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: NavigationRail(
+                      extended: _isRailExpanded,
+                      minWidth: _RailFooter.collapsedWidth,
+                      minExtendedWidth: _RailFooter.expandedWidth,
+                      selectedIndex: widget.navigationShell.currentIndex,
+                      onDestinationSelected: _onTap,
+                      leading: const _RailBrand(),
+                      destinations: [
+                        NavigationRailDestination(
+                          icon: app.assets.icons.storage.folder.build(
+                            color: app.colors.neutral.grey3,
+                          ),
+                          selectedIcon: app.assets.icons.storage.folder.build(
+                            color: app.colors.neutral.white,
+                          ),
+                          label: Text(app.intl.nav.browser),
+                        ),
+                        NavigationRailDestination(
+                          icon: app.assets.icons.storage.bucket.build(
+                            color: app.colors.neutral.grey3,
+                          ),
+                          selectedIcon: app.assets.icons.storage.bucket.build(
+                            color: app.colors.neutral.white,
+                          ),
+                          label: Text(app.intl.nav.buckets),
+                        ),
+                        NavigationRailDestination(
+                          icon: app.assets.icons.actions.key.build(
+                            color: app.colors.neutral.grey3,
+                          ),
+                          selectedIcon: app.assets.icons.actions.key.build(
+                            color: app.colors.neutral.white,
+                          ),
+                          label: Text(app.intl.nav.accessKeys),
+                        ),
+                      ],
+                      trailing: Expanded(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: app.dimensions.padding.l,
+                            ),
+                            child: const _RailFooter(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  VerticalDivider(
+                    thickness: 1,
+                    width: 1,
+                    color: app.colors.neutral.grey5,
+                  ),
+                ],
               ),
-              destinations: [
-                NavigationRailDestination(
-                  icon: app.assets.icons.storage.folder.build(
-                    color: app.colors.neutral.grey3,
-                  ),
-                  selectedIcon: app.assets.icons.storage.folder.build(
-                    color: app.colors.neutral.white,
-                  ),
-                  label: Text(app.intl.nav.browser),
-                ),
-                NavigationRailDestination(
-                  icon: app.assets.icons.storage.bucket.build(
-                    color: app.colors.neutral.grey3,
-                  ),
-                  selectedIcon: app.assets.icons.storage.bucket.build(
-                    color: app.colors.neutral.white,
-                  ),
-                  label: Text(app.intl.nav.buckets),
-                ),
-                NavigationRailDestination(
-                  icon: app.assets.icons.actions.key.build(
-                    color: app.colors.neutral.grey3,
-                  ),
-                  selectedIcon: app.assets.icons.actions.key.build(
-                    color: app.colors.neutral.white,
-                  ),
-                  label: Text(app.intl.nav.accessKeys),
-                ),
-              ],
-              trailing: Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: app.dimensions.padding.l),
-                    child: const _RailFooter(),
-                  ),
+              Positioned(
+                top: _RailNotch.top,
+                right: 0,
+                child: _RailNotch(
+                  expanded: _isRailExpanded,
+                  onPressed: _toggleRail,
                 ),
               ),
-            ),
-          ),
-          VerticalDivider(
-            thickness: 1,
-            width: 1,
-            color: app.colors.neutral.grey5,
+            ],
           ),
           Expanded(child: widget.navigationShell),
         ],
@@ -162,45 +178,109 @@ class _RailFooter extends StatelessWidget {
   }
 }
 
-/// Button to expand/collapse the rail. The rail centers its `leading`; this one
-/// takes the whole width of the rail and stays on the left, in the same place as
-/// with the rail collapsed, so it doesn't move when expanding it
-class _RailMenuButton extends StatelessWidget {
-  static const double _size = 48;
+/// The rail's `leading`: the icon, and the name while it is expanded. It takes
+/// the whole width of the rail and stays on the left, in the same place as with
+/// the rail collapsed, so it doesn't move when expanding it
+class _RailBrand extends StatelessWidget {
+  static const double height = 48;
+  static const double _icon = 32;
 
-  final bool expanded;
-  final VoidCallback onPressed;
-
-  const _RailMenuButton({required this.expanded, required this.onPressed});
+  const _RailBrand();
 
   @override
   Widget build(BuildContext context) {
     final animation = NavigationRail.extendedAnimation(context);
-    final button = SizedBox.square(
-      dimension: _size,
-      child: IconButton(
-        icon:
-            (expanded
-                    ? app.assets.icons.navigation.left
-                    : app.assets.icons.navigation.menu)
-                .build(size: 22, color: app.colors.neutral.grey2),
-        onPressed: onPressed,
-      ),
-    );
     return AnimatedBuilder(
       animation: animation,
-      child: button,
-      builder: (context, child) => SizedBox(
+      builder: (context, _) => SizedBox(
         width: lerpDouble(
           _RailFooter.collapsedWidth,
           _RailFooter.expandedWidth,
           animation.value,
         ),
+        height: height,
         child: Padding(
           padding: const EdgeInsets.only(
-            left: (_RailFooter.collapsedWidth - _size) / 2,
+            left: (_RailFooter.collapsedWidth - _icon) / 2,
           ),
-          child: Align(alignment: Alignment.centerLeft, child: child),
+          child: Row(
+            children: [
+              Image.asset(app.assets.appIcon, width: _icon, height: _icon),
+              if (animation.value > 0)
+                Flexible(
+                  child: Opacity(
+                    opacity: animation.value,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: AppWordmark(name: app.intl.app.name, fontSize: 18),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Expand/collapse: a 14×34 notch on the rail's border at the height of the
+/// icon, in the page's background with the border all around (the right side
+/// keeps the divider whole) and a chevron towards where the rail goes
+class _RailNotch extends StatefulWidget {
+  static const double width = 14;
+  static const double height = 34;
+
+  /// Centered on the brand, below the rail's own top padding
+  static const double top = 8 + (_RailBrand.height - height) / 2;
+
+  final bool expanded;
+  final VoidCallback onPressed;
+
+  const _RailNotch({required this.expanded, required this.onPressed});
+
+  @override
+  State<_RailNotch> createState() => _RailNotchState();
+}
+
+class _RailNotchState extends State<_RailNotch> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const radius = BorderRadius.horizontal(left: Radius.circular(10));
+    final active = _hovered;
+    return Tooltip(
+      message: widget.expanded ? app.intl.nav.collapse : app.intl.nav.expand,
+      child: Material(
+        color: app.colors.neutral.transparent,
+        child: InkWell(
+          onTap: widget.onPressed,
+          onHover: (hovered) => setState(() => _hovered = hovered),
+          borderRadius: radius,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: _RailNotch.width,
+            height: _RailNotch.height,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active
+                  ? app.colors.primary.background3
+                  : app.colors.primary.background1,
+              border: Border.all(color: app.colors.neutral.grey5),
+              borderRadius: radius,
+            ),
+            child:
+                (widget.expanded
+                        ? app.assets.icons.navigation.left
+                        : app.assets.icons.navigation.right)
+                    .build(
+                      size: 12,
+                      color: active
+                          ? app.colors.neutral.white
+                          : app.colors.neutral.grey3,
+                    ),
+          ),
         ),
       ),
     );

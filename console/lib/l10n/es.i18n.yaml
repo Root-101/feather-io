@@ -37,6 +37,8 @@ errors:
   server: 'Error del servidor'
   unknown: 'Error desconocido'
 nav:
+  expand: 'Expandir menú'
+  collapse: 'Contraer menú'
   browser: 'Explorador'
   buckets: 'Buckets'
   language: 'Idioma: {name}'
