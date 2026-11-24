@@ -18,6 +18,7 @@ void registerDependencies() {
     ..putLazy<PresignService>(PresignService.new)
     ..putLazy<AnonymousAccessService>(AnonymousAccessService.new)
     ..putLazy<AccessKeyService>(AccessKeyService.new)
+    ..putLazy<AuthService>(AuthService.new)
     //--------------- Controllers ---------------\\
     ..putLazy<AuthController>(AuthController.new)
     ..putLazy<BucketAdminController>(BucketAdminController.new)

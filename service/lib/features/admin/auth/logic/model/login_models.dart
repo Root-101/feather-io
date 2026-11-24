@@ -1,17 +1,22 @@
 import 'package:service/feather.dart';
 
-class LoginRequest {
-  final String access;
-  final String secret;
+class LoginRequest implements Validatable {
+  final String? access;
+  final String? secret;
 
-  LoginRequest({required this.access, required this.secret});
+  LoginRequest({this.access, this.secret});
 
   factory LoginRequest.fromJson(Map<String, dynamic> json) {
     return LoginRequest(
-      access: json.field<String>('access'),
-      secret: json.field<String>('secret'),
+      access: json.field<String?>('access'),
+      secret: json.field<String?>('secret'),
     );
   }
+
+  @override
+  ConstraintValidatorContext validate() => ConstraintValidatorContext()
+    ..field('access', access).notNull()
+    ..field('secret', secret).notNull();
 
   /// The example of the OpenAPI document (a request body only: no secret is
   /// ever written).

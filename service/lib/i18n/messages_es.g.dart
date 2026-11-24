@@ -317,10 +317,6 @@ class ServiceMessages$errors$admin$es
   String get tooManyLoginAttempts =>
       'Demasiados intentos de inicio de sesión fallidos';
   @override
-  String get invalidLoginRequest => 'Petición de inicio de sesión no válida';
-  @override
-  String get invalidRequest => 'Petición no válida';
-  @override
   String get tooManyRequests => 'Demasiadas peticiones';
   @override
   String get accessKeyNotFound => 'No se encontró la clave de acceso';
@@ -502,9 +498,6 @@ extension on ServiceMessagesEs {
       'errors.admin.invalidCredentials' => 'Credenciales no válidas',
       'errors.admin.tooManyLoginAttempts' =>
         'Demasiados intentos de inicio de sesión fallidos',
-      'errors.admin.invalidLoginRequest' =>
-        'Petición de inicio de sesión no válida',
-      'errors.admin.invalidRequest' => 'Petición no válida',
       'errors.admin.tooManyRequests' => 'Demasiadas peticiones',
       'errors.admin.accessKeyNotFound' => 'No se encontró la clave de acceso',
       'errors.validations.bucketName' => 'No es un nombre de bucket válido',

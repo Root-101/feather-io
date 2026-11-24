@@ -73,35 +73,20 @@ class BucketAdminController {
   }
 
   Future<ResponseEntity> downloadObjects(RequestEntity request) async {
-    final bucketName = request.pathParams['bucket']!;
-
-    try {
-      final downloadRequest = await request.body<DownloadObjectsRequest>();
-
-      final zipFile = await objectService.zipObjects(
-        bucketName: bucketName,
-        keys: downloadRequest.keys,
-      );
-
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'download_$timestamp.zip';
-
-      return ResponseEntity<Stream<List<int>>>(
-        200,
-        body: objectService.openAndDeleteTemp(zipFile),
-        headers: {
-          'content-type': 'application/zip',
-          'content-disposition': 'attachment; filename="$fileName"',
-          'content-length': (await zipFile.length()).toString(),
-        },
-      );
-    } catch (e) {
-      // A body that isn't the expected JSON keeps its 400 with the field
-      if (e is ApiException || e is DeserializationException) rethrow;
-      throw S3Exception(
-        S3ErrorCode.invalidRequest,
-        message: intl.errors.admin.invalidRequest,
-      );
-    }
+    final downloadRequest = await request.body<DownloadObjectsRequest>();
+    final zipFile = await objectService.zipObjects(
+      bucketName: request.pathParams['bucket']!,
+      keys: downloadRequest.keys,
+    );
+    final fileName = 'download_${DateTime.now().millisecondsSinceEpoch}.zip';
+    return ResponseEntity<Stream<List<int>>>(
+      200,
+      body: objectService.openAndDeleteTemp(zipFile),
+      headers: {
+        'content-type': 'application/zip',
+        'content-disposition': 'attachment; filename="$fileName"',
+        'content-length': (await zipFile.length()).toString(),
+      },
+    );
   }
 }

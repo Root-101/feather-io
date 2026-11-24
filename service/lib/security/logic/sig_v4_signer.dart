@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:service/feather.dart';
 
 /// AWS Signature Version 4 (S3). Used by the filter that verifies signed
 /// requests and by the service that builds presigned URLs.
@@ -151,14 +152,6 @@ class SigV4Signer {
   }
 
   /// Compares two signatures without stopping at the first difference.
-  static bool sameSignature(String a, String b) {
-    final left = a.toLowerCase();
-    final right = b.toLowerCase();
-    if (left.length != right.length) return false;
-    var diff = 0;
-    for (var i = 0; i < left.length; i++) {
-      diff |= left.codeUnitAt(i) ^ right.codeUnitAt(i);
-    }
-    return diff == 0;
-  }
+  static bool sameSignature(String a, String b) =>
+      Secrets.sameText(a.toLowerCase(), b.toLowerCase());
 }

@@ -116,7 +116,7 @@ extension S3Request on RequestEntity {
   /// route already requires it.
   void requireUploadPermission(String resource) {
     final permissions = securityContext.authentication?.permissions ?? const {};
-    if (!permissions.contains('s3.put-object')) {
+    if (!permissions.contains(Permissions.s3PutObject)) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
         message: intl.errors.multipart.needsUploadPermission,

@@ -92,11 +92,11 @@ class AdminController {
       ),
     ),
     Route.get(
-      key: 'admin.bucket.get',
+      key: Permissions.adminBucketGet,
       path: '/bucket/{bucket}',
       handler: buckets.getBucket,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.get')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketGet)),
         ReservedBucketFilter(),
       ]),
       docs: RouteDocs(
@@ -106,11 +106,11 @@ class AdminController {
       ),
     ),
     Route.delete(
-      key: 'admin.bucket.empty',
+      key: Permissions.adminBucketEmpty,
       path: '/bucket/{bucket}/objects',
       handler: buckets.emptyBucket,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.empty')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketEmpty)),
         ReservedBucketFilter(),
       ]),
       docs: const RouteDocs(
@@ -120,11 +120,11 @@ class AdminController {
       ),
     ),
     Route.delete(
-      key: 'admin.bucket.delete-folder',
+      key: Permissions.adminBucketDeleteFolder,
       path: '/bucket/{bucket}/folder',
       handler: buckets.deleteFolder,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.delete-folder')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketDeleteFolder)),
         ReservedBucketFilter(),
       ]),
       docs: RouteDocs(
@@ -145,11 +145,11 @@ class AdminController {
       ),
     ),
     Route.post(
-      key: 'admin.bucket.presign',
+      key: Permissions.adminBucketPresign,
       path: '/bucket/{bucket}/presign',
       handler: buckets.presignObject,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.presign')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketPresign)),
         ReservedBucketFilter(),
       ]),
       docs: RouteDocs(
@@ -164,11 +164,11 @@ class AdminController {
       ),
     ),
     Route.put(
-      key: 'admin.bucket.update',
+      key: Permissions.adminBucketUpdate,
       path: '/bucket/{bucket}',
       handler: buckets.updateBucket,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.update')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketUpdate)),
         ReservedBucketFilter(),
       ]),
       docs: RouteDocs(
@@ -180,11 +180,11 @@ class AdminController {
       ),
     ),
     Route.post(
-      key: 'admin.bucket.download',
+      key: Permissions.adminBucketDownload,
       path: '/bucket/{bucket}/download',
       handler: buckets.downloadObjects,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.bucket.download')),
+        AuthFilter(rule: hasPermission(Permissions.adminBucketDownload)),
       ]),
       docs: RouteDocs(
         summary: 'Download objects and folders in a zip',
@@ -197,12 +197,12 @@ class AdminController {
       ),
     ),
     Route.get(
-      key: 'admin.bucket.anonymous-access.get-rules',
+      key: Permissions.adminAnonymousAccessGetRules,
       path: '/bucket/{bucket}/anonymous-access',
       handler: anonymousAccessController.getRules,
       filterConfig: FilterConfig([
         AuthFilter(
-          rule: hasPermission('admin.bucket.anonymous-access.get-rules'),
+          rule: hasPermission(Permissions.adminAnonymousAccessGetRules),
         ),
       ]),
       docs: RouteDocs(
@@ -212,12 +212,12 @@ class AdminController {
       ),
     ),
     Route.post(
-      key: 'admin.bucket.anonymous-access.write-rule',
+      key: Permissions.adminAnonymousAccessWriteRule,
       path: '/bucket/{bucket}/anonymous-access',
       handler: anonymousAccessController.createRule,
       filterConfig: FilterConfig([
         AuthFilter(
-          rule: hasPermission('admin.bucket.anonymous-access.write-rule'),
+          rule: hasPermission(Permissions.adminAnonymousAccessWriteRule),
         ),
       ]),
       docs: RouteDocs(
@@ -231,12 +231,12 @@ class AdminController {
       ),
     ),
     Route.delete(
-      key: 'admin.bucket.anonymous-access.delete-rule',
+      key: Permissions.adminAnonymousAccessDeleteRule,
       path: '/bucket/{bucket}/anonymous-access',
       handler: anonymousAccessController.deleteRule,
       filterConfig: FilterConfig([
         AuthFilter(
-          rule: hasPermission('admin.bucket.anonymous-access.delete-rule'),
+          rule: hasPermission(Permissions.adminAnonymousAccessDeleteRule),
         ),
       ]),
       docs: RouteDocs(
@@ -246,11 +246,11 @@ class AdminController {
       ),
     ),
     Route.get(
-      key: 'admin.access-key.list',
+      key: Permissions.adminAccessKeyList,
       path: '/access-keys',
       handler: accessKeyController.list,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.access-key.list')),
+        AuthFilter(rule: hasPermission(Permissions.adminAccessKeyList)),
       ]),
       docs: RouteDocs(
         summary: 'The root key and the managed access keys',
@@ -259,11 +259,11 @@ class AdminController {
       ),
     ),
     Route.post(
-      key: 'admin.access-key.create',
+      key: Permissions.adminAccessKeyCreate,
       path: '/access-keys',
       handler: accessKeyController.create,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.access-key.create')),
+        AuthFilter(rule: hasPermission(Permissions.adminAccessKeyCreate)),
       ]),
       docs: RouteDocs(
         summary: 'Create an access key',
@@ -277,11 +277,11 @@ class AdminController {
       ),
     ),
     Route.put(
-      key: 'admin.access-key.update',
+      key: Permissions.adminAccessKeyUpdate,
       path: '/access-keys/{id}',
       handler: accessKeyController.update,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.access-key.update')),
+        AuthFilter(rule: hasPermission(Permissions.adminAccessKeyUpdate)),
       ]),
       docs: RouteDocs(
         summary: 'Update an access key',
@@ -291,11 +291,13 @@ class AdminController {
       ),
     ),
     Route.post(
-      key: 'admin.access-key.regenerate-secret',
+      key: Permissions.adminAccessKeyRegenerateSecret,
       path: '/access-keys/{id}/secret',
       handler: accessKeyController.regenerateSecret,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.access-key.regenerate-secret')),
+        AuthFilter(
+          rule: hasPermission(Permissions.adminAccessKeyRegenerateSecret),
+        ),
       ]),
       docs: RouteDocs(
         summary: 'Give an access key a new secret',
@@ -305,11 +307,11 @@ class AdminController {
       ),
     ),
     Route.delete(
-      key: 'admin.access-key.delete',
+      key: Permissions.adminAccessKeyDelete,
       path: '/access-keys/{id}',
       handler: accessKeyController.delete,
       filterConfig: FilterConfig([
-        AuthFilter(rule: hasPermission('admin.access-key.delete')),
+        AuthFilter(rule: hasPermission(Permissions.adminAccessKeyDelete)),
       ]),
       docs: const RouteDocs(
         summary: 'Delete an access key',

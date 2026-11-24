@@ -181,9 +181,9 @@ file.
   for `LOGIN_LOCK_SECONDS` (15 min, `429` + `Retry-After`, even with good credentials); a success
   clears it. The IP is `request.clientIp` (an IPv6 by its /64, `defaultClientId`), and
   `TRUSTED_PROXIES` becomes Winter's `ServerConfig.trustedProxies`, so `X-Forwarded-*` are ignored
-  unless proxies are declared. Credentials are compared in constant time. That endpoint
-  checks `FEATHER_ACCESS`/`FEATHER_SECRET` and issues a
-  token with a fixed permission list.
+  unless proxies are declared. Credentials are compared in constant time (`Secrets.sameText`, the
+  one helper, also for SigV4 signatures). That endpoint (`AuthService`) checks
+  `FEATHER_ACCESS`/`FEATHER_SECRET` and issues a token with `Permissions.all`.
 - A general `RateLimiterFilter` (Winter's) is the first global filter: `RATE_LIMIT_REQUESTS` (2000)
   requests per IP every `RATE_LIMIT_WINDOW_SECONDS` (60), 0 disables it; the number comes from
   measured client bursts (see `DECISIONS.md`). It throws Winter's 429, which `S3ExceptionHandler`
@@ -233,13 +233,15 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
   is written at most once a minute per key (`AccessKeyService.touch`). Deleting a bucket deletes
   its grants. See `DECISIONS.md`.
 - Each route declares its own permission with
-  `AuthFilter(rule: hasPermission('s3.put-object') | hasPermission('s3.anonymous.put-object'))`.
+  `AuthFilter(rule: hasPermission(Permissions.s3PutObject) | hasPermission(Permissions.anonymous(Permissions.s3PutObject)))`.
   The S3 routes pass `cacheControl: null`, so, like S3, a response only has the `Cache-Control`
   stored with its object (Winter adds `private` by default, which the admin API keeps).
   Route keys and permission names match (`s3.*`, `admin.*`).
-- New endpoints need the route key, an `AuthFilter`, **and** the permission added to the list in
-  `admin/auth/controller/auth_controller.dart` (and to `S3SigV4Filter` if native S3 clients should reach
-  it). An admin endpoint also needs its `docs:` (see *OpenAPI*).
+- Every permission is a constant of `Permissions` (`security/permissions.dart`), never typed again:
+  the login token gets `Permissions.all`, an access key the sets `s3Read`/`s3Write`. A new endpoint
+  needs its route key, an `AuthFilter` **and** its permission in `Permissions` (and in `all`);
+  `test/security/routes_test.dart` reads the `hasPermission` of every route and checks it. An
+  admin endpoint also needs its `docs:` (see *OpenAPI*).
 - `AnonymousAccessFilter` runs on the S3 parent after the SigV4 filter, for unauthenticated
   requests and, as in AWS, for requests signed with an access key that lacks the route's permission
   (it adds the rule's `s3.anonymous.*` permissions to the key's, which stays the principal; a copy
@@ -571,7 +573,7 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
   `Content-Type`, so reads fall back to the extension) and `server.sigV4(method, path, query: …)`, the
   headers of a native client signed with SigV4 (`access:`/`secret:` sign with an access key created
   in the test). Uploading with `http.put` needs the bucket created.
-- Use one distinct port per file so files run in parallel. Ports in use: 8082–8117.
+- Use one distinct port per file so files run in parallel. Ports in use: 8082–8118.
 - Cover auth (missing or invalid token → 401, wrong login credentials → 403), validation (bad bucket
   names, path traversal, forbidden chars → 400; a 422 reads `body['violations']`, a JSON error
   `body['detail']` and `body['code']`), content negotiation (JSON vs XML, including the S3 error

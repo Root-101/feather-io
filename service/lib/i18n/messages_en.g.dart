@@ -361,12 +361,6 @@ class ServiceMessages$errors$admin$en {
   /// en: 'Too many failed login attempts'
   String get tooManyLoginAttempts => 'Too many failed login attempts';
 
-  /// en: 'Invalid login request'
-  String get invalidLoginRequest => 'Invalid login request';
-
-  /// en: 'Invalid request'
-  String get invalidRequest => 'Invalid request';
-
   /// en: 'Too many requests'
   String get tooManyRequests => 'Too many requests';
 
@@ -549,8 +543,6 @@ extension on ServiceMessages {
       'errors.signature.expired' => 'Request has expired',
       'errors.admin.invalidCredentials' => 'Invalid credentials',
       'errors.admin.tooManyLoginAttempts' => 'Too many failed login attempts',
-      'errors.admin.invalidLoginRequest' => 'Invalid login request',
-      'errors.admin.invalidRequest' => 'Invalid request',
       'errors.admin.tooManyRequests' => 'Too many requests',
       'errors.admin.accessKeyNotFound' => 'Access key not found',
       'errors.validations.bucketName' => 'Not a valid bucket name',

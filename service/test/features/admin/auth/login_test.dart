@@ -51,15 +51,18 @@ void main() {
       },
     );
 
-    test('Should reject a malformed body (400) naming the field', () async {
+    test('Should reject a missing field (422) naming it', () async {
       final missing = await login({'access': testAccess});
-      expect(missing.statusCode, 400);
+      expect(missing.statusCode, 422);
       expect(
         missing.headers['content-type'],
         startsWith('application/problem+json'),
       );
-      expect(jsonDecode(missing.body)['detail'], r'$.secret: missing');
+      final violations = jsonDecode(missing.body)['violations'] as List;
+      expect(violations.map((v) => v['fieldName']), ['secret']);
+    });
 
+    test('Should reject a field of the wrong type (400) naming it', () async {
       final wrongType = await login({'access': testAccess, 'secret': 7});
       expect(wrongType.statusCode, 400);
       expect(

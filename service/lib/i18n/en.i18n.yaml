@@ -79,8 +79,6 @@ errors:
   admin:
     invalidCredentials: 'Invalid credentials'
     tooManyLoginAttempts: 'Too many failed login attempts'
-    invalidLoginRequest: 'Invalid login request'
-    invalidRequest: 'Invalid request'
     tooManyRequests: 'Too many requests'
     accessKeyNotFound: 'Access key not found'
   # Validation rules of the service's own requests (Winter translates its validators)

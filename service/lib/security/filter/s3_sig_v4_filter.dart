@@ -19,28 +19,6 @@ class S3SigV4Filter extends Filter {
 
   factory S3SigV4Filter() => _instance;
 
-  static const Set<String> _readPermissions = {
-    's3.list-objects',
-    's3.get-object',
-  };
-
-  static const Set<String> _writePermissions = {
-    's3.put-object',
-    's3.delete-object',
-    's3.multi-delete-objects',
-  };
-
-  static const Set<String> _rootPermissions = {
-    's3.list-buckets',
-    's3.create-bucket',
-    's3.delete-bucket',
-    's3.list-objects',
-    's3.put-object',
-    's3.get-object',
-    's3.delete-object',
-    's3.multi-delete-objects',
-  };
-
   @override
   Future<ResponseEntity> doFilter(
     RequestEntity request,
@@ -75,7 +53,7 @@ class S3SigV4Filter extends Filter {
             : Authentication(
                 principal: principal,
                 roles: {'admin'},
-                permissions: _rootPermissions,
+                permissions: Permissions.s3,
               ),
       );
     } catch (e) {
@@ -108,12 +86,12 @@ class S3SigV4Filter extends Filter {
   static Set<String> keyPermissions(AccessKeyModel key, String? bucket) {
     final level = bucket == null ? null : key.levelOn(bucket);
     return {
-      's3.list-buckets',
-      if (level?.canRead ?? false) ..._readPermissions,
-      if (level?.canWrite ?? false) ..._writePermissions,
+      Permissions.s3ListBuckets,
+      if (level?.canRead ?? false) ...Permissions.s3Read,
+      if (level?.canWrite ?? false) ...Permissions.s3Write,
       if (key.allBuckets?.canWrite ?? false) ...{
-        's3.create-bucket',
-        's3.delete-bucket',
+        Permissions.s3CreateBucket,
+        Permissions.s3DeleteBucket,
       },
     };
   }

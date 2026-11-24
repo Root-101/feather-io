@@ -59,7 +59,9 @@ class ObjectController {
     final principal = authentication?.principal;
     final canRead = principal is AccessKeyModel
         ? principal.canRead(bucket) || await _publiclyReadable(bucket, key)
-        : (authentication?.permissions ?? const {}).contains('s3.get-object');
+        : (authentication?.permissions ?? const {}).contains(
+            Permissions.s3GetObject,
+          );
     if (!canRead) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
@@ -137,7 +139,9 @@ class ObjectController {
     // ?response-content-type=… (S3 doesn't allow it to anonymous ones; an
     // access key may, even when an anonymous rule is what lets it read)
     final authentication = request.securityContext.authentication;
-    if ((authentication?.permissions ?? const {}).contains('s3.get-object') ||
+    if ((authentication?.permissions ?? const {}).contains(
+          Permissions.s3GetObject,
+        ) ||
         authentication?.principal is AccessKeyModel) {
       for (final name in _overridableHeaders) {
         final value = request.queryParams['response-$name'];
