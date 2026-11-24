@@ -26,7 +26,7 @@ dependencies:
 
   #DB
   drift: 2.35.4
-  sqlite3: ^3.9.2
+  sqlite3: 3.9.2
 
 dev_dependencies:
   http: 1.6.0
