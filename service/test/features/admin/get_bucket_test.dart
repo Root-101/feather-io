@@ -24,7 +24,10 @@ void main() {
     expect(create.statusCode, 200);
     await server.putObject('detail-bucket', 'a.txt', 'abc');
     await server.putObject('detail-bucket', 'folder/b.txt', 'xy');
-    final empty = await http.put(server.url('/empty-bucket'), headers: server.auth());
+    final empty = await http.put(
+      server.url('/empty-bucket'),
+      headers: server.auth(),
+    );
     expect(empty.statusCode, 200);
   });
   tearDownAll(server.stop);

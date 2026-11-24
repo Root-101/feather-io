@@ -3,10 +3,8 @@ import 'dart:convert';
 import 'package:service/feather.dart';
 
 class AuthController {
-  final JwtService jwtService;
-  final LoginRateLimiter rateLimiter;
-
-  AuthController() : jwtService = di.find(), rateLimiter = di.find();
+  final JwtService jwtService = di.find();
+  final LoginRateLimiter rateLimiter = di.find();
 
   Future<ResponseEntity> login(RequestEntity request) async {
     // Per IP (an IPv6 by its /64), as the general limit; behind your own

@@ -6,20 +6,9 @@ import 'package:service/feather.dart';
 /// request to the operation of [BucketController], [ObjectController] or
 /// [MultipartController] it is.
 class S3Controller {
-  final BucketController buckets;
-  final ObjectController objects;
-  final MultipartController multipart;
-
-  S3Controller._(this.buckets, this.objects, this.multipart);
-
-  factory S3Controller() {
-    final objects = ObjectController();
-    return S3Controller._(
-      BucketController(),
-      objects,
-      MultipartController(objects),
-    );
-  }
+  final BucketController buckets = di.find();
+  final ObjectController objects = di.find();
+  final MultipartController multipart = di.find();
 
   /// Like S3, no response gets a `Cache-Control` it wasn't stored with:
   /// `AuthFilter(cacheControl: null)` (Winter adds `private` by default). An

@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:service/feather.dart';
 import 'package:test/test.dart';
 
-import '../../support/test_server.dart';
+import '../support/test_server.dart';
 
 void main() {
   final server = TestServer(

@@ -22,7 +22,7 @@ class MultipartService {
   static const String _infoFile = 'upload.json';
   static final RegExp _uploadIdPattern = RegExp(r'^[0-9a-f]{32}$');
 
-  final ObjectMetaService _objectMeta = ObjectMetaService();
+  final ObjectMetaService _objectMeta = di.find();
 
   /// Completions in progress by upload id: a client that times out and retries
   /// gets the same result instead of joining the parts again over the first one.

@@ -162,7 +162,10 @@ class CopiedPartModel implements XmlSerializable {
   CopiedPartModel({required this.etag, required this.lastModified});
 
   Map<String, Object?> toJson() {
-    return {'etag': etag, 'last_modified': lastModified.toUtc().toIso8601String()};
+    return {
+      'etag': etag,
+      'last_modified': lastModified.toUtc().toIso8601String(),
+    };
   }
 
   /// CopyPartResult.

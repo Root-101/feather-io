@@ -14,7 +14,8 @@ import '../../support/test_server.dart';
 void main() {
   final server = TestServer(port: 8106, name: 'aws_chunked');
   const bucket = 'chunked-bucket';
-  const signature = 'ad80c730a21e5b8d04586a2213dd63b9a0e99e0e2307b0ade35a65485a288648';
+  const signature =
+      'ad80c730a21e5b8d04586a2213dd63b9a0e99e0e2307b0ade35a65485a288648';
 
   setUpAll(() async {
     await server.start();
@@ -28,7 +29,9 @@ void main() {
     final buffer = StringBuffer();
     for (final part in [...parts, '']) {
       final size = utf8.encode(part).length.toRadixString(16);
-      buffer.write(trailer ? '$size\r\n' : '$size;chunk-signature=$signature\r\n');
+      buffer.write(
+        trailer ? '$size\r\n' : '$size;chunk-signature=$signature\r\n',
+      );
       if (part.isNotEmpty) buffer.write('$part\r\n');
     }
     buffer.write(trailer ? 'x-amz-checksum-crc32:AAAAAA==\r\n\r\n' : '\r\n');
@@ -83,13 +86,16 @@ void main() {
 
     test('Should decode a body that arrives cut at any byte', () async {
       final bytes = utf8.encode(encode(['first chunk, ', 'second chunk']));
-      final request = http.StreamedRequest('PUT', server.url('/$bucket/split.txt'))
-        ..headers.addAll(chunkedHeaders())
-        ..contentLength = bytes.length;
+      final request =
+          http.StreamedRequest('PUT', server.url('/$bucket/split.txt'))
+            ..headers.addAll(chunkedHeaders())
+            ..contentLength = bytes.length;
       final sent = request.send();
       // 3 bytes at a time: splits the size lines and the \r\n
       for (var i = 0; i < bytes.length; i += 3) {
-        request.sink.add(bytes.sublist(i, i + 3 > bytes.length ? bytes.length : i + 3));
+        request.sink.add(
+          bytes.sublist(i, i + 3 > bytes.length ? bytes.length : i + 3),
+        );
       }
       unawaited(request.sink.close());
       final response = await sent;
@@ -116,16 +122,22 @@ void main() {
       expect(head2.headers['content-encoding'], isNull);
     });
 
-    test('Should reject a malformed chunk size (400) and store nothing', () async {
-      final response = await http.put(
-        server.url('/$bucket/broken.txt'),
-        headers: chunkedHeaders(),
-        body: 'zz;chunk-signature=$signature\r\nabc\r\n',
-      );
-      expect(response.statusCode, 400);
-      expect(response.body, contains('<Code>IncompleteBody</Code>'));
-      expect(await File('${server.storagePath}/$bucket/broken.txt').exists(), isFalse);
-    });
+    test(
+      'Should reject a malformed chunk size (400) and store nothing',
+      () async {
+        final response = await http.put(
+          server.url('/$bucket/broken.txt'),
+          headers: chunkedHeaders(),
+          body: 'zz;chunk-signature=$signature\r\nabc\r\n',
+        );
+        expect(response.statusCode, 400);
+        expect(response.body, contains('<Code>IncompleteBody</Code>'));
+        expect(
+          await File('${server.storagePath}/$bucket/broken.txt').exists(),
+          isFalse,
+        );
+      },
+    );
 
     test('Should keep the previous object when an upload fails', () async {
       await server.putObject(bucket, 'keep.txt', 'original');
@@ -145,7 +157,10 @@ void main() {
       );
       final names = (jsonDecode(response.body) as List).map((b) => b['name']);
       expect(names, isNot(contains('.tmp')));
-      expect(await Directory('${server.storagePath}/.tmp').list().isEmpty, isTrue);
+      expect(
+        await Directory('${server.storagePath}/.tmp').list().isEmpty,
+        isTrue,
+      );
     });
 
     test('Should reject a body without the last chunk (400)', () async {

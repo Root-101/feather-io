@@ -335,15 +335,18 @@ void main() {
       expect(stored('copied.txt').existsSync(), isFalse);
     });
 
-    test('Should reject unsigned x-amz-meta-* on a presigned PUT (403)', () async {
-      final response = await http.put(
-        presigned('PUT', '/$bucket/meta.txt'),
-        headers: {'x-amz-meta-injected': 'yes'},
-        body: 'x',
-      );
-      expect(response.statusCode, 403);
-      expect(stored('meta.txt').existsSync(), isFalse);
-    });
+    test(
+      'Should reject unsigned x-amz-meta-* on a presigned PUT (403)',
+      () async {
+        final response = await http.put(
+          presigned('PUT', '/$bucket/meta.txt'),
+          headers: {'x-amz-meta-injected': 'yes'},
+          body: 'x',
+        );
+        expect(response.statusCode, 403);
+        expect(stored('meta.txt').existsSync(), isFalse);
+      },
+    );
 
     test('Should accept an unsigned x-amz-content-sha256 (bound by the payload hash)', () async {
       final response = await http.put(
@@ -354,14 +357,17 @@ void main() {
       expect(response.statusCode, 200, reason: response.body);
     });
 
-    test('Should accept an unsigned x-amz-acl, which is ignored (minio-java)', () async {
-      final response = await http.put(
-        presigned('PUT', '/$bucket/acl.txt'),
-        headers: {'x-amz-acl': 'public-read'},
-        body: 'x',
-      );
-      expect(response.statusCode, 200, reason: response.body);
-    });
+    test(
+      'Should accept an unsigned x-amz-acl, which is ignored (minio-java)',
+      () async {
+        final response = await http.put(
+          presigned('PUT', '/$bucket/acl.txt'),
+          headers: {'x-amz-acl': 'public-read'},
+          body: 'x',
+        );
+        expect(response.statusCode, 200, reason: response.body);
+      },
+    );
 
     test('Should reject an unsigned x-amz-copy-source added to a header-signed PUT (403)', () async {
       final response = await http.put(

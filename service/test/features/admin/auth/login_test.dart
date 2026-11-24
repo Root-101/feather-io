@@ -95,8 +95,7 @@ void main() {
     )).statusCode;
 
     test('Should reject a token without exp (it would never expire)', () async {
-      final token = JWT(claims)
-          .sign(SecretKey(testJwtSecret(server.port)));
+      final token = JWT(claims).sign(SecretKey(testJwtSecret(server.port)));
       expect(await listWith(token), 401);
     });
 

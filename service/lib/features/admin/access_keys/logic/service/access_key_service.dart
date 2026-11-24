@@ -20,19 +20,14 @@ class AccessKeyService {
   static const String _secretAlphabet =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-  final AccessKeyTableRepo repo;
-  final BucketService buckets;
-  final SecretCipher cipher;
+  final AccessKeyTableRepo repo = di.find();
+  final BucketService buckets = di.find();
+  final SecretCipher cipher = di.find();
 
   final Random _random = Random.secure();
 
   /// Last `lastUsedAt` saved per key, so a burst of requests writes once.
   static final Map<String, DateTime> _lastTouched = {};
-
-  AccessKeyService()
-    : repo = AccessKeyTableRepo(di.find()),
-      buckets = di.find(),
-      cipher = di.find();
 
   Future<AccessKeyListModel> list() async {
     final rows = await repo.getAll();

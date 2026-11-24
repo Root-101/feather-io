@@ -121,25 +121,30 @@ void main() {
       );
       expect(response.statusCode, 200, reason: response.body);
       expect(
-        await File('${server.storagePath}/$bucket/informe..final.pdf').readAsString(),
+        await File('${server.storagePath}/$bucket/informe..final.pdf')
+            .readAsString(),
         'data',
       );
     });
 
-    test('Should not let a key with an empty segment overwrite another (400)', () async {
-      await server.putObject(bucket, 'alias/file.txt', 'original');
-      final response = await http.put(
-        server.url('/$bucket/alias//file.txt'),
-        headers: server.auth(),
-        body: 'replaced',
-      );
-      expect(response.statusCode, 400);
-      expect(response.body, contains('<Code>InvalidArgument</Code>'));
-      expect(
-        await File('${server.storagePath}/$bucket/alias/file.txt').readAsString(),
-        'original',
-      );
-    });
+    test(
+      'Should not let a key with an empty segment overwrite another (400)',
+      () async {
+        await server.putObject(bucket, 'alias/file.txt', 'original');
+        final response = await http.put(
+          server.url('/$bucket/alias//file.txt'),
+          headers: server.auth(),
+          body: 'replaced',
+        );
+        expect(response.statusCode, 400);
+        expect(response.body, contains('<Code>InvalidArgument</Code>'));
+        expect(
+          await File('${server.storagePath}/$bucket/alias/file.txt')
+              .readAsString(),
+          'original',
+        );
+      },
+    );
 
     test('Should fail with invalid characters in key (400)', () async {
       final response = await http.put(
@@ -251,16 +256,20 @@ void main() {
 
   group('S3Controller - PUT Object over a folder or under an object (409)', () {
     List<FileSystemEntity> temps() {
-      final dir = Directory('${server.storagePath}/${ObjectService.tempFolderName}');
+      final dir = Directory(
+        '${server.storagePath}/${ObjectService.tempFolderName}',
+      );
       return dir.existsSync() ? dir.listSync() : [];
     }
 
-    Future<http.Response> put(String key, {Map<String, String> headers = const {}}) =>
-        http.put(
-          server.url('/$bucket/$key'),
-          headers: {...server.auth(), ...headers},
-          body: 'data',
-        );
+    Future<http.Response> put(
+      String key, {
+      Map<String, String> headers = const {},
+    }) => http.put(
+      server.url('/$bucket/$key'),
+      headers: {...server.auth(), ...headers},
+      body: 'data',
+    );
 
     test('Should not create a key under an object', () async {
       await server.putObject(bucket, 'conflict/docs', 'a file');
@@ -273,22 +282,27 @@ void main() {
       final folder = await put('conflict/docs/sub/');
       expect(folder.statusCode, 409, reason: folder.body);
       expect(
-        await File('${server.storagePath}/$bucket/conflict/docs').readAsString(),
+        await File('${server.storagePath}/$bucket/conflict/docs')
+            .readAsString(),
         'a file',
       );
     });
 
-    test('Should not replace a folder that holds objects with an object', () async {
-      await server.putObject(bucket, 'conflict/pics/a.jpg', 'jpg');
-      final response = await put('conflict/pics');
-      expect(response.statusCode, 409, reason: response.body);
-      expect(response.body, contains('<Code>KeyConflict</Code>'));
-      expect(temps(), isEmpty);
-      expect(
-        await File('${server.storagePath}/$bucket/conflict/pics/a.jpg').readAsString(),
-        'jpg',
-      );
-    });
+    test(
+      'Should not replace a folder that holds objects with an object',
+      () async {
+        await server.putObject(bucket, 'conflict/pics/a.jpg', 'jpg');
+        final response = await put('conflict/pics');
+        expect(response.statusCode, 409, reason: response.body);
+        expect(response.body, contains('<Code>KeyConflict</Code>'));
+        expect(temps(), isEmpty);
+        expect(
+          await File('${server.storagePath}/$bucket/conflict/pics/a.jpg')
+              .readAsString(),
+          'jpg',
+        );
+      },
+    );
 
     test('Should not copy onto a folder (409)', () async {
       await server.putObject(bucket, 'conflict/source.txt', 'source');

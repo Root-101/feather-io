@@ -13,7 +13,7 @@ import 'package:service/feather.dart';
 class S3SigV4Filter extends Filter {
   static final S3SigV4Filter _instance = S3SigV4Filter._();
 
-  late final AccessKeyService _accessKeys = AccessKeyService();
+  late final AccessKeyService _accessKeys = di.find();
 
   S3SigV4Filter._();
 

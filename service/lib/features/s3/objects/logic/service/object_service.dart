@@ -9,10 +9,7 @@ import 'package:service/feather.dart';
 /// The objects of the buckets, on disk: upload, copy, read, list, delete
 /// (one, many or a folder) and download several in a zip.
 class ObjectService {
-  final ObjectMetaService objectMeta;
-
-  ObjectService({ObjectMetaService? objectMeta})
-    : objectMeta = objectMeta ?? ObjectMetaService();
+  final ObjectMetaService objectMeta = di.find();
 
   /// Deletes every object and folder of [bucketName] (its folder stays) and
   /// their metadata. The bucket must exist.

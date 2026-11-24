@@ -9,9 +9,10 @@ class AdminController {
 
   final String adminPrefix = env.adminPrefix;
 
-  final AuthController authController;
-  final AnonymousAccessController anonymousAccessController;
-  final AccessKeyController accessKeyController;
+  final AuthController authController = di.find();
+  final BucketAdminController buckets = di.find();
+  final AnonymousAccessController anonymousAccessController = di.find();
+  final AccessKeyController accessKeyController = di.find();
 
   /// The admin API, plus its OpenAPI document (`/{admin}/openapi.json`) and
   /// Swagger UI (`/{admin}/docs`). Both are public, like the login and the
@@ -62,7 +63,7 @@ class AdminController {
       path: '/health',
       checks: {
         'database': di.find<AppDatabase>().ping,
-        'storage': objectService.storageWritable,
+        'storage': di.find<ObjectService>().storageWritable,
       },
     ),
     Route.post(
@@ -93,7 +94,7 @@ class AdminController {
     Route.get(
       key: 'admin.bucket.get',
       path: '/bucket/{bucket}',
-      handler: getBucket,
+      handler: buckets.getBucket,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.get')),
         ReservedBucketFilter(),
@@ -107,7 +108,7 @@ class AdminController {
     Route.delete(
       key: 'admin.bucket.empty',
       path: '/bucket/{bucket}/objects',
-      handler: emptyBucket,
+      handler: buckets.emptyBucket,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.empty')),
         ReservedBucketFilter(),
@@ -121,7 +122,7 @@ class AdminController {
     Route.delete(
       key: 'admin.bucket.delete-folder',
       path: '/bucket/{bucket}/folder',
-      handler: deleteFolder,
+      handler: buckets.deleteFolder,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.delete-folder')),
         ReservedBucketFilter(),
@@ -146,7 +147,7 @@ class AdminController {
     Route.post(
       key: 'admin.bucket.presign',
       path: '/bucket/{bucket}/presign',
-      handler: presignObject,
+      handler: buckets.presignObject,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.presign')),
         ReservedBucketFilter(),
@@ -165,7 +166,7 @@ class AdminController {
     Route.put(
       key: 'admin.bucket.update',
       path: '/bucket/{bucket}',
-      handler: updateBucket,
+      handler: buckets.updateBucket,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.update')),
         ReservedBucketFilter(),
@@ -181,7 +182,7 @@ class AdminController {
     Route.post(
       key: 'admin.bucket.download',
       path: '/bucket/{bucket}/download',
-      handler: downloadObjects,
+      handler: buckets.downloadObjects,
       filterConfig: FilterConfig([
         AuthFilter(rule: hasPermission('admin.bucket.download')),
       ]),
@@ -317,113 +318,4 @@ class AdminController {
       ),
     ),
   ];
-
-  AdminController()
-    : objectService = di.find(),
-      bucketService = di.find(),
-      presignService = PresignService(),
-      authController = AuthController(),
-      anonymousAccessController = AnonymousAccessController(),
-      accessKeyController = AccessKeyController();
-
-  final ObjectService objectService;
-  final BucketService bucketService;
-  final PresignService presignService;
-
-  /// Presigned URL to download an object. It points to `PUBLIC_URL` or, without
-  /// it, to the host this request arrived at; the host is part of the signature.
-  Future<ResponseEntity> presignObject(RequestEntity request) async {
-    // Validated by body<T>() (422)
-    final presign = await request.body<PresignRequest>();
-
-    // PUBLIC_URL if set; otherwise this request's scheme and host
-    final publicUrl = env.publicUrl;
-    final url = await presignService.presignGet(
-      scheme: publicUrl?.scheme ?? request.requestedUri.scheme,
-      host:
-          publicUrl?.authority ??
-          request.headers['host'] ??
-          request.requestedUri.authority,
-      bucketName: request.pathParams['bucket']!,
-      key: presign.key!,
-      expiresIn: Duration(seconds: presign.expiresIn!),
-    );
-    return ResponseEntity.ok(body: url);
-  }
-
-  Future<ResponseEntity> getBucket(RequestEntity request) async {
-    final bucket = await bucketService.getBucket(
-      bucketName: request.pathParams['bucket']!,
-    );
-    return ResponseEntity.ok(body: bucket);
-  }
-
-  Future<ResponseEntity> emptyBucket(RequestEntity request) async {
-    await bucketService.emptyBucket(bucketName: request.pathParams['bucket']!);
-    return ResponseEntity.noContent();
-  }
-
-  /// Deletes a folder with all its content: `?prefix=photos/`. Through the S3
-  /// API, deleting `photos/` only removes the empty folder (its marker).
-  Future<ResponseEntity> deleteFolder(RequestEntity request) async {
-    final bucketName = request.pathParams['bucket']!;
-    final prefix = request.queryParam<String>('prefix');
-    if (prefix == null || prefix.isEmpty) {
-      throw S3Exception(
-        S3ErrorCode.invalidArgument,
-        message: intl.errors.s3.missingFolderPrefix,
-        resource: bucketName,
-      );
-    }
-    await objectService.deleteFolder(bucketName: bucketName, prefix: prefix);
-    return ResponseEntity.noContent();
-  }
-
-  Future<ResponseEntity> updateBucket(RequestEntity request) async {
-    final bucketName = request.pathParams['bucket']!;
-
-    // Validated by body<T>() (422)
-    final updateRequest = await request.body<UpdateBucketRequest>();
-
-    final bucket = await bucketService.updateBucket(
-      bucketName: bucketName,
-      description: updateRequest.description,
-      color: updateRequest.color,
-    );
-
-    return ResponseEntity.ok(body: bucket);
-  }
-
-  Future<ResponseEntity> downloadObjects(RequestEntity request) async {
-    final bucketName = request.pathParams['bucket']!;
-
-    try {
-      final downloadRequest = await request.body<DownloadObjectsRequest>();
-
-      final zipFile = await objectService.zipObjects(
-        bucketName: bucketName,
-        keys: downloadRequest.keys,
-      );
-
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'download_$timestamp.zip';
-
-      return ResponseEntity<Stream<List<int>>>(
-        200,
-        body: objectService.openAndDeleteTemp(zipFile),
-        headers: {
-          'content-type': 'application/zip',
-          'content-disposition': 'attachment; filename="$fileName"',
-          'content-length': (await zipFile.length()).toString(),
-        },
-      );
-    } catch (e) {
-      // A body that isn't the expected JSON keeps its 400 with the field
-      if (e is ApiException || e is DeserializationException) rethrow;
-      throw S3Exception(
-        S3ErrorCode.invalidRequest,
-        message: intl.errors.admin.invalidRequest,
-      );
-    }
-  }
 }

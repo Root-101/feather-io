@@ -13,9 +13,7 @@ class ObjectMetaService {
   /// ETag of an empty object (and of folders).
   static final String emptyEtag = md5.convert(const []).toString();
 
-  final ObjectMetaTableRepo repo;
-
-  ObjectMetaService() : repo = ObjectMetaTableRepo(di.find());
+  final ObjectMetaTableRepo repo = di.find();
 
   /// Stores the metadata of [file], just written to [bucketName]/[key].
   Future<void> save({

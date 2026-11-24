@@ -21,17 +21,24 @@ void main() {
   tearDownAll(server.stop);
 
   group('ObjectService.deleteStaleTemps', () {
-    test('Should delete the temp files older than a day and keep the rest', () async {
-      final dir = Directory('${server.storagePath}/${ObjectService.tempFolderName}')
-        ..createSync(recursive: true);
-      final old = File('${dir.path}/old.tmp')..writeAsStringSync('left over');
-      old.setLastModifiedSync(DateTime.now().subtract(const Duration(days: 2)));
-      final recent = File('${dir.path}/recent.tmp')..writeAsStringSync('uploading');
+    test(
+      'Should delete the temp files older than a day and keep the rest',
+      () async {
+        final dir = Directory(
+          '${server.storagePath}/${ObjectService.tempFolderName}',
+        )..createSync(recursive: true);
+        final old = File('${dir.path}/old.tmp')..writeAsStringSync('left over');
+        old.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 2)),
+        );
+        final recent = File('${dir.path}/recent.tmp')
+          ..writeAsStringSync('uploading');
 
-      expect(await di.find<ObjectService>().deleteStaleTemps(), 1);
-      expect(old.existsSync(), isFalse);
-      expect(recent.existsSync(), isTrue);
-    });
+        expect(await di.find<ObjectService>().deleteStaleTemps(), 1);
+        expect(old.existsSync(), isFalse);
+        expect(recent.existsSync(), isTrue);
+      },
+    );
   });
 
   group('MultipartService.abortStale', () {

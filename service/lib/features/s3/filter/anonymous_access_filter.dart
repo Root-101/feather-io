@@ -12,7 +12,7 @@ import 'package:service/feather.dart';
 class AnonymousAccessFilter extends Filter {
   static final AnonymousAccessFilter _instance = AnonymousAccessFilter._();
 
-  late final AnonymousAccessService _service = AnonymousAccessService();
+  late final AnonymousAccessService _service = di.find();
 
   AnonymousAccessFilter._();
 

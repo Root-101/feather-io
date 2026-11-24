@@ -37,24 +37,33 @@ void main() {
       expect(response.statusCode, 204);
       expect(await bucketExists('empty-bucket'), isFalse);
 
-      final list = await http.get(server.url('/'), headers: server.auth(json: true));
-      expect((jsonDecode(list.body) as List).map((b) => b['name']), isNot(contains('empty-bucket')));
+      final list = await http.get(
+        server.url('/'),
+        headers: server.auth(json: true),
+      );
+      expect(
+        (jsonDecode(list.body) as List).map((b) => b['name']),
+        isNot(contains('empty-bucket')),
+      );
     });
 
-    test('DELETE /{bucket} - Should delete a bucket signed with SigV4 (204)', () async {
-      final create = await http.put(
-        server.url('/sigv4-bucket'),
-        headers: server.auth(),
-      );
-      expect(create.statusCode, 200);
+    test(
+      'DELETE /{bucket} - Should delete a bucket signed with SigV4 (204)',
+      () async {
+        final create = await http.put(
+          server.url('/sigv4-bucket'),
+          headers: server.auth(),
+        );
+        expect(create.statusCode, 200);
 
-      final response = await http.delete(
-        server.url('/sigv4-bucket'),
-        headers: server.sigV4('DELETE', '/sigv4-bucket'),
-      );
-      expect(response.statusCode, 204, reason: response.body);
-      expect(await bucketExists('sigv4-bucket'), isFalse);
-    });
+        final response = await http.delete(
+          server.url('/sigv4-bucket'),
+          headers: server.sigV4('DELETE', '/sigv4-bucket'),
+        );
+        expect(response.statusCode, 204, reason: response.body);
+        expect(await bucketExists('sigv4-bucket'), isFalse);
+      },
+    );
 
     test('DELETE /{bucket} - Should reject a non-empty bucket (409)', () async {
       await server.putObject('full-bucket', 'file.txt', 'data');
@@ -68,18 +77,22 @@ void main() {
       expect(await bucketExists('full-bucket'), isTrue);
     });
 
-    test('DELETE /{bucket} - Should return 404 for a non-existent bucket', () async {
-      final response = await http.delete(
-        server.url('/ghost-bucket'),
-        headers: server.auth(json: true),
-      );
-      expect(response.statusCode, 404);
-      expect(jsonDecode(response.body)['code'], 'NoSuchBucket');
-    });
+    test(
+      'DELETE /{bucket} - Should return 404 for a non-existent bucket',
+      () async {
+        final response = await http.delete(
+          server.url('/ghost-bucket'),
+          headers: server.auth(json: true),
+        );
+        expect(response.statusCode, 404);
+        expect(jsonDecode(response.body)['code'], 'NoSuchBucket');
+      },
+    );
 
     test('DELETE /{bucket} - Should reject a reserved name (403)', () async {
       // A reserved bucket that already exists on disk (created before the name was reserved)
-      await Directory('${server.storagePath}/reserved-bucket').create(recursive: true);
+      await Directory('${server.storagePath}/reserved-bucket')
+          .create(recursive: true);
 
       final response = await http.delete(
         server.url('/reserved-bucket'),

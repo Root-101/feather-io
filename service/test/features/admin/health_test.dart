@@ -24,12 +24,19 @@ void main() {
       final response = await http.get(health());
       expect(response.statusCode, 200);
       expect(response.headers['cache-control'], 'no-store');
-      expect(response.headers['content-type'], startsWith('application/health+json'));
+      expect(
+        response.headers['content-type'],
+        startsWith('application/health+json'),
+      );
       expect(jsonDecode(response.body), {
         'status': 'pass',
         'checks': {
-          'database': [{'status': 'pass'}],
-          'storage': [{'status': 'pass'}],
+          'database': [
+            {'status': 'pass'},
+          ],
+          'storage': [
+            {'status': 'pass'},
+          ],
         },
       });
     });
@@ -56,7 +63,9 @@ void main() {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       expect(body['status'], 'fail');
       expect(body['checks']['database'][0]['status'], 'fail');
-      expect(body['checks']['storage'], [{'status': 'pass'}]);
+      expect(body['checks']['storage'], [
+        {'status': 'pass'},
+      ]);
     });
   });
 }

@@ -58,7 +58,7 @@ directory, so always run from `service/`.
 
 ```bash
 fvm dart pub get
-fvm dart run build_runner build          # only for Drift (lib/features/db/database.g.dart)
+fvm dart run build_runner build          # only for Drift (lib/db/database.g.dart)
 fvm dart run slang                       # after editing lib/i18n/*.i18n.yaml (error messages)
 fvm dart analyze
 fvm dart test                            # all tests
@@ -141,9 +141,17 @@ fvm flutter test                                                # on the VM, no 
 
 ## Service architecture
 
-**Bootstrap.** `FeatherIO.start()` in `lib/main.dart` registers deserializers on the ObjectMapper (
-`om`), puts `AppDatabase`, `ObjectService`, `BucketService` and `JwtService` into Winter's `di`, then builds
-`S3Controller` and `AdminController` and passes their `.routing` to `Winter.start`. `S3Controller`
+The service follows the Winter service standard (the `winter-service-standard` skill, as Dumpling),
+with the S3 API as the protocol imposed from outside that the standard describes.
+
+**Bootstrap.** `FeatherIO.setUp()` in `lib/main.dart` registers deserializers on the ObjectMapper (
+`om`), puts the infrastructure into Winter's `di` (`AppDatabase`, `SecretCipher`, `JwtService`,
+`LoginRateLimiter`), registers every repo, service and controller (`config/dependencies.dart`,
+`putLazy`; they find each other with `final X x = di.find();`, never `X()`) and returns the
+router, filters and security (`FeatherApp`); `start()` serves them with `Winter.start`, and the
+tests in memory. The router has the `.routing` of `AdminController` and `S3Controller`, the
+routing classes: they only declare routes, the handlers live in the feature controllers
+(`BucketAdminController` for the admin operations on a bucket). `S3Controller`
 only holds the S3 routes: S3 multiplexes several operations on one method and path (by query and
 headers), so each route hands the request to its operation in `BucketController`,
 `ObjectController` or `MultipartController`. What those read from a request (bucket, key, stored
@@ -258,16 +266,16 @@ against the AWS docs example. The SigV4 maths live in `security/logic/sig_v4_sig
 
 A parent feature keeps what its sub-features share, and each sub-feature has its own folders:
 
-- `admin/` (`admin_controller.dart` with the admin routes) with `auth/`, `anonymous_access/` and
-  `access_keys/`.
+- `admin/` (`admin_controller.dart` with the admin routes) with `auth/`, `buckets/` (the admin
+  operations on a bucket), `anonymous_access/` and `access_keys/`.
 - `s3/` (`s3_controller.dart` with the S3 routes, `s3_request.dart`, `s3_response.dart`;
   `filter/`; `utils/` with `AwsChunkedDecoder`, `S3Validator` and `S3Xml`) with `buckets/`
   (`BucketService`: their folder, metadata and what goes away with them), `objects/`
   (`ObjectService`: objects on disk, `ObjectMetaService`, `PresignService`) and `multipart/`.
-- `db/` (Drift).
 
-Outside `features/`: `config/`, `exceptions/` (`S3Exception`, `S3ErrorCode` and
-`S3ExceptionHandler`), `i18n/`, `security/` (JWT, SigV4, secrets) and `xml/` (the XML mapper).
+Outside `features/`: `config/` (env, dependencies), `core/` (what every feature shares:
+`S3Exception`, `S3ErrorCode` and `S3ExceptionHandler`), `db/` (Drift: `database.dart` and a file
+per feature in `tables/`), `i18n/`, `security/` (JWT, SigV4, secrets) and `xml/` (the XML mapper).
 
 **Layer rules.**
 
@@ -330,7 +338,7 @@ never enabled; rclone asks before a purge).
 `type`, `title`, `status`, `detail`), as Winter answers them.
 
 - S3 errors (from services and S3 filters) throw
-  `S3Exception(S3ErrorCode.x, message: …, resource: …)` (`exceptions/`), or
+  `S3Exception(S3ErrorCode.x, message: …, resource: …)` (`core/`), or
   one of its named constructors (`invalidBucketName`, `invalidKey`, `noSuchBucket`, `noSuchKey`).
   It is an `ApiException`: `detail` is the message and the extensions `code` and `resource`. Each
   `S3ErrorCode` carries the AWS code and its HTTP status; add new codes there.

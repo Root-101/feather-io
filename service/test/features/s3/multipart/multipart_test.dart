@@ -167,34 +167,37 @@ void main() {
       expect(object.bodyBytes.first, 1);
     });
 
-    test('Should answer the same to a Complete retried while the first runs', () async {
-      const key = 'retried.bin';
-      final uploadId = await createId(key);
-      final etags = await uploadBoth(key, uploadId);
-      final parts = [(1, etags[0]), (2, etags[1])];
+    test(
+      'Should answer the same to a Complete retried while the first runs',
+      () async {
+        const key = 'retried.bin';
+        final uploadId = await createId(key);
+        final etags = await uploadBoth(key, uploadId);
+        final parts = [(1, etags[0]), (2, etags[1])];
 
-      final responses = await Future.wait([
-        completeJson(key, uploadId, parts),
-        completeJson(key, uploadId, parts),
-      ]);
-      for (final response in responses) {
-        expect(response.statusCode, 200, reason: response.body);
-      }
-      expect(
-        jsonDecode(responses[0].body)['etag'],
-        jsonDecode(responses[1].body)['etag'],
-      );
+        final responses = await Future.wait([
+          completeJson(key, uploadId, parts),
+          completeJson(key, uploadId, parts),
+        ]);
+        for (final response in responses) {
+          expect(response.statusCode, 200, reason: response.body);
+        }
+        expect(
+          jsonDecode(responses[0].body)['etag'],
+          jsonDecode(responses[1].body)['etag'],
+        );
 
-      final object = await http.get(
-        server.url('/$bucket/$key'),
-        headers: server.auth(),
-      );
-      expect(object.bodyBytes.length, part1.length + part2.length);
-      expect(
-        md5.convert(object.bodyBytes).toString(),
-        md5.convert([...part1, ...part2]).toString(),
-      );
-    });
+        final object = await http.get(
+          server.url('/$bucket/$key'),
+          headers: server.auth(),
+        );
+        expect(object.bodyBytes.length, part1.length + part2.length);
+        expect(
+          md5.convert(object.bodyBytes).toString(),
+          md5.convert([...part1, ...part2]).toString(),
+        );
+      },
+    );
 
     test('Should keep the file and the ETag of the same part uploaded twice at once', () async {
       const key = 'part-race.bin';
@@ -220,7 +223,10 @@ void main() {
         headers: server.auth(),
       );
       // The ETag of the part that stayed, whichever of the two it was
-      expect(md5.convert(object.bodyBytes).toString(), etag.replaceAll('"', ''));
+      expect(
+        md5.convert(object.bodyBytes).toString(),
+        etag.replaceAll('"', ''),
+      );
     });
 
     test('Should allow a single small part', () async {
@@ -483,14 +489,17 @@ void main() {
       expect(uploads.map((u) => u['key']), ['a/two.bin']);
     });
 
-    test('Should not list the uploads of other buckets nor the finished ones', () async {
-      final response = await http.get(
-        server.url('/$bucket?uploads'),
-        headers: server.auth(json: true),
-      );
-      final keys = (jsonDecode(response.body) as List).map((u) => u['key']);
-      expect(keys, isNot(contains('b/one.bin')));
-    });
+    test(
+      'Should not list the uploads of other buckets nor the finished ones',
+      () async {
+        final response = await http.get(
+          server.url('/$bucket?uploads'),
+          headers: server.auth(json: true),
+        );
+        final keys = (jsonDecode(response.body) as List).map((u) => u['key']);
+        expect(keys, isNot(contains('b/one.bin')));
+      },
+    );
 
     test('Should return 404 for a missing bucket', () async {
       final response = await http.get(
@@ -537,7 +546,9 @@ void main() {
       expect(response.body, contains('<CopyPartResult'));
       expect(
         response.body,
-        contains('<ETag>&quot;${md5.convert(utf8.encode('abcdefghij'))}&quot;</ETag>'),
+        contains(
+          '<ETag>&quot;${md5.convert(utf8.encode('abcdefghij'))}&quot;</ETag>',
+        ),
       );
     });
 
@@ -556,7 +567,8 @@ void main() {
       final completed = await http.post(
         server.url('/$copyBucket/$key?uploadId=$uploadId'),
         headers: server.auth(),
-        body: '<CompleteMultipartUpload><Part><PartNumber>2</PartNumber>'
+        body:
+            '<CompleteMultipartUpload><Part><PartNumber>2</PartNumber>'
             '<ETag>${etag(second)}</ETag></Part></CompleteMultipartUpload>',
       );
       expect(completed.statusCode, 200, reason: completed.body);
@@ -568,14 +580,24 @@ void main() {
 
     test('Should reject a range outside the source (416)', () async {
       final uploadId = await start('outside.txt');
-      final response = await copyPart('outside.txt', uploadId, 1, range: 'bytes=5-20');
+      final response = await copyPart(
+        'outside.txt',
+        uploadId,
+        1,
+        range: 'bytes=5-20',
+      );
       expect(response.statusCode, 416);
       expect(response.body, contains('<Code>InvalidRange</Code>'));
     });
 
     test('Should reject a malformed range (400)', () async {
       final uploadId = await start('bad.txt');
-      final response = await copyPart('bad.txt', uploadId, 1, range: 'bytes=5-');
+      final response = await copyPart(
+        'bad.txt',
+        uploadId,
+        1,
+        range: 'bytes=5-',
+      );
       expect(response.statusCode, 400);
     });
 
@@ -605,7 +627,9 @@ void main() {
       final uploadId = jsonDecode(created.body)['upload_id'] as String;
       for (final number in numbers) {
         await http.put(
-          server.url('/$partsBucket/$key?partNumber=$number&uploadId=$uploadId'),
+          server.url(
+            '/$partsBucket/$key?partNumber=$number&uploadId=$uploadId',
+          ),
           headers: server.auth(),
           body: List<int>.filled(number, number),
         );
@@ -659,7 +683,10 @@ void main() {
       final uploadId = await startWithParts('anonymous.bin', [1]);
       final rule = await http.post(
         server.url('/_admin/bucket/$partsBucket/anonymous-access'),
-        headers: {...server.auth(json: true), 'content-type': 'application/json'},
+        headers: {
+          ...server.auth(json: true),
+          'content-type': 'application/json',
+        },
         body: jsonEncode({'prefix': '*', 'access': 'readOnly'}),
       );
       expect(rule.statusCode, anyOf(200, 201), reason: rule.body);

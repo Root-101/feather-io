@@ -25,7 +25,13 @@ void main() {
 
   group('UnsupportedSubresourceFilter', () {
     test('Should answer 501 to bucket subresources', () async {
-      for (final sub in ['policy', 'tagging', 'encryption', 'acl', 'lifecycle']) {
+      for (final sub in [
+        'policy',
+        'tagging',
+        'encryption',
+        'acl',
+        'lifecycle',
+      ]) {
         expectNotImplemented(
           await http.get(server.url('/$bucket?$sub'), headers: server.auth()),
         );
@@ -40,7 +46,10 @@ void main() {
           body: '<VersioningConfiguration/>',
         ),
       );
-      expect(await Directory('${server.storagePath}/other-bucket').exists(), isFalse);
+      expect(
+        await Directory('${server.storagePath}/other-bucket').exists(),
+        isFalse,
+      );
     });
 
     test('Should not overwrite an object with PUT ?legal-hold', () async {
@@ -58,7 +67,10 @@ void main() {
     });
 
     test('Should still serve the supported operations', () async {
-      final list = await http.get(server.url('/$bucket'), headers: server.auth());
+      final list = await http.get(
+        server.url('/$bucket'),
+        headers: server.auth(),
+      );
       expect(list.statusCode, 200);
       final create = await http.post(
         server.url('/$bucket/b.bin?uploads'),

@@ -7,12 +7,8 @@ import 'package:service/feather.dart';
 /// The S3 operations on objects: PutObject, CopyObject, GetObject (and HEAD),
 /// GetObjectTagging, DeleteObject and DeleteObjects.
 class ObjectController {
-  final ObjectService objectService;
-  final AnonymousAccessService anonymousAccess;
-
-  ObjectController()
-    : objectService = di.find(),
-      anonymousAccess = AnonymousAccessService();
+  final ObjectService objectService = di.find();
+  final AnonymousAccessService anonymousAccess = di.find();
 
   Future<ResponseEntity> putObject(RequestEntity request) async {
     final etag = await objectService.uploadFile(

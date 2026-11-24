@@ -3,9 +3,7 @@ import 'package:service/feather.dart';
 /// Builds presigned URLs (SigV4 in the query) with the service credentials, so
 /// the console can share an object without knowing them.
 class PresignService {
-  final ObjectService objectService;
-
-  PresignService() : objectService = di.find();
+  final ObjectService objectService = di.find();
 
   /// `GET` URL of [key] valid for [expiresIn]. [host] and [scheme] come from
   /// `PUBLIC_URL` or, without it, from the request; the signature includes the host.

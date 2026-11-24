@@ -29,7 +29,10 @@ void main() {
       final response = await http.get(server.url('/'), headers: server.auth());
       expect(response.statusCode, 200);
       // IETF draft RateLimit header fields: q = limit, r = remaining
-      expect(response.headers['ratelimit-policy'], startsWith('"default";q=5;w='));
+      expect(
+        response.headers['ratelimit-policy'],
+        startsWith('"default";q=5;w='),
+      );
       expect(response.headers['ratelimit'], startsWith('"default";r=4;t='));
     });
 
@@ -37,7 +40,9 @@ void main() {
       await newWindow();
       final statuses = <int>[];
       for (var i = 0; i < 6; i++) {
-        statuses.add((await http.get(server.url('/'), headers: server.auth())).statusCode);
+        statuses.add(
+          (await http.get(server.url('/'), headers: server.auth())).statusCode,
+        );
       }
       // S3 clients retry a 503 SlowDown with backoff; they don't retry a 429
       expect(statuses, [200, 200, 200, 200, 200, 503]);
@@ -46,10 +51,16 @@ void main() {
       expect(limited.statusCode, 503);
       expect(limited.headers['content-type'], contains('application/xml'));
       expect(limited.body, contains('<Code>SlowDown</Code>'));
-      expect(int.parse(limited.headers['retry-after']!), inInclusiveRange(1, 2));
+      expect(
+        int.parse(limited.headers['retry-after']!),
+        inInclusiveRange(1, 2),
+      );
       expect(limited.headers['ratelimit'], startsWith('"default";r=0;t='));
 
-      final json = await http.get(server.url('/'), headers: server.auth(json: true));
+      final json = await http.get(
+        server.url('/'),
+        headers: server.auth(json: true),
+      );
       expect(json.statusCode, 503);
       expect(json.body, contains('"SlowDown"'));
     });
@@ -67,24 +78,27 @@ void main() {
       expect(admin.headers['retry-after'], isNotNull);
     });
 
-    test('Should limit every kind of request: anonymous, admin and login', () async {
-      await newWindow();
-      for (var i = 0; i < 5; i++) {
-        await http.get(server.url('/'));
-      }
-      expect((await http.get(server.url('/'))).statusCode, 503);
-      expect(
-        (await http.get(
-          server.url('/${env.adminPrefix}/bucket/x'),
-          headers: server.auth(),
-        )).statusCode,
-        429,
-      );
-      expect(
-        (await http.post(server.url('/${env.adminPrefix}/login'))).statusCode,
-        429,
-      );
-    });
+    test(
+      'Should limit every kind of request: anonymous, admin and login',
+      () async {
+        await newWindow();
+        for (var i = 0; i < 5; i++) {
+          await http.get(server.url('/'));
+        }
+        expect((await http.get(server.url('/'))).statusCode, 503);
+        expect(
+          (await http.get(
+            server.url('/${env.adminPrefix}/bucket/x'),
+            headers: server.auth(),
+          )).statusCode,
+          429,
+        );
+        expect(
+          (await http.post(server.url('/${env.adminPrefix}/login'))).statusCode,
+          429,
+        );
+      },
+    );
 
     test('Should not be bypassed with a fake X-Forwarded-For', () async {
       await newWindow();

@@ -39,15 +39,24 @@ void main() {
 
       final response = await deleteFolder('photos/');
       expect(response.statusCode, 204, reason: response.body);
-      expect(await Directory('${server.storagePath}/$bucket/photos').exists(), isFalse);
-      expect(await File('${server.storagePath}/$bucket/other/c.txt').exists(), isTrue);
+      expect(
+        await Directory('${server.storagePath}/$bucket/photos').exists(),
+        isFalse,
+      );
+      expect(
+        await File('${server.storagePath}/$bucket/other/c.txt').exists(),
+        isTrue,
+      );
     });
 
     test('Should delete a nested folder and clean its empty parents', () async {
       await server.putObject(bucket, 'a/b/c.txt', 'c');
       final response = await deleteFolder('a/b/');
       expect(response.statusCode, 204);
-      expect(await Directory('${server.storagePath}/$bucket/a').exists(), isFalse);
+      expect(
+        await Directory('${server.storagePath}/$bucket/a').exists(),
+        isFalse,
+      );
     });
 
     test('Should succeed for a folder that does not exist', () async {
@@ -58,7 +67,10 @@ void main() {
       await server.putObject(bucket, 'file.txt', 'f');
       final response = await deleteFolder('file.txt');
       expect(response.statusCode, 400);
-      expect(await File('${server.storagePath}/$bucket/file.txt').exists(), isTrue);
+      expect(
+        await File('${server.storagePath}/$bucket/file.txt').exists(),
+        isTrue,
+      );
     });
 
     test('Should reject a missing prefix and a path traversal (400)', () async {

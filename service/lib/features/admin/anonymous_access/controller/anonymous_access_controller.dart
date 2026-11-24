@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:service/feather.dart';
 
 class AnonymousAccessController {
-  final AnonymousAccessService anonymousAccessService;
-
-  AnonymousAccessController()
-    : anonymousAccessService = AnonymousAccessService();
+  final AnonymousAccessService anonymousAccessService = di.find();
 
   Future<ResponseEntity> getRules(RequestEntity request) async {
     final bucketName = request.pathParams['bucket']!;

@@ -36,26 +36,32 @@ void main() {
   }
 
   group('PresignService - PUBLIC_URL', () {
-    test('Should build the URL with PUBLIC_URL, not with the request', () async {
-      final url = await presign();
-      expect(url, startsWith('$publicUrl/$bucket/report.txt?'));
-    });
+    test(
+      'Should build the URL with PUBLIC_URL, not with the request',
+      () async {
+        final url = await presign();
+        expect(url, startsWith('$publicUrl/$bucket/report.txt?'));
+      },
+    );
 
     test('Should ignore a manipulated Host header', () async {
       final url = await presign(headers: {'host': 'attacker.example'});
       expect(Uri.parse(url).host, 's3.example.com');
     });
 
-    test('Should be valid when it arrives through a proxy that keeps the Host', () async {
-      // An HTTPS proxy forwards over HTTP and keeps the public Host
-      final url = Uri.parse(await presign());
-      final response = await http.get(
-        server.url('${url.path}?${url.query}'),
-        headers: {'host': url.host},
-      );
-      expect(response.statusCode, 200, reason: response.body);
-      expect(response.body, 'content');
-    });
+    test(
+      'Should be valid when it arrives through a proxy that keeps the Host',
+      () async {
+        // An HTTPS proxy forwards over HTTP and keeps the public Host
+        final url = Uri.parse(await presign());
+        final response = await http.get(
+          server.url('${url.path}?${url.query}'),
+          headers: {'host': url.host},
+        );
+        expect(response.statusCode, 200, reason: response.body);
+        expect(response.body, 'content');
+      },
+    );
   });
 
   group('ExtendedEnv.publicUrl', () {

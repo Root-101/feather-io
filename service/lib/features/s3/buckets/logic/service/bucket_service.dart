@@ -7,17 +7,12 @@ import 'package:service/feather.dart';
 /// metadata in the database, and what goes away with them (rules, grants,
 /// pending uploads).
 class BucketService {
-  final BucketTableRepo bucketRepo;
-  final ObjectService objectService;
+  final BucketTableRepo bucketRepo = di.find();
+  final ObjectService objectService = di.find();
 
-  final AccessRuleTableRepo accessRuleRepo;
-  final AccessKeyTableRepo accessKeyRepo;
-
-  BucketService()
-    : bucketRepo = BucketTableRepo(di.find()),
-      accessRuleRepo = AccessRuleTableRepo(di.find()),
-      accessKeyRepo = AccessKeyTableRepo(di.find()),
-      objectService = di.find();
+  // Reading and clearing what other features keep about a bucket
+  final AnonymousRuleTableRepo ruleRepo = di.find();
+  final AccessKeyTableRepo accessKeyRepo = di.find();
 
   Future<bool> createBucket({
     required String bucketName,
@@ -59,7 +54,7 @@ class BucketService {
 
   /// The anonymous rules and the access keys' grants of [bucketName].
   Future<void> _deleteAccess(String bucketName) async {
-    await accessRuleRepo.deleteByBucket(bucketName);
+    await ruleRepo.deleteByBucket(bucketName);
     await accessKeyRepo.deleteGrantsByBucket(bucketName);
   }
 

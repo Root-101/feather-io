@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:service/feather.dart';
 
-class AccessRuleTableRepo {
+class AnonymousRuleTableRepo {
   final AppDatabase _db;
 
-  AccessRuleTableRepo(this._db);
+  AnonymousRuleTableRepo(this._db);
 
   Future<List<AnonymousRuleTableData>> getRulesByBucket({
     required String bucket,

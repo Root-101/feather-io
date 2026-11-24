@@ -1,9 +1,7 @@
 import 'package:service/feather.dart';
 
 class AccessKeyController {
-  final AccessKeyService accessKeyService;
-
-  AccessKeyController() : accessKeyService = AccessKeyService();
+  final AccessKeyService accessKeyService = di.find();
 
   Future<ResponseEntity> list(RequestEntity request) async {
     return ResponseEntity.ok(body: await accessKeyService.list());

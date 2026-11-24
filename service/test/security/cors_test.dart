@@ -34,19 +34,22 @@ void main() {
       );
     });
 
-    test('GET with Origin header should include CORS headers, even on 401', () async {
-      final response = await http.get(
-        server.url('/'),
-        headers: {'Origin': 'http://example.com'},
-      );
+    test(
+      'GET with Origin header should include CORS headers, even on 401',
+      () async {
+        final response = await http.get(
+          server.url('/'),
+          headers: {'Origin': 'http://example.com'},
+        );
 
-      expect(response.statusCode, 401);
-      expect(
-        response.headers['access-control-allow-origin'],
-        isNotNull,
-        reason: 'Missing Access-Control-Allow-Origin on GET',
-      );
-    });
+        expect(response.statusCode, 401);
+        expect(
+          response.headers['access-control-allow-origin'],
+          isNotNull,
+          reason: 'Missing Access-Control-Allow-Origin on GET',
+        );
+      },
+    );
 
     test('GET without Origin header should not include CORS headers', () async {
       final response = await http.get(server.url('/'), headers: server.auth());

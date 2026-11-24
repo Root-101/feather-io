@@ -79,10 +79,13 @@ class SigV4Signer {
   /// The canonical query: every name and value through [uriEncode], sorted by
   /// the encoded name.
   static String canonicalQuery(Map<String, String> params) {
-    final encoded = [
-      for (final MapEntry(:key, :value) in params.entries)
-        (uriEncode(key), uriEncode(value)),
-    ]..sort((a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2));
+    final encoded =
+        [
+          for (final MapEntry(:key, :value) in params.entries)
+            (uriEncode(key), uriEncode(value)),
+        ]..sort(
+          (a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2),
+        );
     return encoded.map((pair) => '${pair.$1}=${pair.$2}').join('&');
   }
 
