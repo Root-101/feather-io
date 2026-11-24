@@ -8,8 +8,9 @@ access to it:
 - [`screens/`](screens): the same screens as PNG (1536×720, the console at 125% Windows scaling),
   used by [`../console.md`](../console.md) and the [README](../../README.md).
 
-Loading states, the intermediate states of the forms and the variants of the color picker stay only
-in the canvas.
+In the canvas each artboard is one screen, and its tweaks (state, dialog, view, language…) show every
+state the console has: loading, empty, errors, dialogs and notices, in English and Spanish. The export
+keeps the main ones.
 
 [`brand/`](brand) holds the icon (SVG and PNG) and the presentation images, exported from a third
 canvas, "Feather IO Brand"; they are described, with how to regenerate them, in
@@ -40,7 +41,6 @@ screen, URL or action gets its section there).
    ```
 
    It renders the screens listed in `PICK` with headless Chrome (`tool/support.js` stands in for
-   the canvas runtime: it runs each artboard's `renderVals()` with its default props) and rewrites
-   `screens/` and the PDF. A new screen goes into `PICK`; placeholder data left in the canvas
-   (bucket names like `asdasd`) is replaced through `SUBS`.
+   the canvas runtime: it runs each artboard's `renderVals()` with the tweaks `PICK` gives it, as
+   the query string) and rewrites `screens/` and the PDF. A new screen goes into `PICK`.
 3. Look at the result and commit it with the change.

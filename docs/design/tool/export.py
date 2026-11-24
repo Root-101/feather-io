@@ -5,7 +5,7 @@
 <folder> holds the canvas files as the artifact serves them: `project/canvas.json`,
 `project/*.dc.html` and the uploaded assets (the flag, `<asset id>.svg`, and the app icon,
 `<asset id>.png`). It renders the screens listed in
-PICK with headless Chrome (support.js stands in for the canvas runtime), and rewrites
+PICK with headless Chrome (support.js stands in for the canvas runtime, the query string sets the tweaks), and rewrites
 `docs/design/screens/` and `docs/design/feather-io-console-design.pdf`. Needs Chrome and ffmpeg.
 """
 import json
@@ -17,6 +17,7 @@ import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlencode
 
 DESIGN = Path(__file__).resolve().parent.parent
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe' if sys.platform == 'win32' \
@@ -24,50 +25,46 @@ CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe' if sys.platfor
 FLAG = 'b78ce1432609f9c95c8462b3917deac7'
 ICON = '096c01f0ebbeeaff03dd4a491855d658'
 
-# Placeholder data left in the canvas, replaced so the screenshots read as real use
+# The uploads as headless Chrome needs them: with their extension
 SUBS = [
-    ('Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece '
-     'of classical Latin literature from 45 BC, making it over 2000 years old',
-     'Product photos for the online store'),
-    ('asdasd', 'store-photos'),
-    ("'asd'", "'tests'"), ('>asd<', '>tests<'), ('"asd"', '"tests"'),
     (f'/_blob/{FLAG}', f'/_blob/{FLAG}.svg'),
     (f'/_blob/{ICON}', f'/_blob/{ICON}.png'),
 ]
 
-# (section, file name, artboard, caption): the screens worth keeping, in reading order
+# (section, file name, artboard, its tweaks, caption): the screens worth keeping, in reading order. Each
+# artboard is one screen; its tweaks (state, dialog, view…) pick what is shown, as in the canvas
 PICK = [
-    ('Access', 'splash', 'Splash', 'Splash while the app loads'),
-    ('Access', 'login', 'Login', 'Login'),
-    ('Browser', 'buckets-list', 'Main', 'Browser: buckets, list view'),
-    ('Browser', 'buckets-grid', 'BucketsGrid', 'Browser: buckets, grid view with the bucket menu'),
-    ('Browser', 'create-bucket', 'CreateBucketFlow', 'Create bucket'),
-    ('Browser', 'create-bucket-validation', 'CBErrorValidacion', 'Create bucket: validation of the name'),
-    ('Browser', 'bucket-color', 'CBColorPersonalizado', 'Create bucket: custom color'),
-    ('Browser', 'objects-list', 'ObjectsList', 'Inside a bucket: list view'),
-    ('Browser', 'objects-grid', 'ObjectsGrid', 'Inside a bucket: grid view with the object menu'),
-    ('Browser', 'objects-menu', 'ObjectsP3', 'Object menu: details, share, rename, move'),
-    ('Browser', 'objects-selected', 'P3Selected', 'Several objects selected: download, move or delete'),
-    ('Browser', 'objects-filters', 'ObjectsFilter', 'Filters by type, size and date'),
-    ('Browser', 'objects-drop', 'ObjectsDrop', 'Dropping files to upload them'),
-    ('Browser', 'delete-objects', 'DeleteDialog', 'Delete objects'),
-    ('Browser', 'object-details', 'P3Details', 'Object details'),
-    ('Browser', 'new-folder', 'P3NewFolder', 'New folder'),
-    ('Browser', 'rename', 'P3Rename', 'Rename an object'),
-    ('Browser', 'move', 'P3Move', 'Move objects to another folder'),
-    ('Browser', 'share-link', 'P4Share', 'Share link (presigned URL)'),
-    ('Browser', 'transfers', 'P4Uploads', 'Background transfers'),
-    ('Buckets', 'bucket-general', 'BucketDetail', 'Buckets: general tab'),
-    ('Buckets', 'bucket-access', 'BDAccess', 'Buckets: anonymous access rules'),
-    ('Buckets', 'bucket-add-rule', 'BDAddRule', 'Add an anonymous access rule'),
-    ('Buckets', 'bucket-danger', 'BDDanger', 'Buckets: danger zone'),
-    ('Buckets', 'bucket-empty-confirm', 'BDEmptyConfirm', 'Empty a bucket, confirmed with its name'),
-    ('Buckets', 'edit-bucket', 'EditBucket', 'Edit a bucket'),
-    ('Access keys', 'access-keys', 'AccessKeys', 'Access keys'),
-    ('Access keys', 'access-key-menu', 'AKMenu', 'Menu of a key'),
-    ('Access keys', 'access-key-create', 'AKCreate', 'Create a key with permissions per bucket'),
-    ('Access keys', 'access-key-created', 'AKCreated', 'Key created: the secret is shown once'),
-    ('Navigation', 'rail-expanded', 'RailFooterExpanded', 'Navigation rail, expanded'),
+    ('Access', 'splash', 'Splash', {}, 'Splash while the app loads'),
+    ('Access', 'login', 'Login', {}, 'Login'),
+    ('Browser', 'buckets-list', 'Main', {}, 'Browser: buckets, list view'),
+    ('Browser', 'buckets-grid', 'Main', {'view': 'Grid', 'dialog': 'Bucket menu'}, 'Browser: buckets, grid view with the bucket menu'),
+    ('Browser', 'create-bucket', 'CreateBucketFlow', {}, 'Create bucket'),
+    ('Browser', 'create-bucket-validation', 'CreateBucketFlow', {'state': 'Validation error'}, 'Create bucket: validation of the name'),
+    ('Browser', 'bucket-color', 'CreateBucketFlow', {'state': 'Custom color'}, 'Create bucket: custom color'),
+    ('Browser', 'objects-list', 'ObjectsP3', {}, 'Inside a bucket: list view'),
+    ('Browser', 'objects-grid', 'ObjectsP3', {'view': 'Grid', 'panel': 'Object menu'}, 'Inside a bucket: grid view with the object menu'),
+    ('Browser', 'objects-menu', 'ObjectsP3', {'panel': 'Object menu'}, 'Object menu: details, share, rename, move'),
+    ('Browser', 'objects-selected', 'ObjectsP3', {'selection': 'Two objects'}, 'Several objects selected: download, move or delete'),
+    ('Browser', 'objects-filters', 'ObjectsP3', {'panel': 'Filters'}, 'Filters by type, size and date'),
+    ('Browser', 'objects-drop', 'ObjectsP3', {'state': 'Dragging files'}, 'Dropping files to upload them'),
+    ('Browser', 'delete-objects', 'ObjectsP3', {'selection': 'Two objects', 'dialog': 'Delete'}, 'Delete objects'),
+    ('Browser', 'object-details', 'P3Details', {}, 'Object details'),
+    ('Browser', 'new-folder', 'ObjectName', {}, 'New folder'),
+    ('Browser', 'rename', 'ObjectName', {'mode': 'Rename'}, 'Rename an object'),
+    ('Browser', 'move', 'P3Move', {}, 'Move objects to another folder'),
+    ('Browser', 'share-link', 'P4Share', {}, 'Share link (presigned URL)'),
+    ('Browser', 'transfers', 'P4Uploads', {}, 'Background transfers'),
+    ('Buckets', 'bucket-general', 'BucketDetail', {}, 'Buckets: general tab'),
+    ('Buckets', 'bucket-access', 'BucketDetail', {'tab': 'Anonymous access'}, 'Buckets: anonymous access rules'),
+    ('Buckets', 'bucket-add-rule', 'BDAddRule', {}, 'Add an anonymous access rule'),
+    ('Buckets', 'bucket-danger', 'BucketDetail', {'tab': 'Danger zone'}, 'Buckets: danger zone'),
+    ('Buckets', 'bucket-empty-confirm', 'BucketDetail', {'tab': 'Danger zone', 'dialog': 'Empty bucket'}, 'Empty a bucket, confirmed with its name'),
+    ('Buckets', 'edit-bucket', 'CreateBucketFlow', {'mode': 'Edit'}, 'Edit a bucket'),
+    ('Access keys', 'access-keys', 'AccessKeys', {}, 'Access keys'),
+    ('Access keys', 'access-key-menu', 'AccessKeys', {'panel': 'Key menu'}, 'Menu of a key'),
+    ('Access keys', 'access-key-create', 'AKCreate', {}, 'Create a key with permissions per bucket'),
+    ('Access keys', 'access-key-created', 'AKCreated', {}, 'Key created: the secret is shown once'),
+    ('Navigation', 'rail-expanded', 'RailFooter', {'mode': 'Expanded'}, 'Navigation rail, expanded'),
 ]
 
 
@@ -99,7 +96,7 @@ def main(source: Path) -> None:
     for old in screens.glob('*.png'):
         old.unlink()
     pages = []
-    for i, (section, name, board, caption) in enumerate(PICK, 1):
+    for i, (section, name, board, tweaks, caption) in enumerate(PICK, 1):
         frame = canvas['boards'][f'{board}.dc.html']
         w, h = frame['w'], frame['h']
         raw, out = work / f'{name}.raw.png', screens / f'{i:02d}-{name}.png'
@@ -107,7 +104,7 @@ def main(source: Path) -> None:
         subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars',
                         '--force-device-scale-factor=1', f'--window-size={w},{h + 96}',
                         '--virtual-time-budget=8000', f'--screenshot={raw}',
-                        f'http://127.0.0.1:{port}/{board}.dc.html'], check=True, capture_output=True)
+                        f'http://127.0.0.1:{port}/{board}.dc.html?{urlencode(tweaks)}'], check=True, capture_output=True)
         subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', str(raw),
                         '-vf', f'crop={w}:{h}:0:0', str(out)], check=True)
         pages.append(f'<div class="p"><div><div class="s">{section}</div><h1>{caption}</h1></div>'
