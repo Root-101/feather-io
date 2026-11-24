@@ -18,12 +18,10 @@ canvas, "Feather IO Brand"; they are described, with how to regenerate them, in
 
 ## Sources
 
-Two Claude Design artifacts, both named "Feather IO Console" (in English):
-
-- Design system: https://claude.ai/artifact/1dJk7nhzEP7Y2CcgnTMyuB (tokens, components and icons
-  of `console/lib/design_system/`).
-- Canvas: https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC (a faithful replica of every screen and
-  state of the console; the export comes from here).
+A Claude Design canvas named "Feather IO Console" (in English):
+https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC. A faithful replica of every screen and state of
+the console (the export comes from here), with a "Design system" page that summarizes the tokens
+and components of `console/lib/design_system/`.
 
 ## Keeping it up to date
 

@@ -700,13 +700,10 @@ shown by both splashes (`app.assets.appIcon`); the web icons in `web/` are made 
 PNGs and SVG (`docs/brand.md`) of icon A, the favicon too (`favicon.svg`, `favicon.png` for the
 rest).
 
-**Claude Design.** The console has two Claude Design artifacts, both named "Feather IO Console"
-(in English, like the docs):
-
-- Design system: https://claude.ai/artifact/1dJk7nhzEP7Y2CcgnTMyuB. Tokens, components and icons
-  from `design_system/`.
-- Canvas: https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC. A faithful replica of the current
-  screens at 1536×720 (125% Windows scaling), used as the base for the redesign.
+**Claude Design.** The console has a Claude Design canvas, "Feather IO Console" (in English, like
+the docs): https://claude.ai/artifact/XJpCx88PuduoWDgbdcBowC. A faithful replica of the current
+screens at 1536×720 (125% Windows scaling), used as the base for the redesign; its "Design system"
+page summarizes the tokens and components of `design_system/`.
 
 The brand (icon and presentation images) has its own canvas, "Feather IO Brand":
 https://claude.ai/artifact/KeQUsAasyicZhB1xgijBaU. `docs/brand.md` describes it and
