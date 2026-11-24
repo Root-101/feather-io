@@ -136,7 +136,7 @@ class MultipartController {
     );
     return S3Response.ok(
       request,
-      CopiedPartModel(etag: etag, lastModified: DateTime.now().toUtc()),
+      CopiedPartModel(etag: etag, lastModified: utcNow()),
     );
   }
 

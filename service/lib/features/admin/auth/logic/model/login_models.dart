@@ -48,7 +48,7 @@ class LoginResponse {
     return {
       'access_token': accessToken,
       'expires_in': expiresIn,
-      'expire_at': expireAt.millisecondsSinceEpoch,
+      'expire_at': expireAt.toJsonDate(),
     };
   }
 }

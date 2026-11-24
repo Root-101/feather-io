@@ -118,7 +118,7 @@ class AccessKeyService {
 
   /// Records that the key signed a request, at most every [lastUsedPrecision].
   Future<void> touch(String id) async {
-    final now = DateTime.now();
+    final now = utcNow();
     final last = _lastTouched[id];
     if (last != null && now.difference(last) < lastUsedPrecision) return;
     _lastTouched[id] = now;
@@ -153,7 +153,7 @@ class AccessKeyService {
   }
 
   void _checkFutureExpiry(DateTime? expiresAt) {
-    if (expiresAt != null && !expiresAt.isAfter(DateTime.now())) {
+    if (expiresAt != null && !expiresAt.isAfter(utcNow())) {
       throw ValidationException(
         violations: [
           ConstraintViolation(

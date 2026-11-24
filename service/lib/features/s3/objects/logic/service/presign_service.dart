@@ -17,7 +17,7 @@ class PresignService {
     // Validates the bucket and the key and checks that the object exists
     await objectService.getFile(bucketName: bucketName, key: key);
 
-    final now = DateTime.now().toUtc();
+    final now = utcNow();
     final amzDate = SigV4Signer.amzDate(now);
     final scope = SigV4Signer.scope(SigV4Signer.dateStamp(now));
     final path =

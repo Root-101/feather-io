@@ -24,14 +24,14 @@ class BucketTableRepo {
             name: name,
             description: Value(description),
             color: Value(color),
-            createdAt: Value(DateTime.now()),
-            updatedAt: Value(DateTime.now()),
+            createdAt: Value(utcNow()),
+            updatedAt: Value(utcNow()),
           ),
           onConflict: DoUpdate(
             (old) => BucketTableCompanion.custom(
               description: Variable(description),
               color: Variable(color),
-              updatedAt: Variable(DateTime.now()),
+              updatedAt: Variable(utcNow()),
             ),
           ),
         );

@@ -77,7 +77,7 @@ class BucketAdminController {
       bucketName: request.pathParams['bucket']!,
       keys: downloadRequest.keys,
     );
-    final fileName = 'download_${DateTime.now().millisecondsSinceEpoch}.zip';
+    final fileName = 'download_${utcNow().millisecondsSinceEpoch}.zip';
     return ResponseEntity<Stream<List<int>>>(
       200,
       body: objectService.openAndDeleteTemp(zipFile),

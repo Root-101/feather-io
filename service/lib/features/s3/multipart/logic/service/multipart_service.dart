@@ -49,12 +49,12 @@ class MultipartService {
     final uploadId = ObjectService.randomId();
     final dir = Directory(p.join(_root.path, uploadId));
     await dir.create(recursive: true);
-    final initiated = DateTime.now().toUtc();
+    final initiated = utcNow();
     await File(p.join(dir.path, _infoFile)).writeAsString(
       jsonEncode({
         'bucket': bucketName,
         'key': key,
-        'initiated': initiated.toIso8601String(),
+        'initiated': initiated.toJsonDate(),
         'headers': headers,
       }),
     );
@@ -322,7 +322,7 @@ class MultipartService {
   /// completed) and returns how many.
   Future<int> abortStale({Duration olderThan = staleUploadAge}) async {
     if (!await _root.exists()) return 0;
-    final limit = DateTime.now().toUtc().subtract(olderThan);
+    final limit = utcNow().subtract(olderThan);
     var aborted = 0;
     await for (final entity in _root.list()) {
       if (entity is! Directory) continue;

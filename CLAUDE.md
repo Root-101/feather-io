@@ -293,7 +293,9 @@ per feature in `tables/`), `i18n/`, `security/` (JWT, SigV4, secrets) and `xml/`
 - Don't add dependencies for things Dart core or Winter already cover.
 
 **Models / serialization.** JSON is hand-written, without interfaces: a model has a
-`Map<String, Object?> toJson()` (Winter finds it by itself) with the `snake_case` names. Request
+`Map<String, Object?> toJson()` (Winter finds it by itself) with the `snake_case` names. Dates go
+out with `toJsonDate()` (ISO 8601 in UTC with milliseconds, never epoch numbers), every moment is
+`utcNow()` and a wait or deadline a `Stopwatch` (`core/time.dart`). Request
 models have a `fromJson` factory that reads each field with `json.field<T>('json_name')` (never
 casts: a wrong body is then a 400 that names the field, `$.buckets[0]: expected an object, got a
 string`), **and** a `Deserializer<T>.json(T.fromJson)` in `main.dart`; a list of objects

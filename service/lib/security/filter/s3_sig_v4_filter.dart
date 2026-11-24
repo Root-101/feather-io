@@ -126,7 +126,7 @@ class S3SigV4Filter extends Filter {
 
   /// Checks that a signature's date is within [maxClockSkew].
   static void _checkClockSkew(DateTime? signedAt) {
-    final now = DateTime.now().toUtc();
+    final now = utcNow();
     if (signedAt == null ||
         signedAt.isBefore(now.subtract(maxClockSkew)) ||
         signedAt.isAfter(now.add(maxClockSkew))) {
@@ -203,15 +203,13 @@ class S3SigV4Filter extends Filter {
       );
     }
     // A future date would stretch the URL past its maximum expiration
-    if (signedAt.isAfter(DateTime.now().toUtc().add(maxClockSkew))) {
+    if (signedAt.isAfter(utcNow().add(maxClockSkew))) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
         message: intl.errors.signature.presignNotYetValid,
       );
     }
-    if (DateTime.now().toUtc().isAfter(
-      signedAt.add(Duration(seconds: expires)),
-    )) {
+    if (utcNow().isAfter(signedAt.add(Duration(seconds: expires)))) {
       throw S3Exception(
         S3ErrorCode.accessDenied,
         message: intl.errors.signature.expired,

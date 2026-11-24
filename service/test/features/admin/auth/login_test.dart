@@ -32,9 +32,15 @@ void main() {
       final body = jsonDecode(response.body);
       expect(body['access_token'], isNotEmpty);
       expect(body['expires_in'], greaterThan(0));
+      // A date like every other of the API: ISO 8601 in UTC, in 12 hours
+      final expireAt = body['expire_at'] as String;
       expect(
-        body['expire_at'],
-        greaterThan(DateTime.now().millisecondsSinceEpoch),
+        expireAt,
+        matches(RegExp(r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$')),
+      );
+      expect(
+        DateTime.parse(expireAt).difference(DateTime.now()).inMinutes,
+        inInclusiveRange(12 * 60 - 1, 12 * 60),
       );
     });
 

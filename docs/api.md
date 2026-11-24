@@ -118,11 +118,11 @@ Content-Type: application/json
 ```
 
 ```json
-{"access_token": "eyJhbGciOiJIUzI1NiIsInR5…", "expires_in": 43200000, "expire_at": 1791729448032}
+{"access_token": "eyJhbGciOiJIUzI1NiIsInR5…", "expires_in": 43200000, "expire_at": "2026-10-09T12:00:00.000Z"}
 ```
 
 `access` and `secret` are the service's `FEATHER_ACCESS` and `FEATHER_SECRET` (access keys can't
-log in). The token lasts 12 hours (`expires_in` in milliseconds, `expire_at` as epoch milliseconds).
+log in). The token lasts 12 hours (`expires_in` in milliseconds, `expire_at` a date like every other).
 Wrong credentials:
 
 ```json

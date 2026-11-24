@@ -37,8 +37,8 @@ class BucketModel {
       'name': name,
       'object_count': objectCount,
       'size_bytes': size,
-      'creation_date': creationDate.toUtc().toIso8601String(),
-      'last_modified': lastModified?.toUtc().toIso8601String(),
+      'creation_date': creationDate.toJsonDate(),
+      'last_modified': lastModified?.toJsonDate(),
       'description': description,
       'color': color,
     };

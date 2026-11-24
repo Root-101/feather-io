@@ -43,7 +43,7 @@ class AuthService {
     }
     rateLimiter.succeeded(client);
 
-    final expireAt = DateTime.now().add(tokenLifetime);
+    final expireAt = utcNow().add(tokenLifetime);
     final token = jwtService.generateToken({
       'sub': request.access,
       'roles': ['admin'],
