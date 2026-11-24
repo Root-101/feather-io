@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// State of the create/edit bucket drawer. It lives while the drawer is open, so
 /// loading and errors show inside the form and not on the screen behind
 class BucketFormCubit extends Cubit<BucketFormState> {
-  final BucketRepo _repo;
+  final BucketsRepo _repo;
   final AuthCubit _auth;
 
   BucketFormCubit(this._repo, this._auth)

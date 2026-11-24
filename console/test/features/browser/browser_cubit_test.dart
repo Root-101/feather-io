@@ -112,30 +112,33 @@ void main() {
       ).called(1),
     );
 
-    test('A slow answer of a folder left behind does not replace the new one', () async {
-      final slow = Completer<ListObjectsModel>();
-      when(
-        () => repo.listObjects(
-          bucket: any(named: 'bucket'),
-          token: any(named: 'token'),
-          prefix: 'big/',
-          delimiter: any(named: 'delimiter'),
-          maxKeys: any(named: 'maxKeys'),
-          continuationToken: null,
-        ),
-      ).thenAnswer((_) => slow.future);
-      final cubit = build();
+    test(
+      'A slow answer of a folder left behind does not replace the new one',
+      () async {
+        final slow = Completer<ListObjectsModel>();
+        when(
+          () => repo.listObjects(
+            bucket: any(named: 'bucket'),
+            token: any(named: 'token'),
+            prefix: 'big/',
+            delimiter: any(named: 'delimiter'),
+            maxKeys: any(named: 'maxKeys'),
+            continuationToken: null,
+          ),
+        ).thenAnswer((_) => slow.future);
+        final cubit = build();
 
-      final opening = cubit.open(bucket: media, prefix: 'big/');
-      await cubit.open(bucket: media, prefix: 'photos/');
-      slow.complete(_page(['huge.bin']));
-      await opening;
+        final opening = cubit.open(bucket: media, prefix: 'big/');
+        await cubit.open(bucket: media, prefix: 'photos/');
+        slow.complete(_page(['huge.bin']));
+        await opening;
 
-      final state = cubit.state as BrowserSearchState;
-      expect(state.prefix, 'photos/');
-      expect(shown(state), ['a.jpg', 'b.jpg']);
-      await cubit.close();
-    });
+        final state = cubit.state as BrowserSearchState;
+        expect(state.prefix, 'photos/');
+        expect(shown(state), ['a.jpg', 'b.jpg']);
+        await cubit.close();
+      },
+    );
 
     blocTest<BrowserCubit, BrowserState>(
       'Opening what is already shown does nothing',

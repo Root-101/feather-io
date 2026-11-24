@@ -61,7 +61,7 @@ class FeaturesInit {
   }
 
   static Future<void> _resetCubits() async {
-    app.di.find<TransferCubit>().reset();
+    app.di.find<TransfersCubit>().reset();
     app.di.find<AuthCubit>().reset();
   }
 

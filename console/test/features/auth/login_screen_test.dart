@@ -19,9 +19,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         navigatorKey: navigatorKey,
-        theme: ThemeConfig.theme,
-        localizationsDelegates: appLocalizationsDelegates,
-        supportedLocales: appSupportedLocales,
+        theme: AppTheme.dark,
+        localizationsDelegates: AppIntl.delegates,
+        supportedLocales: AppIntl.supportedLocales,
         home: MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => AuthCubit(_MockRepo())),
@@ -37,7 +37,7 @@ void main() {
     'Should put the brand with its pitch next to the form when wide',
     (tester) async {
       await pump(tester, const Size(1536, 720));
-      final intl = messagesOf(const Locale('en'));
+      final intl = AppIntl.of(AppLocale.en);
       expect(find.text(intl.login.pitch), findsOneWidget);
       expect(find.text('FEATHER_SECRET'), findsOneWidget);
       expect(find.text(intl.app.credit), findsOneWidget);
@@ -55,7 +55,7 @@ void main() {
     'Should stack the brand without its pitch above the form when narrow',
     (tester) async {
       await pump(tester, const Size(800, 400));
-      final intl = messagesOf(const Locale('en'));
+      final intl = AppIntl.of(AppLocale.en);
       expect(find.text(intl.login.pitch), findsNothing);
       for (final tag in intl.login.tags) {
         expect(find.text(tag), findsOneWidget);
@@ -72,7 +72,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, const Size(1536, 720));
-    final intl = messagesOf(const Locale('en'));
+    final intl = AppIntl.of(AppLocale.en);
     expect(find.byTooltip(intl.login.showSecret), findsOneWidget);
 
     await tester.tap(find.byTooltip(intl.login.showSecret));

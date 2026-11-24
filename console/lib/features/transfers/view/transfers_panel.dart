@@ -53,7 +53,7 @@ class TransfersPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = app.di.find<TransferCubit>();
+    final cubit = app.di.find<TransfersCubit>();
     return Material(
       color: app.colors.primary.background2,
       elevation: 8,
@@ -65,7 +65,7 @@ class TransfersPanel extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         width: width,
-        child: BlocBuilder<TransferCubit, TransferState>(
+        child: BlocBuilder<TransfersCubit, TransferState>(
           bloc: cubit,
           builder: (context, state) {
             return Column(
@@ -112,7 +112,7 @@ class TransfersPanel extends StatelessWidget {
     );
   }
 
-  Widget _header(TransferState state, TransferCubit cubit) {
+  Widget _header(TransferState state, TransfersCubit cubit) {
     final text = summary(state);
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -163,7 +163,7 @@ class TransfersPanel extends StatelessWidget {
 
 class _TransferRow extends StatelessWidget {
   final TransferTask task;
-  final TransferCubit cubit;
+  final TransfersCubit cubit;
 
   const _TransferRow({required this.task, required this.cubit});
 

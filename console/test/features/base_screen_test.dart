@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockTransferRepo extends Mock implements TransferRepo {}
+class _MockTransferRepo extends Mock implements TransfersRepo {}
 
 class _MockAuth extends Mock implements AuthCubit {}
 
@@ -14,7 +14,7 @@ class _MockLanguageRepo extends Mock implements LanguageRepo {}
 void main() {
   final languages = _MockLanguageRepo();
   when(languages.loadKey).thenAnswer((_) async => null);
-  app.di.put<TransferCubit>(TransferCubit(_MockTransferRepo(), _MockAuth()));
+  app.di.put<TransfersCubit>(TransfersCubit(_MockTransferRepo(), _MockAuth()));
 
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1536, 720);
@@ -39,9 +39,9 @@ void main() {
       BlocProvider(
         create: (_) => LanguageCubit(repo: languages),
         child: MaterialApp.router(
-          theme: ThemeConfig.theme,
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: appSupportedLocales,
+          theme: AppTheme.dark,
+          localizationsDelegates: AppIntl.delegates,
+          supportedLocales: AppIntl.supportedLocales,
           routerConfig: router,
         ),
       ),
@@ -53,7 +53,7 @@ void main() {
     'Should expand and collapse the rail with the notch, showing the name expanded',
     (tester) async {
       await pump(tester);
-      final intl = messagesOf(const Locale('en'));
+      final intl = AppIntl.of(AppLocale.en);
       final rail = find.byType(NavigationRail);
       expect(find.byTooltip(intl.nav.expand), findsOneWidget);
       expect(find.byType(AppWordmark), findsNothing);
@@ -75,7 +75,7 @@ void main() {
 
   testWidgets('Should put the notch on the rail\'s border', (tester) async {
     await pump(tester);
-    final intl = messagesOf(const Locale('en'));
+    final intl = AppIntl.of(AppLocale.en);
     final notch = tester.getRect(find.byTooltip(intl.nav.expand));
     final divider = tester.getRect(find.byType(VerticalDivider));
     expect(notch.right, divider.right);

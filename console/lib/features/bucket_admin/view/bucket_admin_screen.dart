@@ -13,7 +13,7 @@ class BucketAdminScreenNavigator {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => BucketCubit(app.di.find(), app.di.find()),
+          create: (context) => BucketsCubit(app.di.find(), app.di.find()),
         ),
         BlocProvider(
           create: (context) =>
@@ -62,13 +62,13 @@ class BucketAdminScreen extends StatefulWidget {
 }
 
 class _BucketAdminScreenState extends State<BucketAdminScreen> {
-  late final BucketCubit cubit;
+  late final BucketsCubit cubit;
   late final AnonymousAccessCubit accessCubit;
 
   @override
   void initState() {
     super.initState();
-    cubit = context.read<BucketCubit>()..load();
+    cubit = context.read<BucketsCubit>()..load();
     accessCubit = context.read<AnonymousAccessCubit>();
   }
 
@@ -96,7 +96,7 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.build(title: app.intl.nav.buckets),
-      body: BlocConsumer<BucketCubit, BucketState>(
+      body: BlocConsumer<BucketsCubit, BucketState>(
         listener: (context, state) {
           if (state is BucketProcessInProgressState) {
             app.loading.show(id: loadingOverlayGlobalId);

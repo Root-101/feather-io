@@ -132,7 +132,9 @@ class DeleteObjectsRequest {
   DeleteObjectsRequest({required this.keys});
 
   Map<String, dynamic> toJson() {
-    return {'objects': keys.map((k) => {'key': k}).toList()};
+    return {
+      'objects': keys.map((k) => {'key': k}).toList(),
+    };
   }
 }
 

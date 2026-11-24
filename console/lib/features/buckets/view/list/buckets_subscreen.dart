@@ -22,18 +22,18 @@ class BucketsSubScreen extends StatefulWidget {
 }
 
 class _BucketsSubScreenState extends State<BucketsSubScreen> {
-  late final BucketCubit cubit;
+  late final BucketsCubit cubit;
 
   @override
   void initState() {
     super.initState();
-    cubit = context.read<BucketCubit>();
+    cubit = context.read<BucketsCubit>();
     cubit.load();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<BucketCubit, BucketState>(
+    return BlocConsumer<BucketsCubit, BucketState>(
       listener: (context, state) {
         if (state is BucketProcessInProgressState) {
           app.loading.show(id: loadingOverlayGlobalId);

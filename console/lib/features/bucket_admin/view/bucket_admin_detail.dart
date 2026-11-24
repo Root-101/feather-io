@@ -16,7 +16,7 @@ class BucketAdminDetail extends StatelessWidget {
   });
 
   void _onDelete(BuildContext context) {
-    final cubit = context.read<BucketCubit>();
+    final cubit = context.read<BucketsCubit>();
     ConfirmDialog.show(
       title: app.intl.buckets.deleteTitle,
       description: app.intl.buckets.deleteConfirm(name: bucket.name),
@@ -27,7 +27,7 @@ class BucketAdminDetail extends StatelessWidget {
   }
 
   void _onEmpty(BuildContext context) {
-    final cubit = context.read<BucketCubit>();
+    final cubit = context.read<BucketsCubit>();
     BucketEmptyDialog.show(
       bucket: bucket,
       onConfirm: () => cubit.emptyBucket(bucket: bucket),

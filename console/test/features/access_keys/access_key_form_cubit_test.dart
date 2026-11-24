@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
 
-class _MockRepo extends Mock implements AccessKeyRepo {}
+class _MockRepo extends Mock implements AccessKeysRepo {}
 
 class _MockAuth extends Mock implements AuthCubit {}
 

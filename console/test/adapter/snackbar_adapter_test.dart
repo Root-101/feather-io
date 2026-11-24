@@ -12,9 +12,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         navigatorKey: navigatorKey,
-        theme: ThemeConfig.theme,
-        localizationsDelegates: appLocalizationsDelegates,
-        supportedLocales: appSupportedLocales,
+        theme: AppTheme.dark,
+        localizationsDelegates: AppIntl.delegates,
+        supportedLocales: AppIntl.supportedLocales,
         home: Builder(
           builder: (context) {
             inner = context;

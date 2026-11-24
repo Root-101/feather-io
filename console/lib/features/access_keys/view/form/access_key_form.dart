@@ -6,11 +6,11 @@ import 'package:material_ui/material_ui.dart';
 /// scope (every bucket or some) and the level on each
 class AccessKeyForm extends StatefulWidget {
   /// Opens the drawer with its own [AccessKeyFormCubit]. On save it reloads the
-  /// screen's [AccessKeyCubit] and, after creating, shows the secret
+  /// screen's [AccessKeysCubit] and, after creating, shows the secret
   static Future<void> open(BuildContext context, {AccessKeyModel? key}) async {
     final formKey = GlobalKey<_AccessKeyFormState>();
-    final keysCubit = context.read<AccessKeyCubit>();
-    final bucketCubit = context.read<BucketCubit>();
+    final keysCubit = context.read<AccessKeysCubit>();
+    final bucketCubit = context.read<BucketsCubit>();
     if (bucketCubit.state is! BucketLoadingSuccessState) bucketCubit.load();
     final formCubit = AccessKeyFormCubit(app.di.find(), app.di.find());
 
@@ -167,7 +167,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
         }
         app.loading.hide(id: AccessKeyForm.loadingId);
         if (state is AccessKeyFormProcessingOKState) {
-          final keysCubit = context.read<AccessKeyCubit>();
+          final keysCubit = context.read<AccessKeysCubit>();
           Navigator.of(context).pop();
           keysCubit.load();
           if (state.created) {
@@ -308,7 +308,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
   }
 
   Widget _buildPermissionsTitle() {
-    final buckets = context.watch<BucketCubit>().state.buckets;
+    final buckets = context.watch<BucketsCubit>().state.buckets;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -349,7 +349,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
   }
 
   Widget _buildBucketLevels() {
-    return BlocBuilder<BucketCubit, BucketState>(
+    return BlocBuilder<BucketsCubit, BucketState>(
       builder: (context, state) {
         final buckets = state.buckets;
         if (state is BucketLoadingErrorState && buckets.isEmpty) {
@@ -357,7 +357,7 @@ class _AccessKeyFormState extends State<AccessKeyForm> {
             state.exception.message,
             color: app.colors.primary.error,
             action: TextButton(
-              onPressed: context.read<BucketCubit>().load,
+              onPressed: context.read<BucketsCubit>().load,
               child: Text(app.intl.common.tryAgain),
             ),
           );

@@ -1,7 +1,7 @@
 export 'access_keys_init.dart';
-export 'data/repo/access_key_repo.dart';
-export 'data/rest/access_key_client.dart';
-export 'logic/cubit/access_key_cubit.dart';
+export 'data/repo/access_keys_repo.dart';
+export 'data/rest/access_keys_client.dart';
+export 'logic/cubit/access_keys_cubit.dart';
 export 'logic/cubit/access_key_form_cubit.dart';
 export 'logic/model/access_key_filter.dart';
 export 'logic/model/access_key_model.dart';

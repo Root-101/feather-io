@@ -12,15 +12,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final String loadingOverlayGlobalId = 'app-global-loading';
 
-/// The Material texts that `material_ui` widgets read; the app's own come from
-/// `context.intl` (slang). `flutter_localizations`' delegates alone wouldn't
-/// do: `material_ui` can't see them, so outside English (which it ships by
-/// default) it would fail with "No MaterialLocalizations found". Every
-/// MaterialApp uses these (app and splash)
-const List<LocalizationsDelegate<dynamic>> appLocalizationsDelegates = [
-  ...GlobalMaterialLocalizations.delegates,
-];
-
 // generate code
 // fvm flutter pub run build_runner build --delete-conflicting-outputs
 // fvm dart run slang
@@ -96,13 +87,12 @@ class App extends StatelessWidget {
         if (size.width < 800 || size.height < 400) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: ThemeConfig.theme,
+            theme: AppTheme.dark,
             locale: locale,
-            localizationsDelegates: appLocalizationsDelegates,
-            supportedLocales: appSupportedLocales,
-            builder: (context, child) => Scaffold(
-              body: Center(child: Text(context.intl.app.needMoreSpace)),
-            ),
+            localizationsDelegates: AppIntl.delegates,
+            supportedLocales: AppIntl.supportedLocales,
+            builder: (context, child) =>
+                Scaffold(body: Center(child: Text(app.intl.app.needMoreSpace))),
           );
         } else {
           return MaterialApp.router(
@@ -123,12 +113,12 @@ class App extends StatelessWidget {
               );
             },
             debugShowCheckedModeBanner: false,
-            onGenerateTitle: (context) => context.intl.app.name,
-            theme: ThemeConfig.theme,
+            title: app.intl.app.name,
+            theme: AppTheme.dark,
             locale: locale,
             routerConfig: RouteConfig.router,
-            localizationsDelegates: appLocalizationsDelegates,
-            supportedLocales: appSupportedLocales,
+            localizationsDelegates: AppIntl.delegates,
+            supportedLocales: AppIntl.supportedLocales,
           );
         }
       },
@@ -151,13 +141,8 @@ class AppGlobal {
 
   TextTheme get textTheme => theme.textTheme;
 
-  /// Texts of the app's language; without a navigator yet (or in tests), those
-  /// of `Intl.defaultLocale`, English by default
-  AppMessages get intl {
-    final context = navigatorKey.currentContext;
-    if (context != null) return context.intl;
-    return messagesOf(Locale(Intl.defaultLocale ?? 'en'));
-  }
+  /// Texts of the app's language (`LanguageCubit` sets it)
+  AppTexts get intl => AppIntl.texts;
 
   Logger logger = Logger();
 

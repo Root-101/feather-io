@@ -15,7 +15,7 @@ void main() {
     when(repo.loadKey).thenAnswer((_) async => saved);
     final cubit = LanguageCubit(repo: repo);
     // Before the saved language loads, too
-    expect(cubit.state.current.key, browserLocale.languageCode);
+    expect(cubit.state.current.key, AppIntl.browser.languageCode);
     await cubit.init();
     return cubit.state.current.key;
   }

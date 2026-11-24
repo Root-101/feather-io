@@ -100,7 +100,8 @@ class ObjectFilter {
     if (!isActive) return true;
     if (wrapper.isFolder) return false;
 
-    if (types.isNotEmpty && !types.contains(ObjectTypeFilter.of(wrapper.name))) {
+    if (types.isNotEmpty &&
+        !types.contains(ObjectTypeFilter.of(wrapper.name))) {
       return false;
     }
     final size = wrapper.size;

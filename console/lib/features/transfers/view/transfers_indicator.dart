@@ -10,8 +10,8 @@ class TransfersIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransferCubit, TransferState>(
-      bloc: app.di.find<TransferCubit>(),
+    return BlocBuilder<TransfersCubit, TransferState>(
+      bloc: app.di.find<TransfersCubit>(),
       builder: (context, state) {
         final active = state is TransferProcessInProgressState;
         final failed = state.failedCount > 0;

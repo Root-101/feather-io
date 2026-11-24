@@ -23,7 +23,7 @@ class BrowserScreenNavigator {
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => BucketCubit(app.di.find(), app.di.find()),
+          create: (context) => BucketsCubit(app.di.find(), app.di.find()),
         ),
       ],
       child: BrowserScreen(
@@ -89,13 +89,13 @@ class BrowserScreen extends StatefulWidget {
 
 class _BrowserScreenState extends State<BrowserScreen> {
   late final BrowserCubit cubit;
-  late final BucketCubit bucketCubit;
+  late final BucketsCubit bucketCubit;
 
   @override
   void initState() {
     super.initState();
     cubit = context.read<BrowserCubit>();
-    bucketCubit = context.read<BucketCubit>();
+    bucketCubit = context.read<BucketsCubit>();
     _sync();
   }
 
@@ -145,7 +145,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BucketCubit, BucketState>(
+    return BlocListener<BucketsCubit, BucketState>(
       listenWhen: (previous, current) => current is BucketLoadingSuccessState,
       listener: (context, state) => _sync(),
       child: Scaffold(
@@ -190,7 +190,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 
   Widget _buildBucket() {
-    return BlocBuilder<BucketCubit, BucketState>(
+    return BlocBuilder<BucketsCubit, BucketState>(
       builder: (context, bucketState) {
         if (_urlBucket(bucketState) == null) {
           if (bucketState is BucketLoadingSuccessState) {
@@ -237,7 +237,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
               onDelete: (keys) =>
                   cubit.deleteObjects(bucket: bucket, keys: keys),
               onUpload: (files) {
-                app.di.find<TransferCubit>().upload(
+                app.di.find<TransfersCubit>().upload(
                   bucket: bucket.name,
                   prefix: state.prefix,
                   files: files,
@@ -250,8 +250,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
               onDownload: (keys, {zipName}) {
                 // Once: without a name it carries the time, and the snackbar
                 // must show the same one as the transfers panel
-                final name = TransferCubit.zipFileName(keys, zipName: zipName);
-                app.di.find<TransferCubit>().download(
+                final name = TransfersCubit.zipFileName(keys, zipName: zipName);
+                app.di.find<TransfersCubit>().download(
                   bucket: bucket.name,
                   keys: keys,
                   zipName: name,

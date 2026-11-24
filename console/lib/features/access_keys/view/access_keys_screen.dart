@@ -13,11 +13,11 @@ class AccessKeysScreenNavigator {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AccessKeyCubit(app.di.find(), app.di.find()),
+          create: (context) => AccessKeysCubit(app.di.find(), app.di.find()),
         ),
         // the create/edit drawer lists the buckets
         BlocProvider(
-          create: (context) => BucketCubit(app.di.find(), app.di.find()),
+          create: (context) => BucketsCubit(app.di.find(), app.di.find()),
         ),
       ],
       child: const AccessKeysScreen(),
@@ -38,15 +38,15 @@ class AccessKeysScreen extends StatefulWidget {
 }
 
 class _AccessKeysScreenState extends State<AccessKeysScreen> {
-  late final AccessKeyCubit cubit;
+  late final AccessKeysCubit cubit;
   final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    cubit = context.read<AccessKeyCubit>()..load();
+    cubit = context.read<AccessKeysCubit>()..load();
     // the bucket filter and the create/edit drawer list them
-    context.read<BucketCubit>().load();
+    context.read<BucketsCubit>().load();
   }
 
   @override
@@ -81,7 +81,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.build(title: app.intl.nav.accessKeys),
-      body: BlocConsumer<AccessKeyCubit, AccessKeyState>(
+      body: BlocConsumer<AccessKeysCubit, AccessKeyState>(
         listener: (context, state) {
           if (state is AccessKeyProcessInProgressState) {
             app.loading.show(id: loadingOverlayGlobalId);
@@ -211,7 +211,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
           ),
         ),
         app.dimensions.padding.l.gap(),
-        BlocBuilder<BucketCubit, BucketState>(
+        BlocBuilder<BucketsCubit, BucketState>(
           builder: (context, bucketState) => AccessKeysFilterButton(
             filter: data.filter,
             buckets: [for (final bucket in bucketState.buckets) bucket.name],

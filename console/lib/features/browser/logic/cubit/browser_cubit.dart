@@ -4,7 +4,7 @@ import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Navigation through the objects of a bucket.
-/// Listing, creating and deleting buckets is [BucketCubit]'s job.
+/// Listing, creating and deleting buckets is [BucketsCubit]'s job.
 ///
 /// The open bucket and folder come from the URL: the screen calls [open] when
 /// it changes, and [goUp]/[goForward] only work out where to navigate

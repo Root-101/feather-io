@@ -1,7 +1,6 @@
 import 'package:console/app_exporter.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
 
 class LanguageCubit extends Cubit<LanguageState>
     with GlobalEventBusCommunication<LanguageState> {
@@ -22,11 +21,20 @@ class LanguageCubit extends Cubit<LanguageState>
     ),
   ];
 
-  late LanguageModel currentSelectedLanguage = _resolve(key: null);
+  LanguageModel _current = defaultLanguage;
+
+  LanguageModel get currentSelectedLanguage => _current;
+
+  /// The texts of the app (`app.intl`) follow the language picked
+  set currentSelectedLanguage(LanguageModel language) {
+    _current = language;
+    AppIntl.current = AppIntl.resolve(language.key);
+  }
 
   LanguageCubit({required this.repo})
     : super(LanguageInitialState(current: defaultLanguage, allLanguages: [])) {
     // Starts in the browser's language, not English, until the saved one loads
+    currentSelectedLanguage = _resolve(key: null);
     emit(
       LanguageInitialState(current: currentSelectedLanguage, allLanguages: []),
     );
@@ -46,9 +54,9 @@ class LanguageCubit extends Cubit<LanguageState>
   }
 
   void changeLanguageKey({required String languageKey}) {
-    LanguageModel? language = languages.firstWhereOrNull(
-      (element) => element.key == languageKey,
-    );
+    LanguageModel? language = languages
+        .where((element) => element.key == languageKey)
+        .firstOrNull;
     changeLanguage(language: language);
   }
 
@@ -72,7 +80,7 @@ class LanguageCubit extends Cubit<LanguageState>
 
   LanguageModel _resolve({required String? key}) {
     // Nothing chosen yet: the browser's language
-    key ??= browserLocale.languageCode;
+    key ??= AppIntl.browser.languageCode;
     return languages.firstWhere(
       (element) => element.key == key,
       orElse: () => defaultLanguage,

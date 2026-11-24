@@ -6,10 +6,10 @@ import 'package:material_ui/material_ui.dart';
 class BucketForm extends StatefulWidget {
   /// Opens the drawer with its own [BucketFormCubit]: while submitting, the drawer
   /// shows its loading veil and errors show inside the form.
-  /// On save, it reloads the screen's [BucketCubit]
+  /// On save, it reloads the screen's [BucketsCubit]
   static Future<void> open(BuildContext context, {BucketModel? bucket}) async {
     final key = GlobalKey<_BucketFormState>();
-    final bucketCubit = context.read<BucketCubit>();
+    final bucketCubit = context.read<BucketsCubit>();
     final formCubit = BucketFormCubit(app.di.find(), app.di.find());
     final isEdit = bucket != null;
 
@@ -194,7 +194,7 @@ class _BucketFormState extends State<BucketForm> {
         }
         app.loading.hide(id: BucketForm.loadingId);
         if (state is BucketFormProcessingOKState) {
-          final bucketCubit = context.read<BucketCubit>();
+          final bucketCubit = context.read<BucketsCubit>();
           Navigator.of(context).pop();
           bucketCubit.reloadAfterChange(
             change: state.change,

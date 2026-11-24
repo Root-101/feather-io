@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// State of the create/edit drawer. It lives while the drawer is open, so
 /// loading and errors show inside the form
 class AccessKeyFormCubit extends Cubit<AccessKeyFormState> {
-  final AccessKeyRepo _repo;
+  final AccessKeysRepo _repo;
   final AuthCubit _auth;
 
   AccessKeyFormCubit(this._repo, this._auth)

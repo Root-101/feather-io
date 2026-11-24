@@ -95,7 +95,7 @@ volume, `503` when one fails); how to back up the volume is in `service/README.m
 
 ```bash
 fvm flutter pub get
-fvm dart run slang                                              # after editing lib/l10n/*.i18n.yaml
+fvm dart run slang                                              # after editing lib/i18n/*.i18n.yaml
 fvm flutter run -d chrome --web-port=8081
 fvm flutter analyze
 fvm flutter test                                                # on the VM, no browser
@@ -581,12 +581,12 @@ from scratch and regenerate `service/tool/s3_compat/RESULTS.md`. Outputs go to
 | `<feature>.dart` / `<feature>_init.dart` | Barrel, and the init that builds client + repo (+ cubit) and registers them in DI.                                                                                                                                                             |
 
 **Cross-feature dependencies.** Each concept has one owning feature: `buckets` owns everything about
-buckets (`BucketModel`, list/create/delete in `BucketClient`/`BucketRepo`/`BucketCubit`, the list
+buckets (`BucketModel`, list/create/delete in `BucketsClient`/`BucketsRepo`/`BucketsCubit`, the list
 view `BucketsSubScreen` and the create/edit form `BucketForm`); `browser` owns object navigation (
 `BrowserCubit`: list/upload/download/preview/delete objects of the selected bucket);
 `anonymous_access` owns a bucket's anonymous rules (it takes the bucket name as a string, so it
 depends on nothing); `transfers` owns the background transfer queue, uploads and zip downloads (
-`TransferCubit`, app-wide in DI: transfers keep going across folders, buckets and sections, 2
+`TransfersCubit`, app-wide in DI: transfers keep going across folders, buckets and sections, 2
 uploads and 2 downloads at a time, with progress, cancel and retry; files over 16 MiB go multipart
 in 8 MiB parts, one after another, so on web only one part is in memory, and a failed or cancelled
 upload is aborted; the browser only calls `upload`/`download`, the rail shows `TransfersIndicator`
@@ -595,14 +595,14 @@ browser to save, finished uploads fire `BucketChangedEvent`, at most every 2 s p
 are pending, and it asks before closing the tab while transfers are running); `access_keys` owns the *Access keys* section (`AccessKeysScreen` at `/keys`: the
 root key plus the managed keys, `AccessKeyForm` drawer, `AccessKeySecretDialog`, which shows the
 secret once and can't be dismissed until the user confirms it was saved; it reads the buckets
-through `BucketCubit`); `bucket_admin` is the
+through `BucketsCubit`); `bucket_admin` is the
 *Buckets* section (`BucketAdminScreen`, list + detail tabs) and composes `buckets`,
 `anonymous_access` and `browser` ("Open in browser" uses `BrowserScreen.navigator.openBucket`). A
 feature may consume another feature's models, cubits and views, but never its client or repo, and
 dependencies go one way only (`browser` → `buckets`/`transfers`, `transfers` → `buckets`,
 `access_keys` → `buckets`, `bucket_admin` → everything else, never the reverse). A screen that composes several features
 provides their cubits (e.g. `BrowserScreen.navigator.builder` provides `BrowserCubit` and
-`BucketCubit`); dialogs opened from it reuse the instance with `BlocProvider.value`.
+`BucketsCubit`); dialogs opened from it reuse the instance with `BlocProvider.value`.
 
 `FeaturesInit.init()` (`features/features_init.dart`) wires all inits. Add the cubit to
 `blocProviders` only if it is needed at the root; screen-scoped cubits are created in the screen's
@@ -661,10 +661,11 @@ nothing happens.
 
 - Each screen exposes a static navigator object (`static final XScreenNavigator navigator`) with
   `name`, `path` and `builder`; routes in `route_config.dart` use it.
-- Use the design system (`design_system/`): `CustomAppBar.build(title: …)`, `PrimaryButton.*`,
+- Use the design system (`design_system/`: `tokens/`, `theme/`, `icons/`, `components/`): `CustomAppBar.build(title: …)`, `PrimaryButton.*`,
   `AppFormInput`, `AppTextSearchField`, `ConfirmDialog`, `FormDrawerTemplate`, colors/dimensions
   from `app.*`. Spacing with `.gap()`.
-- Shared states: `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`, `NoDataPage(title: …)`.
+- Shared states (`features/global/`): `LoadingPage()`, `ErrorPage(message: …, onRetry: …)`,
+  `NoDataPage(title: …)`.
 - Text is not mouse-selectable: don't add `SelectionArea` or `SelectableText`. Table rows are
   clickable as a whole (hand cursor, and the name of the hovered row underlined, like a link).
 - Access cubits with `context.read<T>()` or `app.di.find<T>()`. Keep widgets small.
@@ -672,28 +673,27 @@ nothing happens.
   `listener: (context, state) { … }`), never extracted to a separate method such as `_onState`.
 
 **Localization (mandatory).** No user-visible string is hardcoded: every label, hint, tooltip,
-dialog text, error message and validation message comes from `app.intl.<key>` (or
-`context.intl.<key>` inside a `MaterialApp` builder before the navigator exists, e.g. splash).
-Rules:
+dialog text, error message and validation message comes from `app.intl.<key>`, which needs no
+`BuildContext` (it works in the splash too). Rules:
 
-- The texts are slang YAML, like the service's: `lib/l10n/en.i18n.yaml` (base, with the
+- The texts are slang YAML, like the service's: `lib/i18n/en.i18n.yaml` (base, with the
   parameter types, `{name: String}`) and `es.i18n.yaml`, grouped by feature
   (`app.intl.accessKeys.create`, `app.intl.common.cancel`); `fvm dart run slang` generates
-  `messages*.g.dart` (versioned), and a key missing in Spanish doesn't compile. Use named
+  `strings*.g.dart` (versioned), and a key missing in Spanish doesn't compile. Use named
   placeholders (`objects.renamed(name: n)`) and plurals (`moved(plural, param=count)`) instead of
   concatenation.
 - Delete keys that are no longer referenced.
-- The language is the `MaterialApp`'s (`LanguageCubit`): `context.intl` reads
-  `Localizations.localeOf`, so there is no slang `LocaleSettings`. `MaterialApp` gets
-  `supportedLocales: appSupportedLocales` and `material_ui`'s `GlobalMaterialLocalizations.delegates`
-  (`appLocalizationsDelegates` in `main.dart`, also used by the splash), never
+- `AppIntl` (`lib/i18n/i18n.dart`) keeps the current language: `LanguageCubit` sets
+  `AppIntl.current` (the browser's until the user picks one) and `app.intl` is `AppIntl.texts`; no
+  slang `LocaleSettings`. Every `MaterialApp` gets `supportedLocales: AppIntl.supportedLocales` and
+  `localizationsDelegates: AppIntl.delegates` (`material_ui`'s `GlobalMaterialLocalizations`), never
   `flutter_localizations`' Material strings, which `material_ui` widgets can't see (any locale but
   English would fail with "No MaterialLocalizations found").
 - Exempt: brand-neutral technical tokens (`PDF`, `JSON`, units like `KB`), JSON/header keys, file
   names, log/`toString` output.
 
 **Assets.** SVG icons live in `assets/icons/<group>/` and are only reached through getters in
-`design_system/assets/app_icons.dart` (`app.assets.icons.actions.delete.build(...)`). Adding an
+`design_system/icons/app_icons.dart` (`app.assets.icons.actions.delete.build(...)`). Adding an
 icon = file + getter + folder in `pubspec.yaml`; when a getter loses its last use, delete the getter
 and the file. `assets/app/app_icon.png` is the app icon (a copy of `docs/design/brand/icon.png`),
 shown by both splashes (`app.assets.appIcon`); the web icons in `web/` are made from the brand

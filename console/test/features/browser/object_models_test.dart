@@ -40,7 +40,10 @@ void main() {
       expect(PreviewType.of(null), PreviewType.download);
       expect(PreviewType.of(''), PreviewType.download);
       expect(PreviewType.of('application/zip'), PreviewType.download);
-      expect(PreviewType.of('application/x-shockwave-flash'), PreviewType.download);
+      expect(
+        PreviewType.of('application/x-shockwave-flash'),
+        PreviewType.download,
+      );
     });
   });
 

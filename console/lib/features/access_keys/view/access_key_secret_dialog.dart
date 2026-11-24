@@ -9,7 +9,7 @@ import 'package:material_ui/material_ui.dart';
 class AccessKeySecretDialog extends StatefulWidget {
   static void show({
     required AccessKeyModel key,
-    required AccessKeyCubit cubit,
+    required AccessKeysCubit cubit,
     required bool created,
   }) {
     app.dialog.open(
@@ -23,7 +23,7 @@ class AccessKeySecretDialog extends StatefulWidget {
   }
 
   final AccessKeyModel keyModel;
-  final AccessKeyCubit cubit;
+  final AccessKeysCubit cubit;
   final bool created;
 
   const AccessKeySecretDialog._({
