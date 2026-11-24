@@ -6,59 +6,8 @@ import 'package:material_ui/material_ui.dart';
 /// name on the client (empty, characters, repeated in the folder) and runs the
 /// action with its own [ObjectActionCubit]
 class ObjectNameDialog extends StatefulWidget {
-  /// Creates a folder in [prefix] of [bucket]
-  static void createFolder({
-    required String bucket,
-    required String prefix,
-    required Set<String> existingNames,
-  }) {
-    DialogTemplate.open(
-      title: app.intl.objects.newFolder,
-      w: 460,
-      h: 330,
-      child: ObjectNameDialog._(
-        label: app.intl.objects.folderNameLabel,
-        hint: app.intl.objects.folderNameHint,
-        action: app.intl.objects.newFolderCreate,
-        existingNames: existingNames,
-        existsMessage: app.intl.objects.folderExists,
-        helper: (name) => app.intl.objects.folderPathHelper(
-          path:
-              '/$bucket/$prefix${name.isEmpty ? app.intl.objects.folderNameHint : name}/',
-        ),
-        success: (name) => app.intl.objects.folderCreated(name: name),
-        onSubmit: (cubit, name) =>
-            cubit.createFolder(bucket: bucket, prefix: prefix, name: name),
-      ),
-    );
-  }
-
-  /// Renames the object [key] of [bucket] inside its folder
-  static void rename({
-    required String bucket,
-    required String key,
-    required Set<String> existingNames,
-  }) {
-    final folder = key.substring(0, key.lastIndexOf('/') + 1);
-    final name = key.substring(folder.length);
-    DialogTemplate.open(
-      title: app.intl.objects.rename,
-      w: 520,
-      h: 330,
-      child: ObjectNameDialog._(
-        label: app.intl.objects.renameLabel,
-        initialValue: name,
-        action: app.intl.objects.rename,
-        existingNames: existingNames,
-        existsMessage: app.intl.objects.nameExists,
-        helper: (value) =>
-            app.intl.objects.renamePathHelper(path: '/$bucket/$folder$value'),
-        success: (value) => app.intl.objects.renamed(name: value),
-        onSubmit: (cubit, value) =>
-            cubit.rename(bucket: bucket, key: key, newName: value),
-      ),
-    );
-  }
+  static final ObjectNameDialogNavigator navigator =
+      ObjectNameDialogNavigator();
 
   final String label;
   final String? hint;
@@ -156,10 +105,7 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
       listener: (context, state) {
         if (state is ObjectActionProcessingOKState) {
           app.navigator.pop();
-          app.snack.showSuccess(
-            message: widget.success(_name),
-            context: app.context,
-          );
+          app.toast.success(widget.success(_name));
         }
       },
       builder: (context, state) {
@@ -217,6 +163,63 @@ class _ObjectNameDialogState extends State<ObjectNameDialog> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Opens [ObjectNameDialog]
+class ObjectNameDialogNavigator {
+  /// Creates a folder in [prefix] of [bucket]
+  void createFolder({
+    required String bucket,
+    required String prefix,
+    required Set<String> existingNames,
+  }) {
+    DialogTemplate.open(
+      title: app.intl.objects.newFolder,
+      w: 460,
+      h: 330,
+      child: ObjectNameDialog._(
+        label: app.intl.objects.folderNameLabel,
+        hint: app.intl.objects.folderNameHint,
+        action: app.intl.objects.newFolderCreate,
+        existingNames: existingNames,
+        existsMessage: app.intl.objects.folderExists,
+        helper: (name) => app.intl.objects.folderPathHelper(
+          path:
+              '/$bucket/$prefix${name.isEmpty ? app.intl.objects.folderNameHint : name}/',
+        ),
+        success: (name) => app.intl.objects.folderCreated(name: name),
+        onSubmit: (cubit, name) =>
+            cubit.createFolder(bucket: bucket, prefix: prefix, name: name),
+      ),
+    );
+  }
+
+  /// Renames the object [key] of [bucket] inside its folder
+  void rename({
+    required String bucket,
+    required String key,
+    required Set<String> existingNames,
+  }) {
+    final folder = key.substring(0, key.lastIndexOf('/') + 1);
+    final name = key.substring(folder.length);
+    DialogTemplate.open(
+      title: app.intl.objects.rename,
+      w: 520,
+      h: 330,
+      child: ObjectNameDialog._(
+        label: app.intl.objects.renameLabel,
+        initialValue: name,
+        action: app.intl.objects.rename,
+        existingNames: existingNames,
+        existsMessage: app.intl.objects.nameExists,
+        helper: (value) =>
+            app.intl.objects.renamePathHelper(path: '/$bucket/$folder$value'),
+        success: (value) => app.intl.objects.renamed(name: value),
+        onSubmit: (cubit, value) =>
+            cubit.rename(bucket: bucket, key: key, newName: value),
+      ),
     );
   }
 }

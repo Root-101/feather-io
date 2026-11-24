@@ -2,7 +2,8 @@ import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Anonymous access rules of the bucket shown in the details
-class AnonymousAccessCubit extends Cubit<AnonymousAccessState> {
+class AnonymousAccessCubit extends Cubit<AnonymousAccessState>
+    with GlobalEventBusCommunication<AnonymousAccessState> {
   final AnonymousAccessRepo _repo;
   final AuthCubit _auth;
 
@@ -12,7 +13,7 @@ class AnonymousAccessCubit extends Cubit<AnonymousAccessState> {
   Future<void> load({required String bucket}) async {
     // another bucket's rules are not shown while the new ones load
     final rules = bucket == state.bucket ? state.rules : <AnonymousRuleModel>[];
-    emit(AnonymousAccessLoadingInProgressState(bucket: bucket, rules: rules));
+    emit(AnonymousAccessSearchingState(bucket: bucket, rules: rules));
     try {
       final loaded = await _repo.getRules(
         bucket: bucket,
@@ -20,11 +21,11 @@ class AnonymousAccessCubit extends Cubit<AnonymousAccessState> {
       );
       // if another bucket was picked meanwhile, this response is stale
       if (state.bucket != bucket) return;
-      emit(AnonymousAccessLoadingSuccessState(bucket: bucket, rules: loaded));
+      emit(AnonymousAccessSearchOkState(bucket: bucket, rules: loaded));
     } catch (e) {
       if (state.bucket != bucket) return;
       emit(
-        AnonymousAccessLoadingErrorState(
+        AnonymousAccessSearchErrorState(
           ExceptionConverter.parse(e),
           bucket: bucket,
           rules: rules,
@@ -36,21 +37,17 @@ class AnonymousAccessCubit extends Cubit<AnonymousAccessState> {
   Future<void> deleteRule({required String prefix}) async {
     final bucket = state.bucket;
     if (bucket == null) return;
-    emit(
-      AnonymousAccessProcessInProgressState(bucket: bucket, rules: state.rules),
-    );
+    emit(AnonymousAccessDeletingState(bucket: bucket, rules: state.rules));
     try {
       await _repo.deleteRule(
         bucket: bucket,
         prefix: prefix,
         token: _auth.auth?.accessToken,
       );
-      emit(
-        AnonymousAccessProcessingOKState(bucket: bucket, rules: state.rules),
-      );
+      emit(AnonymousAccessDeletedOkState(bucket: bucket, rules: state.rules));
     } catch (e) {
       emit(
-        AnonymousAccessProcessingErrorState(
+        AnonymousAccessDeletingErrorState(
           ExceptionConverter.parse(e).intlMessage,
           bucket: bucket,
           rules: state.rules,
@@ -69,23 +66,23 @@ abstract class AnonymousAccessState {
   const AnonymousAccessState({this.bucket, this.rules = const []});
 }
 
-class AnonymousAccessInitialState extends AnonymousAccessState {
+final class AnonymousAccessInitialState extends AnonymousAccessState {
   const AnonymousAccessInitialState();
 }
 
 //------------------------- LOADING -------------------------\
-class AnonymousAccessLoadingInProgressState extends AnonymousAccessState {
-  const AnonymousAccessLoadingInProgressState({super.bucket, super.rules});
+final class AnonymousAccessSearchingState extends AnonymousAccessState {
+  const AnonymousAccessSearchingState({super.bucket, super.rules});
 }
 
-class AnonymousAccessLoadingSuccessState extends AnonymousAccessState {
-  const AnonymousAccessLoadingSuccessState({super.bucket, super.rules});
+final class AnonymousAccessSearchOkState extends AnonymousAccessState {
+  const AnonymousAccessSearchOkState({super.bucket, super.rules});
 }
 
-class AnonymousAccessLoadingErrorState extends AnonymousAccessState {
+final class AnonymousAccessSearchErrorState extends AnonymousAccessState {
   final GlobalException exception;
 
-  const AnonymousAccessLoadingErrorState(
+  const AnonymousAccessSearchErrorState(
     this.exception, {
     super.bucket,
     super.rules,
@@ -93,18 +90,18 @@ class AnonymousAccessLoadingErrorState extends AnonymousAccessState {
 }
 
 //------------------------- PROCESSING -------------------------\
-class AnonymousAccessProcessInProgressState extends AnonymousAccessState {
-  const AnonymousAccessProcessInProgressState({super.bucket, super.rules});
+final class AnonymousAccessDeletingState extends AnonymousAccessState {
+  const AnonymousAccessDeletingState({super.bucket, super.rules});
 }
 
-class AnonymousAccessProcessingOKState extends AnonymousAccessState {
-  const AnonymousAccessProcessingOKState({super.bucket, super.rules});
+final class AnonymousAccessDeletedOkState extends AnonymousAccessState {
+  const AnonymousAccessDeletedOkState({super.bucket, super.rules});
 }
 
-class AnonymousAccessProcessingErrorState extends AnonymousAccessState {
+final class AnonymousAccessDeletingErrorState extends AnonymousAccessState {
   final String message;
 
-  const AnonymousAccessProcessingErrorState(
+  const AnonymousAccessDeletingErrorState(
     this.message, {
     super.bucket,
     super.rules,

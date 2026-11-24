@@ -98,7 +98,7 @@ void main() {
           token: 'jwt',
         ),
       );
-      expect(cubit.state, isA<TransferProcessingOKState>());
+      expect(cubit.state, isA<TransfersFinishedOkState>());
       final task = cubit.state.tasks.single;
       expect(task.status, TransferStatus.done);
       expect(task.name, 'a.jpg');
@@ -391,7 +391,7 @@ void main() {
     test('Clearing the finished ones empties the list', () async {
       await twoFinished();
       cubit.clearFinished();
-      expect(cubit.state, isA<TransferInitialState>());
+      expect(cubit.state, isA<TransfersInitialState>());
     });
 
     test('Logging out cancels what is running and clears the list', () async {
@@ -403,7 +403,7 @@ void main() {
       cubit.reset();
 
       verify(() => repo.cancel(any())).called(1);
-      expect(cubit.state, isA<TransferInitialState>());
+      expect(cubit.state, isA<TransfersInitialState>());
     });
   });
 }

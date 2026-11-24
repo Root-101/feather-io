@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BrowserScreenNavigator {
+  /// Its routes; `route_config.dart` only places them in the tree
+  List<RouteBase> routes({List<RouteBase> children = const []}) => [
+    GoRoute(name: name, path: path, builder: builder, routes: children),
+  ];
+
   String get name => RouteNames.browser;
 
   String get path => '/browser';
@@ -112,7 +117,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 
   /// The bucket of the URL, if the bucket list is already known and it exists
-  BucketModel? _urlBucket(BucketState state) {
+  BucketModel? _urlBucket(BucketsState state) {
     for (final bucket in state.buckets) {
       if (bucket.name == widget.bucket) return bucket;
     }
@@ -127,7 +132,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
       return;
     }
     final bucketState = bucketCubit.state;
-    if (bucketState is BucketInitialState) {
+    if (bucketState is BucketsInitialState) {
       bucketCubit.load();
       return;
     }
@@ -145,8 +150,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BucketsCubit, BucketState>(
-      listenWhen: (previous, current) => current is BucketLoadingSuccessState,
+    return BlocListener<BucketsCubit, BucketsState>(
+      listenWhen: (previous, current) => current is BucketsSearchOkState,
       listener: (context, state) => _sync(),
       child: Scaffold(
         appBar: CustomAppBar.build(
@@ -190,10 +195,10 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 
   Widget _buildBucket() {
-    return BlocBuilder<BucketsCubit, BucketState>(
+    return BlocBuilder<BucketsCubit, BucketsState>(
       builder: (context, bucketState) {
         if (_urlBucket(bucketState) == null) {
-          if (bucketState is BucketLoadingSuccessState) {
+          if (bucketState is BucketsSearchOkState) {
             return BrowserNotFoundPage(
               title: app.intl.browser.bucketNotFound(name: widget.bucket!),
               description: app.intl.browser.bucketNotFoundDescription,
@@ -201,7 +206,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
               onAction: () => _navigate(),
             );
           }
-          if (bucketState is BucketLoadingErrorState) {
+          if (bucketState is BucketsSearchErrorState) {
             return ErrorPage(
               message: bucketState.exception.intlMessage,
               onRetry: bucketCubit.load,
@@ -242,9 +247,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   prefix: state.prefix,
                   files: files,
                 );
-                app.snack.showSuccess(
-                  message: app.intl.transfers.uploadsAdded(count: files.length),
-                  context: context,
+                app.toast.success(
+                  app.intl.transfers.uploadsAdded(count: files.length),
                 );
               },
               onDownload: (keys, {zipName}) {
@@ -256,10 +260,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   keys: keys,
                   zipName: name,
                 );
-                app.snack.showSuccess(
-                  message: app.intl.transfers.downloadAdded(name: name),
-                  context: context,
-                );
+                app.toast.success(app.intl.transfers.downloadAdded(name: name));
               },
               onView: (key) => cubit.viewObject(bucket: bucket, key: key),
               onViewTypeChanged: (type) => BrowserScreen.navigator.show(

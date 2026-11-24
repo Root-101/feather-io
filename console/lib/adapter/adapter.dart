@@ -10,4 +10,3 @@ export 'loading_overlay.dart';
 export 'global_event_bus.dart';
 export 'loading_overlay_styles.dart';
 export 'navigator_helper.dart';
-export 'snackbar_adapter.dart';

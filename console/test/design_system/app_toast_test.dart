@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  late BuildContext inner;
-
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1536, 720);
     tester.view.devicePixelRatio = 1;
@@ -15,12 +13,7 @@ void main() {
         theme: AppTheme.dark,
         localizationsDelegates: AppIntl.delegates,
         supportedLocales: AppIntl.supportedLocales,
-        home: Builder(
-          builder: (context) {
-            inner = context;
-            return const SizedBox();
-          },
-        ),
+        home: const SizedBox(),
       ),
     );
   }
@@ -34,21 +27,17 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   }
 
-  // The dialogs that close themselves pass `app.context`, the navigator
-  // itself: its overlay is below it (it crashed in the release build)
-  testWidgets('Should show a notice from the navigator context', (
-    tester,
-  ) async {
+  // From anywhere, also from the dialogs that close themselves: it goes on the
+  // overlay of the root navigator (it crashed in the release build)
+  testWidgets('Should show a success notice', (tester) async {
     await pump(tester);
-    app.snack.showSuccess(message: 'Renamed', context: app.context);
+    app.toast.success('Renamed');
     await expectShown(tester, 'Renamed');
   });
 
-  testWidgets('Should show a notice from a context inside a screen', (
-    tester,
-  ) async {
+  testWidgets('Should show an error notice', (tester) async {
     await pump(tester);
-    app.snack.showError(message: 'Failed', context: inner);
+    app.toast.error('Failed');
     await expectShown(tester, 'Failed');
   });
 }

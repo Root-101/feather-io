@@ -608,15 +608,25 @@ dependencies go one way only (`browser` → `buckets`/`transfers`, `transfers` �
 provides their cubits (e.g. `BrowserScreen.navigator.builder` provides `BrowserCubit` and
 `BucketsCubit`); dialogs opened from it reuse the instance with `BlocProvider.value`.
 
-`FeaturesInit.init()` (`features/features_init.dart`) wires all inits. Add the cubit to
-`blocProviders` only if it is needed at the root; screen-scoped cubits are created in the screen's
-navigator `builder`. Everything is imported through `package:console/app_exporter.dart`.
+The console follows the Flutter app standard (the `flutter-app-standard` skill, as Maple
+and Dumpling), with the exceptions listed below.
 
-**State naming.** States are prefixed with the feature and follow:
+`FeaturesInit.init()` (`features/features_init.dart`) wires all inits. The singleton cubits
+(`AuthCubit`, `LanguageCubit`, `TransfersCubit`) are put in DI by their init, listed in
+`blocProviders` and, except the language, reset on logout (`_resetCubits()`); screen-scoped cubits
+are created in the screen's navigator `builder`, and form cubits by the navigator that opens the
+form. Everything is imported through `package:console/app_exporter.dart`.
 
-- `{F}InitialState`
-- `{F}LoadingInProgressState`, `{F}LoadingSuccessState`, `{F}LoadingErrorState` (fetching data)
-- `{F}ProcessInProgressState`, `{F}ProcessingOKState`, `{F}ProcessingErrorState` (actions)
+**State naming.** Every cubit is `with GlobalEventBusCommunication`, so each state also travels on
+the bus. States are named after the cubit (its name without `Cubit`, one prefix per cubit), the
+concrete ones `final class`:
+
+- `XInitialState`
+- `XSearchingState`, `XSearchOkState`, `XSearchErrorState` (fetching a list)
+- per action `X<Verb>ingState`, `X<Verb>edOkState`, `X<Verb>ingErrorState` (`AccessKeysUpdating…`,
+  `AnonymousAccessDeleting…`, `ShareLinkSigning…`, `AuthLoggingIn…`); the OK states of writes are
+  what other features listen to, so grep `onBus<` before renaming one
+- forms: `XFormProcessInProgressState`, `XFormProcessingOKState`, `XFormProcessingErrorState`
 
 The browser pages objects: `BrowserSearchState` keeps the loaded `pages` of the folder (contiguous
 from the first, each with its `nextContinuationToken`), the `pageIndex` shown and the `pageSize` (
@@ -634,8 +644,21 @@ Error states carry the `GlobalException` or its `intlMessage`; cubits get it via
 `ExceptionConverter.parse(e)`, never `e.toString()`. Cubits read the token from `AuthCubit` (
 `auth.auth?.accessToken`) and pass it as `token:` to the repo.
 
+**Exceptions to the standard** (on purpose; never copied into new code as the rule):
+
+| Standard                                         | Here                                                | Why                                                                                                         |
+|--------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `await auth.accessToken`, refreshed when expired | `auth.auth?.accessToken`                            | The service gives one JWT per login, without refresh; a 401 logs out                                        |
+| Forms in `AppFormDialog` (admin web)             | Drawers (`FormDrawerTemplate`)                      | The Claude Design canvas draws them as drawers                                                              |
+| Tokens `surface/text/border…`, `app.space`       | `primary/neutral/palette`, `app.dimensions.padding` | The names of the canvas and its tokens; renaming them is a redesign of its own                              |
+| `GlobalExceptionType` of the standard            | Adds `conflict`                                     | A 409 (name taken, `KeyConflict`) is shown on the field                                                     |
+| Light theme                                      | `AppTheme.dark` only                                | The design is dark                                                                                          |
+| Facts on the bus are the OK states of writes     | Also `BucketChangedEvent`                           | Four cubits change buckets and three react: one event instead of every writer's states                      |
+| `ObjectAction…` / `ObjectDetails…` states        | `ProcessInProgress…` / `LoadingInProgress…`         | The cubit of a dialog that runs one of several actions, and the one of the details drawer, named like forms |
+| Version bump and CHANGELOG with each change      | One version for service and console, at release     | Both are released together (root `CHANGELOG.md`)                                                            |
+
 **Globals.** The `app` singleton in `main.dart` exposes DI (`app.di.find<T>()`, backed by GetX —
-only `adapter/di.dart` may import `get`), `app.navigator`, `app.dialog`, `app.snack`, `app.loading`,
+only `adapter/di.dart` may import `get`), `app.navigator`, `app.dialog`, `app.toast` (`success(text)`, `error(text)`), `app.loading`,
 `app.dateFormatter`, `app.storageFormatter`, `app.colors`, `app.dimensions`, `app.assets` and
 `app.intl`. Routing is `go_router` in `config/route_config.dart`, and it redirects to login when
 `AuthCubit.auth` is null, keeping the location asked for in `/login?from=…`; after logging in the
@@ -663,8 +686,10 @@ nothing happens.
 
 **View rules.**
 
-- Each screen exposes a static navigator object (`static final XScreenNavigator navigator`) with
-  `name`, `path` and `builder`; routes in `route_config.dart` use it.
+- Every screen, drawer and dialog exposes one navigator (`static final XNavigator navigator`):
+  screens have `name`, `path`, `builder` and `routes()` (`route_config.dart` only places those),
+  forms `create(context)` / `edit(context, …)`, other dialogs and drawers `open(…)`. Callers use
+  `X.navigator.…`; `DialogTemplate.open` and `FormDrawerTemplate` are only called inside a navigator.
 - Use the design system (`design_system/`: `tokens/`, `theme/`, `icons/`, `components/`): `CustomAppBar.build(title: …)`, `PrimaryButton.*`,
   `AppFormInput`, `AppTextSearchField`, `ConfirmDialog`, `FormDrawerTemplate`, colors/dimensions
   from `app.*`. Spacing with `.gap()`.

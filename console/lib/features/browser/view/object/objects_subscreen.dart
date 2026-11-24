@@ -73,7 +73,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   bool get _isMissingFolder {
     final state = widget.state;
     final objects = state.objects;
-    return state is BrowserLoadingSuccessState &&
+    return state is BrowserSearchOkState &&
         state.prefix.endsWith('/') &&
         objects != null &&
         objects.objects.isEmpty &&
@@ -205,7 +205,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   void _onRename(BrowserObjectWrapper wrapper) {
     final bucket = widget.state.selectedBucket;
     if (bucket == null) return;
-    ObjectNameDialog.rename(
+    ObjectNameDialog.navigator.rename(
       bucket: bucket.name,
       key: wrapper.fullPath,
       existingNames: _usedNames,
@@ -215,7 +215,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   void _onMove(List<BrowserObjectWrapper> wrappers) {
     final bucket = widget.state.selectedBucket;
     if (bucket == null) return;
-    MoveObjectsDialog.show(
+    MoveObjectsDialog.navigator.open(
       bucket: bucket.name,
       prefix: widget.state.prefix,
       keys: wrappers.map((w) => w.fullPath).toList(),
@@ -226,7 +226,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   void _onCreateFolder() {
     final bucket = widget.state.selectedBucket;
     if (bucket == null) return;
-    ObjectNameDialog.createFolder(
+    ObjectNameDialog.navigator.createFolder(
       bucket: bucket.name,
       prefix: widget.state.prefix,
       existingNames: _usedNames,
@@ -236,7 +236,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
   void _onDetails(BrowserObjectWrapper wrapper) {
     final bucket = widget.state.selectedBucket;
     if (bucket == null) return;
-    ObjectDetailsDrawer.show(
+    ObjectDetailsDrawer.navigator.open(
       bucket: bucket.name,
       object: wrapper,
       onDelete: () => _onDeleteSelected([wrapper]),
@@ -349,7 +349,7 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
             onTap: () {
               final bucket = widget.state.selectedBucket;
               if (bucket != null) {
-                ShareLinkDialog.show(
+                ShareLinkDialog.navigator.open(
                   bucket: bucket.name,
                   key: wrapper.fullPath,
                 );
@@ -667,12 +667,12 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                 children: [
                   LoadingOverlay(
                     visible:
-                        widget.state is BrowserLoadingInProgressState ||
-                        widget.state is BrowserProcessInProgressState,
+                        widget.state is BrowserSearchingState ||
+                        widget.state is BrowserUpdatingState,
                     overlayWidgetBuilder: LoadingOverlayStyles.table,
                     disableBackButton: false,
                     child: IgnorePointer(
-                      ignoring: widget.state is! BrowserLoadingSuccessState,
+                      ignoring: widget.state is! BrowserSearchOkState,
                       child: widget.state.viewType == ViewType.list
                           ? ObjectsTableDatasource(
                               state: widget.state,
@@ -718,10 +718,10 @@ class _ObjectsSubscreenState extends State<ObjectsSubscreen> {
                     ),
                   if (_isDragging)
                     const Positioned.fill(child: DraggingZoneOverlay()),
-                  if (widget.state is BrowserLoadingErrorState)
+                  if (widget.state is BrowserSearchErrorState)
                     Positioned.fill(
                       child: ErrorPage(
-                        message: (widget.state as BrowserLoadingErrorState)
+                        message: (widget.state as BrowserSearchErrorState)
                             .exception
                             .intlMessage,
                         onRetry: widget.onRefresh,

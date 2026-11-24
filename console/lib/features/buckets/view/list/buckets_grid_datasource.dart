@@ -2,7 +2,7 @@ import 'package:console/app_exporter.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BucketsGridDatasource extends StatelessWidget {
-  final BucketState state;
+  final BucketsState state;
   final TextEditingController searchController;
   final List<BucketModel> filteredBuckets;
   final Function(BucketModel) onSelected;
@@ -21,7 +21,7 @@ class BucketsGridDatasource extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (filteredBuckets.isEmpty && state is BucketLoadingSuccessState) {
+    if (filteredBuckets.isEmpty && state is BucketsSearchOkState) {
       return NoDataPage(
         title: searchController.text.isEmpty
             ? app.intl.buckets.empty

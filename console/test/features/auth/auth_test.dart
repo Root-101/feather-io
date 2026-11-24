@@ -145,10 +145,7 @@ void main() {
         ),
       ).thenAnswer((_) async => session),
       act: (cubit) => cubit.login(access: 'access', secret: 'secret'),
-      expect: () => [
-        isA<AuthProcessInProgressState>(),
-        isA<AuthProcessingOKState>(),
-      ],
+      expect: () => [isA<AuthLoggingInState>(), isA<AuthLoggedInOkState>()],
       verify: (cubit) {
         expect(cubit.auth?.accessToken, 'jwt');
         verify(() => repo.save(session)).called(1);
@@ -166,8 +163,8 @@ void main() {
       ).thenThrow(apiError('Invalid credentials')),
       act: (cubit) => cubit.login(access: 'access', secret: 'wrong'),
       expect: () => [
-        isA<AuthProcessInProgressState>(),
-        isA<AuthProcessingErrorState>().having(
+        isA<AuthLoggingInState>(),
+        isA<AuthLoggingInErrorState>().having(
           (s) => s.message,
           'message',
           'Invalid credentials',
@@ -188,7 +185,7 @@ void main() {
         await cubit.restore();
         cubit.logout();
       },
-      expect: () => [isA<AuthLogoutState>()],
+      expect: () => [isA<AuthLogoutOkState>()],
       verify: (cubit) {
         expect(cubit.auth, isNull);
         verify(() => repo.clear()).called(1);

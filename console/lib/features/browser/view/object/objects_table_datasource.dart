@@ -137,7 +137,7 @@ class _ObjectsTableDatasourceState extends State<ObjectsTableDatasource> {
         }
 
         if (widget.filteredWrappers.isEmpty &&
-            widget.state is BrowserLoadingSuccessState) {
+            widget.state is BrowserSearchOkState) {
           return ObjectsEmptyPage(
             query: widget.searchController.text,
             hasActiveFilter: widget.hasActiveFilter,

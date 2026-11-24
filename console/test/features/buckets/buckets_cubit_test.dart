@@ -38,17 +38,17 @@ void main() {
 
   BucketsCubit build() => BucketsCubit(repo, auth);
 
-  List<String> names(BucketState state) =>
+  List<String> names(BucketsState state) =>
       state.buckets.map((b) => b.name).toList();
 
   group('load', () {
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'Loads the buckets with the JWT of the session',
       build: build,
       act: (cubit) => cubit.load(),
       expect: () => [
-        isA<BucketLoadingInProgressState>(),
-        isA<BucketLoadingSuccessState>().having(names, 'buckets', [
+        isA<BucketsSearchingState>(),
+        isA<BucketsSearchOkState>().having(names, 'buckets', [
           'media',
           'backups',
         ]),
@@ -56,7 +56,7 @@ void main() {
       verify: (_) => verify(() => repo.listBuckets(token: 'jwt')).called(1),
     );
 
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'A failure keeps the buckets already shown',
       build: build,
       act: (cubit) async {
@@ -67,11 +67,11 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<BucketLoadingInProgressState>().having(names, 'buckets', [
+        isA<BucketsSearchingState>().having(names, 'buckets', [
           'media',
           'backups',
         ]),
-        isA<BucketLoadingErrorState>()
+        isA<BucketsSearchErrorState>()
             .having((s) => s.exception.message, 'message', 'down')
             .having(names, 'buckets', ['media', 'backups']),
       ],
@@ -81,7 +81,7 @@ void main() {
   group('actions', () {
     late List<BucketChangedEvent> events;
 
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'Deleting a bucket reloads the list and tells the other sections',
       build: build,
       act: (cubit) async {
@@ -94,15 +94,15 @@ void main() {
         await other.cancel();
       },
       expect: () => [
-        isA<BucketProcessInProgressState>(),
+        isA<BucketsUpdatingState>(),
         // The screen showing it moves on to another bucket
-        isA<BucketProcessingOKState>().having(
+        isA<BucketsUpdatedOkState>().having(
           (s) => s.deletedBucket,
           'deletedBucket',
           'backups',
         ),
-        isA<BucketLoadingInProgressState>(),
-        isA<BucketLoadingSuccessState>(),
+        isA<BucketsSearchingState>(),
+        isA<BucketsSearchOkState>(),
       ],
       verify: (cubit) {
         verify(() => repo.deleteBucket(name: 'backups', token: 'jwt'));
@@ -113,25 +113,25 @@ void main() {
       },
     );
 
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'Emptying a bucket reloads the list',
       build: build,
       act: (cubit) => cubit.emptyBucket(bucket: media),
       expect: () => [
-        isA<BucketProcessInProgressState>(),
-        isA<BucketProcessingOKState>().having(
+        isA<BucketsUpdatingState>(),
+        isA<BucketsUpdatedOkState>().having(
           (s) => s.deletedBucket,
           'deletedBucket',
           isNull,
         ),
-        isA<BucketLoadingInProgressState>(),
-        isA<BucketLoadingSuccessState>(),
+        isA<BucketsSearchingState>(),
+        isA<BucketsSearchOkState>(),
       ],
       verify: (_) =>
           verify(() => repo.emptyBucket(name: 'media', token: 'jwt')),
     );
 
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'A failed action carries the message and reloads nothing',
       build: build,
       setUp: () => when(
@@ -142,8 +142,8 @@ void main() {
       ).thenThrow(apiError('The bucket is not empty')),
       act: (cubit) => cubit.deleteBucket(bucket: media),
       expect: () => [
-        isA<BucketProcessInProgressState>(),
-        isA<BucketProcessingErrorState>().having(
+        isA<BucketsUpdatingState>(),
+        isA<BucketsUpdatingErrorState>().having(
           (s) => s.message,
           'message',
           'The bucket is not empty',
@@ -155,7 +155,7 @@ void main() {
   });
 
   group('changes from other sections', () {
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'Reloads when another cubit changes a bucket',
       build: build,
       act: (cubit) async {
@@ -168,13 +168,10 @@ void main() {
         );
         await busDelivered();
       },
-      expect: () => [
-        isA<BucketLoadingInProgressState>(),
-        isA<BucketLoadingSuccessState>(),
-      ],
+      expect: () => [isA<BucketsSearchingState>(), isA<BucketsSearchOkState>()],
     );
 
-    blocTest<BucketsCubit, BucketState>(
+    blocTest<BucketsCubit, BucketsState>(
       'Ignores its own changes (it already reloads by itself)',
       build: build,
       act: (cubit) async {
@@ -187,7 +184,7 @@ void main() {
         );
         await busDelivered();
       },
-      expect: () => const <BucketState>[],
+      expect: () => const <BucketsState>[],
     );
   });
 }

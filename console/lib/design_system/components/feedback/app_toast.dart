@@ -4,16 +4,18 @@ import 'package:console/app_exporter.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-class SnackBarAdapter {
-  static final SnackBarAdapter _instance = SnackBarAdapter._internal();
+/// `app.toast`: the notices of the app, bottom right (green or red). They
+/// need no `BuildContext`: they go on the overlay of the root navigator
+class AppToast {
+  static final AppToast _instance = AppToast._internal();
 
-  SnackBarAdapter._internal();
+  AppToast._internal();
 
-  factory SnackBarAdapter() => _instance;
+  factory AppToast() => _instance;
 
-  void showSuccess({required String message, required BuildContext context}) {
+  void success(String message) {
     _show(
-      context: context,
+      context: app.context,
       child: _AppSnackBar(
         message: message,
         icon: Icons.check_circle_outline,
@@ -22,9 +24,9 @@ class SnackBarAdapter {
     );
   }
 
-  void showError({required String message, required BuildContext context}) {
+  void error(String message) {
     _show(
-      context: context,
+      context: app.context,
       child: _AppSnackBar(
         message: message,
         icon: Icons.error_outline,

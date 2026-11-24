@@ -47,9 +47,8 @@ class InitErrorScreen extends StatelessWidget {
                   onPressed: onRetry,
                   color: app.colors.primary.purple.brighten(0.15),
                   title: _texts.common.tryAgain,
-                  titleStyle: TextTheme.of(
-                    context,
-                  ).titleMedium?.copyWith(color: app.colors.neutral.white),
+                  titleStyle: TextTheme.of(context).titleMedium
+                      ?.copyWith(color: app.colors.neutral.white),
                   h: 50,
                   w: 260,
                 ),

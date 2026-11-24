@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BucketAdminScreenNavigator {
+  /// Its routes; `route_config.dart` only places them in the tree
+  List<RouteBase> routes({List<RouteBase> children = const []}) => [
+    GoRoute(name: name, path: path, builder: builder, routes: children),
+  ];
+
   String get name => RouteNames.buckets;
 
   String get path => '/buckets';
@@ -96,23 +101,23 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.build(title: app.intl.nav.buckets),
-      body: BlocConsumer<BucketsCubit, BucketState>(
+      body: BlocConsumer<BucketsCubit, BucketsState>(
         listener: (context, state) {
-          if (state is BucketProcessInProgressState) {
+          if (state is BucketsUpdatingState) {
             app.loading.show(id: loadingOverlayGlobalId);
           } else {
             app.loading.hide(id: loadingOverlayGlobalId);
           }
-          if (state is BucketProcessingErrorState) {
-            app.snack.showError(message: state.message, context: context);
+          if (state is BucketsUpdatingErrorState) {
+            app.toast.error(state.message);
           }
           // The bucket shown was just deleted here: show the first one
-          if (state is BucketProcessingOKState &&
+          if (state is BucketsUpdatedOkState &&
               state.deletedBucket != null &&
               state.deletedBucket == widget.bucket) {
             BucketAdminScreen.navigator.show(tab: widget.tab);
           }
-          if (state is BucketLoadingSuccessState) _syncRules(state.buckets);
+          if (state is BucketsSearchOkState) _syncRules(state.buckets);
         },
         builder: (context, state) {
           final selected = _selected(state.buckets);
@@ -140,7 +145,7 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
     );
   }
 
-  Widget _buildDetail(BucketState state, BucketModel? selected) {
+  Widget _buildDetail(BucketsState state, BucketModel? selected) {
     if (selected != null) {
       return BucketAdminDetail(
         bucket: selected,
@@ -149,13 +154,13 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
             BucketAdminScreen.navigator.show(bucket: selected.name, tab: tab),
       );
     }
-    if (state is BucketLoadingErrorState) {
+    if (state is BucketsSearchErrorState) {
       return ErrorPage(
         message: state.exception.intlMessage,
         onRetry: cubit.load,
       );
     }
-    if (state is BucketLoadingSuccessState && widget.bucket != null) {
+    if (state is BucketsSearchOkState && widget.bucket != null) {
       return BrowserNotFoundPage(
         title: app.intl.browser.bucketNotFound(name: widget.bucket!),
         description: app.intl.browser.bucketNotFoundDescription,
@@ -163,7 +168,7 @@ class _BucketAdminScreenState extends State<BucketAdminScreen> {
         onAction: () => BucketAdminScreen.navigator.show(tab: widget.tab),
       );
     }
-    if (state is BucketLoadingSuccessState) {
+    if (state is BucketsSearchOkState) {
       return NoDataPage(
         title: app.intl.buckets.empty,
         description: app.intl.bucketAdmin.noBucketsDescription,

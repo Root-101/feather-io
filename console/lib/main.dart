@@ -181,7 +181,7 @@ class AppGlobal {
 
   StorageFormatter storageFormatter = StorageFormatter();
 
-  SnackBarAdapter snack = SnackBarAdapter();
+  AppToast toast = AppToast();
 
   DialogHelper dialog = DialogHelper();
 

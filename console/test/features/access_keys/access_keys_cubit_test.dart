@@ -43,17 +43,17 @@ void main() {
 
   AccessKeysCubit build() => AccessKeysCubit(repo, auth);
 
-  List<String> visible(AccessKeyState state) =>
+  List<String> visible(AccessKeysState state) =>
       state.data.visibleKeys.map((k) => k.name).toList();
 
   group('load', () {
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Loads the keys with the JWT of the session',
       build: build,
       act: (cubit) => cubit.load(),
       expect: () => [
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingSuccessState>()
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchOkState>()
             .having((s) => s.data.loaded, 'loaded', isTrue)
             .having((s) => s.data.rootAccessKeyId, 'root', 'root')
             .having(visible, 'visible', ['Web CDN', 'Backups NAS']),
@@ -61,7 +61,7 @@ void main() {
       verify: (_) => verify(() => repo.listKeys(token: 'jwt')).called(1),
     );
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'A failure keeps what was loaded and carries the error',
       build: build,
       setUp: () =>
@@ -69,8 +69,8 @@ void main() {
               .thenThrow(apiError('down')),
       act: (cubit) => cubit.load(),
       expect: () => [
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingErrorState>()
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchErrorState>()
             .having((s) => s.exception.message, 'message', 'down')
             .having((s) => s.data.loaded, 'loaded', isFalse),
       ],
@@ -78,7 +78,7 @@ void main() {
   });
 
   group('search and filters', () {
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Search matches the name or the id, ignoring case',
       build: build,
       act: (cubit) async {
@@ -89,16 +89,16 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<AccessKeyState>().having(visible, 'by name', ['Backups NAS']),
-        isA<AccessKeyState>().having(visible, 'by id', ['Web CDN']),
-        isA<AccessKeyState>().having(visible, 'cleared', [
+        isA<AccessKeysState>().having(visible, 'by name', ['Backups NAS']),
+        isA<AccessKeysState>().having(visible, 'by id', ['Web CDN']),
+        isA<AccessKeysState>().having(visible, 'cleared', [
           'Web CDN',
           'Backups NAS',
         ]),
       ],
     );
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Filters combine with the search and survive a reload',
       build: build,
       act: (cubit) async {
@@ -109,10 +109,10 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<AccessKeyState>().having(visible, 'filtered', ['Backups NAS']),
-        isA<AccessKeyState>().having(visible, 'filtered + search', isEmpty),
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingSuccessState>()
+        isA<AccessKeysState>().having(visible, 'filtered', ['Backups NAS']),
+        isA<AccessKeysState>().having(visible, 'filtered + search', isEmpty),
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchOkState>()
             .having((s) => s.data.filter.buckets, 'filter kept', {'backups'})
             .having((s) => s.data.query, 'query kept', 'web')
             .having(visible, 'visible', isEmpty),
@@ -121,7 +121,7 @@ void main() {
   });
 
   group('row actions', () {
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Disabling sends the same key with enabled false, then reloads',
       build: build,
       setUp: () => when(
@@ -133,14 +133,14 @@ void main() {
       ).thenAnswer((_) async => reader),
       act: (cubit) => cubit.setEnabled(reader, enabled: false),
       expect: () => [
-        isA<AccessKeyProcessInProgressState>(),
-        isA<AccessKeyProcessingOKState>().having(
+        isA<AccessKeysUpdatingState>(),
+        isA<AccessKeysUpdatedOkState>().having(
           (s) => s.action,
           'action',
           AccessKeyAction.disabled,
         ),
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingSuccessState>(),
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchOkState>(),
       ],
       verify: (_) {
         final draft =
@@ -158,7 +158,7 @@ void main() {
       },
     );
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Regenerating hands the new secret to the view',
       build: build,
       setUp: () => when(
@@ -169,20 +169,20 @@ void main() {
       ).thenAnswer((_) async => accessKey(id: 'FIOKREADER', secret: 's3cr3t')),
       act: (cubit) => cubit.regenerateSecret(reader),
       expect: () => [
-        isA<AccessKeyProcessInProgressState>(),
-        isA<AccessKeyProcessingOKState>()
+        isA<AccessKeysUpdatingState>(),
+        isA<AccessKeysUpdatedOkState>()
             .having(
               (s) => s.action,
               'action',
               AccessKeyAction.secretRegenerated,
             )
             .having((s) => s.key.secret, 'secret', 's3cr3t'),
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingSuccessState>(),
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchOkState>(),
       ],
     );
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'A failed delete reports the message and does not reload',
       build: build,
       setUp: () => when(
@@ -193,8 +193,8 @@ void main() {
       ).thenThrow(apiError('Access key not found')),
       act: (cubit) => cubit.delete(reader),
       expect: () => [
-        isA<AccessKeyProcessInProgressState>(),
-        isA<AccessKeyProcessingErrorState>().having(
+        isA<AccessKeysUpdatingState>(),
+        isA<AccessKeysUpdatingErrorState>().having(
           (s) => s.message,
           'message',
           'Access key not found',
@@ -217,7 +217,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     }
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Reloads when a key had that bucket, and drops it from the filter',
       build: build,
       act: (cubit) async {
@@ -227,17 +227,17 @@ void main() {
       },
       skip: 3,
       expect: () => [
-        isA<AccessKeyState>().having((s) => s.data.filter.buckets, 'filter', {
+        isA<AccessKeysState>().having((s) => s.data.filter.buckets, 'filter', {
           'media',
         }),
-        isA<AccessKeyLoadingInProgressState>(),
-        isA<AccessKeyLoadingSuccessState>(),
+        isA<AccessKeysSearchingState>(),
+        isA<AccessKeysSearchOkState>(),
       ],
       verify: (_) =>
           verify(() => repo.listKeys(token: any(named: 'token'))).called(2),
     );
 
-    blocTest<AccessKeysCubit, AccessKeyState>(
+    blocTest<AccessKeysCubit, AccessKeysState>(
       'Ignores buckets no key had, and other changes',
       build: build,
       act: (cubit) async {

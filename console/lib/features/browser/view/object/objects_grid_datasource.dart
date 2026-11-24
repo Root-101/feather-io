@@ -31,7 +31,7 @@ class ObjectsGridDatasource extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (filteredWrappers.isEmpty && state is BrowserLoadingSuccessState) {
+    if (filteredWrappers.isEmpty && state is BrowserSearchOkState) {
       return ObjectsEmptyPage(
         query: searchController.text,
         hasActiveFilter: hasActiveFilter,

@@ -5,6 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AccessKeysScreenNavigator {
+  /// Its routes; `route_config.dart` only places them in the tree
+  List<RouteBase> routes({List<RouteBase> children = const []}) => [
+    GoRoute(name: name, path: path, builder: builder, routes: children),
+  ];
+
   String get name => RouteNames.accessKeys;
 
   String get path => '/keys';
@@ -81,39 +86,36 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.build(title: app.intl.nav.accessKeys),
-      body: BlocConsumer<AccessKeysCubit, AccessKeyState>(
+      body: BlocConsumer<AccessKeysCubit, AccessKeysState>(
         listener: (context, state) {
-          if (state is AccessKeyProcessInProgressState) {
+          if (state is AccessKeysUpdatingState) {
             app.loading.show(id: loadingOverlayGlobalId);
           } else {
             app.loading.hide(id: loadingOverlayGlobalId);
           }
-          if (state is AccessKeyProcessingErrorState) {
-            app.snack.showError(message: state.message, context: context);
+          if (state is AccessKeysUpdatingErrorState) {
+            app.toast.error(state.message);
           }
-          if (state is AccessKeyProcessingOKState) {
+          if (state is AccessKeysUpdatedOkState) {
             final name = state.key.name;
             switch (state.action) {
               case AccessKeyAction.secretRegenerated:
-                AccessKeySecretDialog.show(
+                AccessKeySecretDialog.navigator.open(
                   key: state.key,
                   cubit: cubit,
                   created: false,
                 );
               case AccessKeyAction.enabled:
-                app.snack.showSuccess(
-                  message: app.intl.accessKeys.enabledSuccess(name: name),
-                  context: context,
+                app.toast.success(
+                  app.intl.accessKeys.enabledSuccess(name: name),
                 );
               case AccessKeyAction.disabled:
-                app.snack.showSuccess(
-                  message: app.intl.accessKeys.disabledSuccess(name: name),
-                  context: context,
+                app.toast.success(
+                  app.intl.accessKeys.disabledSuccess(name: name),
                 );
               case AccessKeyAction.deleted:
-                app.snack.showSuccess(
-                  message: app.intl.accessKeys.deletedSuccess(name: name),
-                  context: context,
+                app.toast.success(
+                  app.intl.accessKeys.deletedSuccess(name: name),
                 );
             }
           }
@@ -164,7 +166,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
         PrimaryButton.primary(
           title: app.intl.accessKeys.create,
           icon: app.assets.icons.actions.add,
-          onPressed: () => AccessKeyForm.open(context),
+          onPressed: () => AccessKeyForm.navigator.create(context),
           h: 42,
           w: 160,
         ),
@@ -172,9 +174,9 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
     );
   }
 
-  Widget _buildContent(AccessKeyState state) {
+  Widget _buildContent(AccessKeysState state) {
     final data = state.data;
-    if (state is AccessKeyLoadingErrorState && !data.loaded) {
+    if (state is AccessKeysSearchErrorState && !data.loaded) {
       return ErrorPage(
         message: state.exception.intlMessage,
         onRetry: cubit.load,
@@ -189,11 +191,12 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
               child: _AccessKeysTable(
                 data: data,
                 toolbar: _buildToolbar(data),
-                onEdit: (key) => AccessKeyForm.open(context, key: key),
+                onEdit: (key) =>
+                    AccessKeyForm.navigator.edit(context, key: key),
                 onRegenerate: _onRegenerate,
                 onToggle: (key) => cubit.setEnabled(key, enabled: !key.enabled),
                 onDelete: _onDelete,
-                onCreate: () => AccessKeyForm.open(context),
+                onCreate: () => AccessKeyForm.navigator.create(context),
               ),
             )
           : const SizedBox.expand(),
@@ -214,7 +217,7 @@ class _AccessKeysScreenState extends State<AccessKeysScreen> {
           ),
         ),
         app.dimensions.padding.l.gap(),
-        BlocBuilder<BucketsCubit, BucketState>(
+        BlocBuilder<BucketsCubit, BucketsState>(
           builder: (context, bucketState) => AccessKeysFilterButton(
             filter: data.filter,
             buckets: [for (final bucket in bucketState.buckets) bucket.name],
@@ -446,10 +449,7 @@ class _KeyId extends StatelessWidget {
           iconSize: 16,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: id));
-            app.snack.showSuccess(
-              message: app.intl.accessKeys.idCopied,
-              context: context,
-            );
+            app.toast.success(app.intl.accessKeys.idCopied);
           },
           icon: app.assets.icons.actions.copy.build(
             size: 16,

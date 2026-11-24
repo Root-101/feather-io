@@ -5,13 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Access keys of the *Access keys* section: list, search and the row actions
 /// (enable/disable, regenerate the secret, delete)
-class AccessKeysCubit extends Cubit<AccessKeyState>
-    with GlobalEventBusCommunication<AccessKeyState> {
+class AccessKeysCubit extends Cubit<AccessKeysState>
+    with GlobalEventBusCommunication<AccessKeysState> {
   final AccessKeysRepo _repo;
   final AuthCubit _auth;
 
   AccessKeysCubit(this._repo, this._auth)
-    : super(const AccessKeyInitialState()) {
+    : super(const AccessKeysInitialState()) {
     // Deleting a bucket deletes the keys' grants on it (in the service): the
     // list reloads so no key keeps showing it
     onBus<BucketChangedEvent>((event) {
@@ -33,13 +33,13 @@ class AccessKeysCubit extends Cubit<AccessKeyState>
   }
 
   Future<void> load() async {
-    emit(AccessKeyLoadingInProgressState(data: state.data));
+    emit(AccessKeysSearchingState(data: state.data));
     try {
       final list = await _repo.listKeys(token: _auth.auth?.accessToken);
-      emit(AccessKeyLoadingSuccessState(data: state.data.withList(list)));
+      emit(AccessKeysSearchOkState(data: state.data.withList(list)));
     } catch (e) {
       emit(
-        AccessKeyLoadingErrorState(
+        AccessKeysSearchErrorState(
           ExceptionConverter.parse(e),
           data: state.data,
         ),
@@ -49,12 +49,12 @@ class AccessKeysCubit extends Cubit<AccessKeyState>
 
   /// Filters by name or id, over the keys already loaded
   void search(String query) {
-    emit(AccessKeyLoadingSuccessState(data: state.data.withQuery(query)));
+    emit(AccessKeysSearchOkState(data: state.data.withQuery(query)));
   }
 
   /// Filters by status, level and bucket, over the keys already loaded
   void applyFilter(AccessKeyFilter filter) {
-    emit(AccessKeyLoadingSuccessState(data: state.data.withFilter(filter)));
+    emit(AccessKeysSearchOkState(data: state.data.withFilter(filter)));
   }
 
   Future<void> setEnabled(AccessKeyModel key, {required bool enabled}) async {
@@ -95,13 +95,13 @@ class AccessKeysCubit extends Cubit<AccessKeyState>
     AccessKeyAction action,
     Future<AccessKeyModel> Function() run,
   ) async {
-    emit(AccessKeyProcessInProgressState(data: state.data));
+    emit(AccessKeysUpdatingState(data: state.data));
     try {
       final key = await run();
-      emit(AccessKeyProcessingOKState(action, key, data: state.data));
+      emit(AccessKeysUpdatedOkState(action, key, data: state.data));
     } catch (e) {
       emit(
-        AccessKeyProcessingErrorState(
+        AccessKeysUpdatingErrorState(
           ExceptionConverter.parse(e).intlMessage,
           data: state.data,
         ),
@@ -189,51 +189,47 @@ class AccessKeyData {
   );
 }
 
-abstract class AccessKeyState {
+abstract class AccessKeysState {
   final AccessKeyData data;
 
-  const AccessKeyState({this.data = const AccessKeyData.empty()});
+  const AccessKeysState({this.data = const AccessKeyData.empty()});
 }
 
-class AccessKeyInitialState extends AccessKeyState {
-  const AccessKeyInitialState();
+final class AccessKeysInitialState extends AccessKeysState {
+  const AccessKeysInitialState();
 }
 
 //------------------------- LOADING -------------------------\
-class AccessKeyLoadingInProgressState extends AccessKeyState {
-  const AccessKeyLoadingInProgressState({required super.data});
+final class AccessKeysSearchingState extends AccessKeysState {
+  const AccessKeysSearchingState({required super.data});
 }
 
-class AccessKeyLoadingSuccessState extends AccessKeyState {
-  const AccessKeyLoadingSuccessState({required super.data});
+final class AccessKeysSearchOkState extends AccessKeysState {
+  const AccessKeysSearchOkState({required super.data});
 }
 
-class AccessKeyLoadingErrorState extends AccessKeyState {
+final class AccessKeysSearchErrorState extends AccessKeysState {
   final GlobalException exception;
 
-  const AccessKeyLoadingErrorState(this.exception, {required super.data});
+  const AccessKeysSearchErrorState(this.exception, {required super.data});
 }
 
 //------------------------- PROCESSING -------------------------\
-class AccessKeyProcessInProgressState extends AccessKeyState {
-  const AccessKeyProcessInProgressState({required super.data});
+final class AccessKeysUpdatingState extends AccessKeysState {
+  const AccessKeysUpdatingState({required super.data});
 }
 
-class AccessKeyProcessingOKState extends AccessKeyState {
+final class AccessKeysUpdatedOkState extends AccessKeysState {
   final AccessKeyAction action;
 
   /// The key acted on; after [AccessKeyAction.secretRegenerated], with its secret
   final AccessKeyModel key;
 
-  const AccessKeyProcessingOKState(
-    this.action,
-    this.key, {
-    required super.data,
-  });
+  const AccessKeysUpdatedOkState(this.action, this.key, {required super.data});
 }
 
-class AccessKeyProcessingErrorState extends AccessKeyState {
+final class AccessKeysUpdatingErrorState extends AccessKeysState {
   final String message;
 
-  const AccessKeyProcessingErrorState(this.message, {required super.data});
+  const AccessKeysUpdatingErrorState(this.message, {required super.data});
 }

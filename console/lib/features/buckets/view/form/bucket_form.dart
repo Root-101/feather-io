@@ -4,38 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 /// Drawer to create a bucket or, with [bucket], edit its description and color
 class BucketForm extends StatefulWidget {
-  /// Opens the drawer with its own [BucketFormCubit]: while submitting, the drawer
-  /// shows its loading veil and errors show inside the form.
-  /// On save, it reloads the screen's [BucketsCubit]
-  static Future<void> open(BuildContext context, {BucketModel? bucket}) async {
-    final key = GlobalKey<_BucketFormState>();
-    final bucketCubit = context.read<BucketsCubit>();
-    final formCubit = BucketFormCubit(app.di.find(), app.di.find());
-    final isEdit = bucket != null;
-
-    await FormDrawerTemplate.showAsDialog(
-      title: isEdit ? app.intl.buckets.edit : app.intl.buckets.create,
-      description: isEdit
-          ? app.intl.buckets.editDescription(name: bucket.name)
-          : app.intl.buckets.createDescription,
-      icon: app.assets.icons.storage.bucket,
-      loadingId: loadingId,
-      footerActions: [
-        _BucketFormFooter(
-          isEdit: isEdit,
-          onSubmit: () => key.currentState?.submit(),
-        ),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: bucketCubit),
-          BlocProvider.value(value: formCubit),
-        ],
-        child: BucketForm(key: key, bucket: bucket),
-      ),
-    );
-    await formCubit.close();
-  }
+  static final BucketFormNavigator navigator = BucketFormNavigator();
 
   /// Id of the drawer's [LoadingOverlay]
   static const String loadingId = 'bucket-form';
@@ -201,11 +170,10 @@ class _BucketFormState extends State<BucketForm> {
             bucketName: state.name,
             bucket: state.bucket,
           );
-          app.snack.showSuccess(
-            message: _isEdit
+          app.toast.success(
+            _isEdit
                 ? app.intl.buckets.updatedSuccess(name: state.name)
                 : app.intl.buckets.createdSuccess(name: state.name),
-            context: app.context,
           );
         } else if (state is BucketFormProcessingErrorState) {
           const fields = {BucketFormField.name, BucketFormField.description};
@@ -387,5 +355,46 @@ class _BucketFormFooter extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Opens [BucketForm]
+class BucketFormNavigator {
+  Future<void> create(BuildContext context) => _open(context);
+
+  Future<void> edit(BuildContext context, {required BucketModel bucket}) =>
+      _open(context, bucket: bucket);
+
+  /// Opens the drawer with its own [BucketFormCubit]: while submitting, the drawer
+  /// shows its loading veil and errors show inside the form.
+  /// On save, it reloads the screen's [BucketsCubit]
+  Future<void> _open(BuildContext context, {BucketModel? bucket}) async {
+    final key = GlobalKey<_BucketFormState>();
+    final bucketCubit = context.read<BucketsCubit>();
+    final formCubit = BucketFormCubit(app.di.find(), app.di.find());
+    final isEdit = bucket != null;
+
+    await FormDrawerTemplate.showAsDialog(
+      title: isEdit ? app.intl.buckets.edit : app.intl.buckets.create,
+      description: isEdit
+          ? app.intl.buckets.editDescription(name: bucket.name)
+          : app.intl.buckets.createDescription,
+      icon: app.assets.icons.storage.bucket,
+      loadingId: BucketForm.loadingId,
+      footerActions: [
+        _BucketFormFooter(
+          isEdit: isEdit,
+          onSubmit: () => key.currentState?.submit(),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: bucketCubit),
+          BlocProvider.value(value: formCubit),
+        ],
+        child: BucketForm(key: key, bucket: bucket),
+      ),
+    );
+    await formCubit.close();
   }
 }

@@ -59,9 +59,8 @@ class BucketGeneralTab extends StatelessWidget {
                         tooltip: app.intl.bucketAdmin.detailCopyPath,
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _s3Path));
-                          app.snack.showSuccess(
-                            message: app.intl.bucketAdmin.detailPathCopied,
-                            context: context,
+                          app.toast.success(
+                            app.intl.bucketAdmin.detailPathCopied,
                           );
                         },
                         icon: app.assets.icons.actions.copy.build(

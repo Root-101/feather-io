@@ -7,7 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// app: transfers keep going across folders, buckets and sections. It runs
 /// [maxConcurrent] uploads and as many downloads at a time and announces the
 /// finished uploads with [BucketChangedEvent]
-class TransfersCubit extends Cubit<TransferState> {
+class TransfersCubit extends Cubit<TransfersState>
+    with GlobalEventBusCommunication<TransfersState> {
   static const int maxConcurrent = 2;
 
   /// With uploads pending in a bucket, it announces at most once per this time,
@@ -37,7 +38,7 @@ class TransfersCubit extends Cubit<TransferState> {
   };
   int _nextId = 0;
 
-  TransfersCubit(this._repo, this._auth) : super(const TransferInitialState());
+  TransfersCubit(this._repo, this._auth) : super(const TransfersInitialState());
 
   /// Queues [files] to upload them to [prefix] of [bucket]
   Future<void> upload({
@@ -363,13 +364,13 @@ class TransfersCubit extends Cubit<TransferState> {
     _guardLeave(active > 0);
     if (tasks.isEmpty) {
       _batch.clear();
-      emit(const TransferInitialState());
+      emit(const TransfersInitialState());
       return;
     }
     if (active == 0) {
       _batch.clear();
       emit(
-        TransferProcessingOKState(
+        TransfersFinishedOkState(
           tasks: tasks,
           failedCount: failed,
           finishedCount: finished,
@@ -386,7 +387,7 @@ class TransfersCubit extends Cubit<TransferState> {
       (sum, t) => sum + (t.progress * t.size).round(),
     );
     emit(
-      TransferProcessInProgressState(
+      TransfersRunningState(
         tasks: tasks,
         activeCount: active,
         failedCount: failed,
@@ -419,7 +420,7 @@ class _Cancelled implements Exception {
   const _Cancelled();
 }
 
-abstract class TransferState {
+abstract class TransfersState {
   final List<TransferTask> tasks;
 
   /// Queued or running
@@ -432,7 +433,7 @@ abstract class TransferState {
   /// Progress of the transfers since the queue was idle, from 0 to 1
   final double progress;
 
-  const TransferState({
+  const TransfersState({
     this.tasks = const [],
     this.activeCount = 0,
     this.failedCount = 0,
@@ -442,14 +443,14 @@ abstract class TransferState {
 }
 
 /// No transfers
-class TransferInitialState extends TransferState {
-  const TransferInitialState();
+final class TransfersInitialState extends TransfersState {
+  const TransfersInitialState();
 }
 
 //------------------------- PROCESS -------------------------\\
 /// There are queued or running transfers
-class TransferProcessInProgressState extends TransferState {
-  const TransferProcessInProgressState({
+final class TransfersRunningState extends TransfersState {
+  const TransfersRunningState({
     required super.tasks,
     required super.activeCount,
     required super.failedCount,
@@ -459,8 +460,8 @@ class TransferProcessInProgressState extends TransferState {
 }
 
 /// Every transfer has finished; [failedCount] says how many failed
-class TransferProcessingOKState extends TransferState {
-  const TransferProcessingOKState({
+final class TransfersFinishedOkState extends TransfersState {
+  const TransfersFinishedOkState({
     required super.tasks,
     required super.failedCount,
     required super.finishedCount,

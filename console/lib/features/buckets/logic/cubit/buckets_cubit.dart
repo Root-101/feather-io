@@ -1,12 +1,12 @@
 import 'package:console/app_exporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BucketsCubit extends Cubit<BucketState>
-    with GlobalEventBusCommunication<BucketState> {
+class BucketsCubit extends Cubit<BucketsState>
+    with GlobalEventBusCommunication<BucketsState> {
   final BucketsRepo _repo;
   final AuthCubit _auth;
 
-  BucketsCubit(this._repo, this._auth) : super(const BucketInitialState()) {
+  BucketsCubit(this._repo, this._auth) : super(const BucketsInitialState()) {
     // each section (browser, Buckets) has its own BucketsCubit: if another one
     // changes the buckets, this one reloads its list
     onBus<BucketChangedEvent>((event) {
@@ -33,13 +33,13 @@ class BucketsCubit extends Cubit<BucketState>
   }
 
   Future<void> load() async {
-    emit(BucketLoadingInProgressState(buckets: state.buckets));
+    emit(BucketsSearchingState(buckets: state.buckets));
     try {
       final buckets = await _repo.listBuckets(token: _auth.auth?.accessToken);
-      emit(BucketLoadingSuccessState(buckets: buckets));
+      emit(BucketsSearchOkState(buckets: buckets));
     } catch (e) {
       emit(
-        BucketLoadingErrorState(
+        BucketsSearchErrorState(
           ExceptionConverter.parse(e),
           buckets: state.buckets,
         ),
@@ -73,18 +73,18 @@ class BucketsCubit extends Cubit<BucketState>
     required BucketChange change,
     bool deleted = false,
   }) async {
-    emit(BucketProcessInProgressState(buckets: state.buckets));
+    emit(BucketsUpdatingState(buckets: state.buckets));
     try {
       await action();
       emit(
-        BucketProcessingOKState(
+        BucketsUpdatedOkState(
           buckets: state.buckets,
           deletedBucket: deleted ? bucket.name : null,
         ),
       );
     } catch (e) {
       emit(
-        BucketProcessingErrorState(
+        BucketsUpdatingErrorState(
           ExceptionConverter.parse(e).intlMessage,
           buckets: state.buckets,
         ),
@@ -95,45 +95,45 @@ class BucketsCubit extends Cubit<BucketState>
   }
 }
 
-abstract class BucketState {
+abstract class BucketsState {
   final List<BucketModel> buckets;
 
-  const BucketState({this.buckets = const []});
+  const BucketsState({this.buckets = const []});
 }
 
-class BucketInitialState extends BucketState {
-  const BucketInitialState();
+final class BucketsInitialState extends BucketsState {
+  const BucketsInitialState();
 }
 
 //------------------------- LOADING -------------------------\\
-class BucketLoadingInProgressState extends BucketState {
-  const BucketLoadingInProgressState({super.buckets});
+final class BucketsSearchingState extends BucketsState {
+  const BucketsSearchingState({super.buckets});
 }
 
-class BucketLoadingSuccessState extends BucketState {
-  const BucketLoadingSuccessState({super.buckets});
+final class BucketsSearchOkState extends BucketsState {
+  const BucketsSearchOkState({super.buckets});
 }
 
-class BucketLoadingErrorState extends BucketState {
+final class BucketsSearchErrorState extends BucketsState {
   final GlobalException exception;
 
-  const BucketLoadingErrorState(this.exception, {super.buckets});
+  const BucketsSearchErrorState(this.exception, {super.buckets});
 }
 
 //------------------------- PROCESSING -------------------------\\
-class BucketProcessInProgressState extends BucketState {
-  const BucketProcessInProgressState({super.buckets});
+final class BucketsUpdatingState extends BucketsState {
+  const BucketsUpdatingState({super.buckets});
 }
 
-class BucketProcessingOKState extends BucketState {
+final class BucketsUpdatedOkState extends BucketsState {
   /// The bucket the action deleted, so a screen showing it can move on
   final String? deletedBucket;
 
-  const BucketProcessingOKState({super.buckets, this.deletedBucket});
+  const BucketsUpdatedOkState({super.buckets, this.deletedBucket});
 }
 
-class BucketProcessingErrorState extends BucketState {
+final class BucketsUpdatingErrorState extends BucketsState {
   final String message;
 
-  const BucketProcessingErrorState(this.message, {super.buckets});
+  const BucketsUpdatingErrorState(this.message, {super.buckets});
 }

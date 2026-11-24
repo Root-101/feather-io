@@ -50,7 +50,7 @@ class FeaturesInit {
 
     // Listen for logout to reset other cubits
     app.di.find<AuthCubit>().stream.listen((state) async {
-      if (state is AuthLogoutState) {
+      if (state is AuthLogoutOkState) {
         await _resetCubits();
       }
     });
@@ -67,6 +67,10 @@ class FeaturesInit {
     // LANGUAGE
     BlocProvider<LanguageCubit>(
       create: (context) => app.di.find<LanguageCubit>(),
+    ),
+    // TRANSFERS
+    BlocProvider<TransfersCubit>(
+      create: (context) => app.di.find<TransfersCubit>(),
     ),
   ];
 }

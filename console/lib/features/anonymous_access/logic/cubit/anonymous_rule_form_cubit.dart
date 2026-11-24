@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// State of the add-rule drawer. It lives while the drawer is open, so loading
 /// and errors show inside the form
-class AnonymousRuleFormCubit extends Cubit<AnonymousRuleFormState> {
+class AnonymousRuleFormCubit extends Cubit<AnonymousRuleFormState>
+    with GlobalEventBusCommunication<AnonymousRuleFormState> {
   final AnonymousAccessRepo _repo;
   final AuthCubit _auth;
 
@@ -49,22 +50,24 @@ abstract class AnonymousRuleFormState {
   const AnonymousRuleFormState();
 }
 
-class AnonymousRuleFormInitialState extends AnonymousRuleFormState {
+final class AnonymousRuleFormInitialState extends AnonymousRuleFormState {
   const AnonymousRuleFormInitialState();
 }
 
 //------------------------- PROCESSING -------------------------\
-class AnonymousRuleFormProcessInProgressState extends AnonymousRuleFormState {
+final class AnonymousRuleFormProcessInProgressState
+    extends AnonymousRuleFormState {
   const AnonymousRuleFormProcessInProgressState();
 }
 
-class AnonymousRuleFormProcessingOKState extends AnonymousRuleFormState {
+final class AnonymousRuleFormProcessingOKState extends AnonymousRuleFormState {
   final String prefix;
 
   const AnonymousRuleFormProcessingOKState({required this.prefix});
 }
 
-class AnonymousRuleFormProcessingErrorState extends AnonymousRuleFormState {
+final class AnonymousRuleFormProcessingErrorState
+    extends AnonymousRuleFormState {
   final GlobalException exception;
 
   /// Errors per field; if empty, the error belongs to the whole form

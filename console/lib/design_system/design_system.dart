@@ -6,6 +6,7 @@ export 'components/buttons/primary_button.dart';
 export 'components/buttons/rail_button.dart';
 export 'components/buttons/view_type_selector.dart';
 export 'components/feedback/app_form_alert.dart';
+export 'components/feedback/app_toast.dart';
 export 'components/feedback/confirm_dialog.dart';
 export 'components/inputs/app_color_picker.dart';
 export 'components/inputs/app_form_input.dart';

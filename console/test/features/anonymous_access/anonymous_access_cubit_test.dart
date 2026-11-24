@@ -58,10 +58,10 @@ void main() {
       build: build,
       act: (cubit) => cubit.load(bucket: 'media'),
       expect: () => [
-        isA<AnonymousAccessLoadingInProgressState>()
+        isA<AnonymousAccessSearchingState>()
             .having((s) => s.bucket, 'bucket', 'media')
             .having(prefixes, 'rules', isEmpty),
-        isA<AnonymousAccessLoadingSuccessState>().having(prefixes, 'rules', [
+        isA<AnonymousAccessSearchOkState>().having(prefixes, 'rules', [
           'photos/',
           'inbox/*.pdf',
         ]),
@@ -78,10 +78,10 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<AnonymousAccessLoadingInProgressState>()
+        isA<AnonymousAccessSearchingState>()
             .having((s) => s.bucket, 'bucket', 'backups')
             .having(prefixes, 'rules', isEmpty),
-        isA<AnonymousAccessLoadingSuccessState>(),
+        isA<AnonymousAccessSearchOkState>(),
       ],
     );
 
@@ -102,17 +102,17 @@ void main() {
         await first;
       },
       expect: () => [
-        isA<AnonymousAccessLoadingInProgressState>().having(
+        isA<AnonymousAccessSearchingState>().having(
           (s) => s.bucket,
           'bucket',
           'media',
         ),
-        isA<AnonymousAccessLoadingInProgressState>().having(
+        isA<AnonymousAccessSearchingState>().having(
           (s) => s.bucket,
           'bucket',
           'backups',
         ),
-        isA<AnonymousAccessLoadingSuccessState>()
+        isA<AnonymousAccessSearchOkState>()
             .having((s) => s.bucket, 'bucket', 'backups')
             .having(prefixes, 'rules', ['photos/', 'inbox/*.pdf']),
       ],
@@ -127,10 +127,10 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<AnonymousAccessProcessInProgressState>(),
-        isA<AnonymousAccessProcessingOKState>(),
-        isA<AnonymousAccessLoadingInProgressState>(),
-        isA<AnonymousAccessLoadingSuccessState>(),
+        isA<AnonymousAccessDeletingState>(),
+        isA<AnonymousAccessDeletedOkState>(),
+        isA<AnonymousAccessSearchingState>(),
+        isA<AnonymousAccessSearchOkState>(),
       ],
       verify: (_) => verify(
         () => repo.deleteRule(bucket: 'media', prefix: 'photos/', token: 'jwt'),
@@ -160,8 +160,8 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<AnonymousAccessProcessInProgressState>(),
-        isA<AnonymousAccessProcessingErrorState>()
+        isA<AnonymousAccessDeletingState>(),
+        isA<AnonymousAccessDeletingErrorState>()
             .having((s) => s.message, 'message', 'down')
             .having(prefixes, 'rules', ['photos/', 'inbox/*.pdf']),
       ],

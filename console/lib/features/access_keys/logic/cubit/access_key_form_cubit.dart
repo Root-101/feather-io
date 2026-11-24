@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// State of the create/edit drawer. It lives while the drawer is open, so
 /// loading and errors show inside the form
-class AccessKeyFormCubit extends Cubit<AccessKeyFormState> {
+class AccessKeyFormCubit extends Cubit<AccessKeyFormState>
+    with GlobalEventBusCommunication<AccessKeyFormState> {
   final AccessKeysRepo _repo;
   final AuthCubit _auth;
 
@@ -49,23 +50,23 @@ abstract class AccessKeyFormState {
   const AccessKeyFormState();
 }
 
-class AccessKeyFormInitialState extends AccessKeyFormState {
+final class AccessKeyFormInitialState extends AccessKeyFormState {
   const AccessKeyFormInitialState();
 }
 
 //------------------------- PROCESSING -------------------------\
-class AccessKeyFormProcessInProgressState extends AccessKeyFormState {
+final class AccessKeyFormProcessInProgressState extends AccessKeyFormState {
   const AccessKeyFormProcessInProgressState();
 }
 
-class AccessKeyFormProcessingOKState extends AccessKeyFormState {
+final class AccessKeyFormProcessingOKState extends AccessKeyFormState {
   final AccessKeyModel key;
   final bool created;
 
   const AccessKeyFormProcessingOKState(this.key, {required this.created});
 }
 
-class AccessKeyFormProcessingErrorState extends AccessKeyFormState {
+final class AccessKeyFormProcessingErrorState extends AccessKeyFormState {
   final GlobalException exception;
 
   /// Errors per field; if empty, the error belongs to the whole form

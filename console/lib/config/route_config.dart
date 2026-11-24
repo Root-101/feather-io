@@ -30,44 +30,28 @@ class RouteConfig {
         return null;
       },
       routes: [
-        GoRoute(
-          name: LoginScreen.navigator.name,
-          path: LoginScreen.navigator.path,
-          builder: LoginScreen.navigator.builder,
-        ),
+        ...LoginScreen.navigator.routes(),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return BaseScreen(navigationShell);
           },
           branches: [
             StatefulShellBranch(
-              routes: <RouteBase>[
+              routes: [
                 ///   /browser
-                GoRoute(
-                  name: BrowserScreen.navigator.name,
-                  path: BrowserScreen.navigator.path,
-                  builder: BrowserScreen.navigator.builder,
-                ),
+                ...BrowserScreen.navigator.routes(),
               ],
             ),
             StatefulShellBranch(
-              routes: <RouteBase>[
+              routes: [
                 ///   /buckets
-                GoRoute(
-                  name: BucketAdminScreen.navigator.name,
-                  path: BucketAdminScreen.navigator.path,
-                  builder: BucketAdminScreen.navigator.builder,
-                ),
+                ...BucketAdminScreen.navigator.routes(),
               ],
             ),
             StatefulShellBranch(
-              routes: <RouteBase>[
+              routes: [
                 ///   /keys
-                GoRoute(
-                  name: AccessKeysScreen.navigator.name,
-                  path: AccessKeysScreen.navigator.path,
-                  builder: AccessKeysScreen.navigator.builder,
-                ),
+                ...AccessKeysScreen.navigator.routes(),
               ],
             ),
           ],

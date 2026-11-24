@@ -8,44 +8,18 @@ import 'package:material_ui/material_ui.dart';
 /// [TransfersIndicator]: progress of each upload or download, cancel, retry
 /// and remove
 class TransfersPanel extends StatelessWidget {
+  static final TransfersPanelNavigator navigator = TransfersPanelNavigator();
+
   static const double width = 420;
 
-  /// Opens it next to the [anchor] widget, aligned with its bottom edge
-  static void show(BuildContext anchor) {
-    final box = anchor.findRenderObject() as RenderBox;
-    final topLeft = box.localToGlobal(Offset.zero);
-    final screen = MediaQuery.sizeOf(anchor);
-    final gap = app.dimensions.padding.l;
-    showGeneralDialog(
-      context: anchor,
-      barrierDismissible: true,
-      barrierLabel: app.intl.common.close,
-      barrierColor: app.colors.neutral.transparent,
-      transitionDuration: const Duration(milliseconds: 150),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Stack(
-          children: [
-            Positioned(
-              left: topLeft.dx + box.size.width + gap,
-              bottom: max(gap, screen.height - topLeft.dy - box.size.height),
-              child: const TransfersPanel._(),
-            ),
-          ],
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(opacity: animation, child: child);
-      },
-    );
-  }
-
   /// Summary of the queue status, or null if it is empty
-  static String? summary(TransferState state) => switch (state) {
-    TransferProcessInProgressState(:final activeCount) =>
-      app.intl.transfers.active(count: activeCount),
-    TransferProcessingOKState(:final failedCount) when failedCount > 0 =>
+  static String? summary(TransfersState state) => switch (state) {
+    TransfersRunningState(:final activeCount) => app.intl.transfers.active(
+      count: activeCount,
+    ),
+    TransfersFinishedOkState(:final failedCount) when failedCount > 0 =>
       app.intl.transfers.failed(count: failedCount),
-    TransferProcessingOKState() => app.intl.transfers.allDone,
+    TransfersFinishedOkState() => app.intl.transfers.allDone,
     _ => null,
   };
 
@@ -65,7 +39,7 @@ class TransfersPanel extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         width: width,
-        child: BlocBuilder<TransfersCubit, TransferState>(
+        child: BlocBuilder<TransfersCubit, TransfersState>(
           bloc: cubit,
           builder: (context, state) {
             return Column(
@@ -112,7 +86,7 @@ class TransfersPanel extends StatelessWidget {
     );
   }
 
-  Widget _header(TransferState state, TransfersCubit cubit) {
+  Widget _header(TransfersState state, TransfersCubit cubit) {
     final text = summary(state);
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -322,6 +296,38 @@ class _TransferRow extends StatelessWidget {
       tooltip: tooltip,
       onPressed: onPressed,
       icon: icon.build(size: 16, color: app.colors.neutral.grey2),
+    );
+  }
+}
+
+/// Opens [TransfersPanel]
+class TransfersPanelNavigator {
+  /// Opens it next to the [anchor] widget, aligned with its bottom edge
+  void open(BuildContext anchor) {
+    final box = anchor.findRenderObject() as RenderBox;
+    final topLeft = box.localToGlobal(Offset.zero);
+    final screen = MediaQuery.sizeOf(anchor);
+    final gap = app.dimensions.padding.l;
+    showGeneralDialog(
+      context: anchor,
+      barrierDismissible: true,
+      barrierLabel: app.intl.common.close,
+      barrierColor: app.colors.neutral.transparent,
+      transitionDuration: const Duration(milliseconds: 150),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Stack(
+          children: [
+            Positioned(
+              left: topLeft.dx + box.size.width + gap,
+              bottom: max(gap, screen.height - topLeft.dy - box.size.height),
+              child: const TransfersPanel._(),
+            ),
+          ],
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
     );
   }
 }

@@ -33,16 +33,16 @@ class _BucketsSubScreenState extends State<BucketsSubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<BucketsCubit, BucketState>(
+    return BlocConsumer<BucketsCubit, BucketsState>(
       listener: (context, state) {
-        if (state is BucketProcessInProgressState) {
+        if (state is BucketsUpdatingState) {
           app.loading.show(id: loadingOverlayGlobalId);
         } else {
           app.loading.hide(id: loadingOverlayGlobalId);
         }
 
-        if (state is BucketProcessingErrorState) {
-          app.snack.showError(message: state.message, context: context);
+        if (state is BucketsUpdatingErrorState) {
+          app.toast.error(state.message);
         }
       },
       builder: (context, state) {
@@ -61,7 +61,7 @@ class _BucketsSubScreenState extends State<BucketsSubScreen> {
 }
 
 class _BucketsView extends StatefulWidget {
-  final BucketState state;
+  final BucketsState state;
   final ViewType viewType;
   final VoidCallback onRefresh;
   final VoidCallback onRetry;
@@ -170,7 +170,7 @@ class _BucketsViewState extends State<_BucketsView> {
         ),
         PopupMenuItem(
           value: 'edit',
-          onTap: () => BucketForm.open(context, bucket: bucket),
+          onTap: () => BucketForm.navigator.edit(context, bucket: bucket),
           child: Row(
             children: [
               app.assets.icons.actions.edit.build(
@@ -226,11 +226,11 @@ class _BucketsViewState extends State<_BucketsView> {
             child: Stack(
               children: [
                 LoadingOverlay(
-                  visible: widget.state is BucketLoadingInProgressState,
+                  visible: widget.state is BucketsSearchingState,
                   overlayWidgetBuilder: LoadingOverlayStyles.table,
                   disableBackButton: false,
                   child: IgnorePointer(
-                    ignoring: widget.state is! BucketLoadingSuccessState,
+                    ignoring: widget.state is! BucketsSearchOkState,
                     child: Column(
                       children: [
                         _buildSearchSection(),
@@ -255,10 +255,10 @@ class _BucketsViewState extends State<_BucketsView> {
                     ),
                   ),
                 ),
-                if (widget.state is BucketLoadingErrorState)
+                if (widget.state is BucketsSearchErrorState)
                   Positioned.fill(
                     child: ErrorPage(
-                      message: (widget.state as BucketLoadingErrorState)
+                      message: (widget.state as BucketsSearchErrorState)
                           .exception
                           .intlMessage,
                       onRetry: widget.onRetry,
@@ -307,7 +307,7 @@ class _BucketsViewState extends State<_BucketsView> {
             app.dimensions.padding.m.gap(),
             PrimaryButton.primary(
               onPressed: () {
-                BucketForm.open(context);
+                BucketForm.navigator.create(context);
               },
               title: app.intl.buckets.create,
               h: 42,

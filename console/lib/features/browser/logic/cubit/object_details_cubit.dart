@@ -4,7 +4,8 @@ import 'package:mime/mime.dart';
 
 /// Data of an object's details drawer: its headers (`HEAD`) and, if it is a
 /// small image, its bytes for the thumbnail
-class ObjectDetailsCubit extends Cubit<ObjectDetailsState> {
+class ObjectDetailsCubit extends Cubit<ObjectDetailsState>
+    with GlobalEventBusCommunication<ObjectDetailsState> {
   /// Above this size the image is not downloaded for the thumbnail
   static const int maxThumbnailBytes = 5 * 1024 * 1024;
 
@@ -53,16 +54,16 @@ abstract class ObjectDetailsState {
   const ObjectDetailsState();
 }
 
-class ObjectDetailsInitialState extends ObjectDetailsState {
+final class ObjectDetailsInitialState extends ObjectDetailsState {
   const ObjectDetailsInitialState();
 }
 
 //------------------------- LOADING -------------------------\\
-class ObjectDetailsLoadingInProgressState extends ObjectDetailsState {
+final class ObjectDetailsLoadingInProgressState extends ObjectDetailsState {
   const ObjectDetailsLoadingInProgressState();
 }
 
-class ObjectDetailsLoadingSuccessState extends ObjectDetailsState {
+final class ObjectDetailsLoadingSuccessState extends ObjectDetailsState {
   final ObjectInfoModel info;
 
   /// Image bytes for the thumbnail; null if it is not an image or it is big
@@ -78,7 +79,7 @@ class ObjectDetailsLoadingSuccessState extends ObjectDetailsState {
   });
 }
 
-class ObjectDetailsLoadingErrorState extends ObjectDetailsState {
+final class ObjectDetailsLoadingErrorState extends ObjectDetailsState {
   final GlobalException exception;
 
   const ObjectDetailsLoadingErrorState(this.exception);
